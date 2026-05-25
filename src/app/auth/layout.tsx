@@ -29,7 +29,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       <p style={{ position:"relative", zIndex:1, marginTop:24, color:"rgba(255,255,255,0.18)", fontSize:".72rem" }}>
-        © 2024 Koperasi Emas · Terdaftar OJK · SSL 256-bit
+        © 2024 Koperasi Emas · Terdaftar Kemenkop UKM RI · SSL 256-bit
       </p>
     </div>
   );

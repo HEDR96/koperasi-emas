@@ -54,8 +54,8 @@ export default function SettingsPage() {
                 { label:"Tagline", value:"Platform Investasi Emas Terpercaya", type:"text" },
                 { label:"Email Resmi", value:"info@ked.id", type:"email" },
                 { label:"No. Telepon", value:"+62-21-5000-0000", type:"tel" },
-                { label:"Nomor OJK", value:"S-124/KO.0101/2023", type:"text" },
                 { label:"Nomor BH", value:"BH.2023.001.JAK", type:"text" },
+                { label:"No. Kemenkop UKM", value:"BH.0012345/KOP.2019", type:"text" },
                 { label:"Alamat Kantor Pusat", value:"Jl. Sudirman No. 45, Jakarta", type:"text" },
                 { label:"Jam Operasional", value:"08:00 - 17:00 WIB", type:"text" },
               ].map(f => (

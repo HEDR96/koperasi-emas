@@ -27,8 +27,8 @@ export default function Footer() {
             </p>
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
               {[
-                { Icon: Shield, text: `OJK: ${SITE_CONFIG.ojkNumber}` },
                 { Icon: Award, text: `BH: ${SITE_CONFIG.legalNumber}` },
+                { Icon: Shield, text: "Terdaftar Kemenkop UKM RI" },
               ].map(({ Icon, text }) => (
                 <div key={text} style={{ display:"flex", alignItems:"center", gap:8, color:"rgba(255,255,255,0.3)", fontSize:".75rem" }}>
                   <Icon style={{ width:13, height:13, color:"#D4AF37", flexShrink:0 }} />

@@ -11,7 +11,7 @@ export const SITE_CONFIG = {
   address: "Jl. Sudirman No. 88, Jakarta Pusat 10220",
   instagram: "@koperasiemas",
   legalNumber: "BH.0012345/KOP.2019",
-  ojkNumber: "S-3456/KO.023/2020",
+  kemenkopNumber: "BH.0012345/KOP.2019",
 };
 
 export const GOLD_DENOMINATIONS = [
@@ -122,9 +122,9 @@ export const FEATURES = [
 
 export const FAQ_ITEMS = [
   {
-    question: "Apakah Koperasi Emas sudah terdaftar dan diawasi OJK?",
+    question: "Apakah Koperasi Emas sudah terdaftar secara resmi?",
     answer:
-      "Ya, Koperasi Emas telah terdaftar di Kementerian Koperasi dan UKM RI dengan nomor BH.0012345/KOP.2019 serta telah mendapat izin operasional dari OJK dengan nomor S-3456/KO.023/2020.",
+      "Ya, Koperasi Emas telah terdaftar dan memiliki badan hukum resmi dari Kementerian Koperasi dan UKM RI dengan nomor BH.0012345/KOP.2019. Koperasi kami beroperasi sesuai ketentuan perundang-undangan koperasi yang berlaku.",
   },
   {
     question: "Bagaimana cara mendaftar menjadi member?",

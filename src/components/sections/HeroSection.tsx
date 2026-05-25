@@ -88,7 +88,7 @@ export default function HeroSection() {
           className="inline-flex items-center gap-2 glass-dark gold-border-glow px-4 py-2 rounded-full text-sm mb-8"
           style={{ color:"#D4AF37" }}>
           <Shield style={{ width:16, height:16 }} />
-          <span style={{ fontWeight:500 }}>Terdaftar OJK & Kementerian Koperasi RI</span>
+          <span style={{ fontWeight:500 }}>Terdaftar Kementerian Koperasi & UKM RI</span>
           <Award style={{ width:16, height:16 }} />
         </motion.div>
 

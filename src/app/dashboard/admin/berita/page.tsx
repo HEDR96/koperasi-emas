@@ -9,7 +9,7 @@ const ARTICLES = [
   { id:"ART002", title:"Tips Investasi Emas untuk Pemula 2024", category:"Edukasi", date:"2024-03-12", status:"published", views:856 },
   { id:"ART003", title:"KE Raih Penghargaan Koperasi Digital Terbaik", category:"Pengumuman", date:"2024-03-10", status:"published", views:2180 },
   { id:"ART004", title:"Cara Menghitung ROI Investasi Emas", category:"Edukasi", date:"2024-03-08", status:"draft", views:0 },
-  { id:"ART005", title:"Update Regulasi OJK Tentang Koperasi Digital", category:"Regulasi", date:"2024-03-05", status:"published", views:643 },
+  { id:"ART005", title:"Update Regulasi Kemenkop UKM Tentang Koperasi", category:"Regulasi", date:"2024-03-05", status:"published", views:643 },
 ];
 
 const CAT_COLORS: Record<string, string> = {
