@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="ringGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#F5D060"/>
+      <stop offset="40%"  stop-color="#D4AF37"/>
+      <stop offset="70%"  stop-color="#C8920A"/>
+      <stop offset="100%" stop-color="#F5D060"/>
+    </linearGradient>
+    <linearGradient id="starGold" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#FFE066"/>
+      <stop offset="100%" stop-color="#C8920A"/>
+    </linearGradient>
+    <linearGradient id="figureGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#3B2000"/>
+      <stop offset="100%" stop-color="#1A0E00"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer golden ring -->
+  <circle cx="100" cy="100" r="92" fill="none" stroke="url(#ringGold)" stroke-width="11"/>
+
+  <!-- ── Three stars ── -->
+  <!-- Star top-center -->
+  <polygon points="100,16 104.8,30.2 119.8,30.2 107.9,38.8 112.7,53 100,44.4 87.3,53 92.1,38.8 80.2,30.2 95.2,30.2"
+           fill="url(#starGold)"/>
+  <!-- Star top-left -->
+  <polygon points="65,28 69,39.8 81.4,39.8 71.7,46.8 75.7,58.6 65,51.6 54.3,58.6 58.3,46.8 48.6,39.8 61,39.8"
+           fill="url(#starGold)"/>
+  <!-- Star top-right -->
+  <polygon points="135,28 139,39.8 151.4,39.8 141.7,46.8 145.7,58.6 135,51.6 124.3,58.6 128.3,46.8 118.6,39.8 131,39.8"
+           fill="url(#starGold)"/>
+
+  <!-- ── Two human figures ── -->
+  <!-- Left figure head -->
+  <circle cx="82" cy="72" r="11" fill="url(#figureGrad)"/>
+  <!-- Right figure head -->
+  <circle cx="118" cy="72" r="11" fill="url(#figureGrad)"/>
+
+  <!-- Left arm (sweeping up-left) -->
+  <path d="M 76,83 Q 48,88 38,70" fill="none" stroke="url(#figureGrad)" stroke-width="18" stroke-linecap="round"/>
+  <!-- Right arm (sweeping up-right) -->
+  <path d="M 124,83 Q 152,88 162,70" fill="none" stroke="url(#figureGrad)" stroke-width="18" stroke-linecap="round"/>
+
+  <!-- Shared body / torso merging at center -->
+  <path d="M 74,83 Q 82,105 100,115 Q 118,105 126,83 Q 118,95 100,98 Q 82,95 74,83 Z" fill="url(#figureGrad)"/>
+
+  <!-- Lower body / legs spreading to base -->
+  <path d="M 100,115 Q 80,135 58,160 Q 72,160 86,148 Q 93,138 100,130 Q 107,138 114,148 Q 128,160 142,160 Q 120,135 100,115 Z" fill="url(#figureGrad)"/>
+</svg>

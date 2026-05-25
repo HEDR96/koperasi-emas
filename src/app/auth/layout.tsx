@@ -14,7 +14,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
       {/* Logo */}
       <Link href="/" style={{ position:"relative", zIndex:1, display:"flex", alignItems:"center", gap:12, textDecoration:"none", marginBottom:32 }}>
-        <img src="/logo.png" alt="KED" style={{ width:56, height:56, objectFit:"contain", borderRadius:14 }}
+        <img src="/logo.svg" alt="KED" style={{ width:56, height:56, objectFit:"contain", borderRadius:14 }}
           onError={e => { const el = e.currentTarget as HTMLImageElement; el.style.display="none"; (el.nextElementSibling as HTMLElement).style.display="flex"; }}
         />
         <div className="bg-gold-gradient" style={{ width:56, height:56, borderRadius:14, display:"none", alignItems:"center", justifyContent:"center", boxShadow:"0 6px 20px rgba(212,175,55,0.35)", fontSize:"1.4rem", fontWeight:900, color:"#0a0a0a", flexShrink:0 }}>K</div>
