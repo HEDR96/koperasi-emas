@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, Coins, TrendingUp, FileText, Settings,
   LogOut, ChevronLeft, ChevronRight, Shield, Tag,
   BarChart3, CreditCard, ArrowLeftRight, Wallet, Gift,
-  MessageCircle, Upload, Building, X, PiggyBank,
+  MessageCircle, Upload, Building, X, PiggyBank, Landmark,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -44,8 +44,9 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Verifikasi", href:"/dashboard/admin/verifikasi", icon:FileText },
       { label:"Kelola Member", href:"/dashboard/admin/member", icon:Users },
     ]},
-    { group:"Simpanan", items:[
+    { group:"Simpanan & Gadai", items:[
       { label:"Verif. Simpanan", href:"/dashboard/admin/simpanan", icon:PiggyBank },
+      { label:"Gadai Emas",      href:"/dashboard/admin/gadai",    icon:Landmark },
     ]},
     { group:"Konten", items:[
       { label:"Upload Promo", href:"/dashboard/admin/promo",   icon:Tag },
@@ -63,6 +64,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
     { group:"Transaksi", items:[
       { label:"Beli Emas",    href:"/dashboard/member/beli",     icon:TrendingUp },
       { label:"Buyback",      href:"/dashboard/member/buyback",  icon:ArrowLeftRight },
+      { label:"Gadai Emas",   href:"/dashboard/member/gadai",    icon:Landmark },
       { label:"Cicilan Emas", href:"/dashboard/member/cicilan",  icon:CreditCard },
       { label:"Tabungan Emas",href:"/dashboard/member/tabungan", icon:Wallet },
     ]},

@@ -106,6 +106,18 @@ export const FEATURES = [
     desc: "Saldo rupiah untuk mempermudah transaksi dalam platform kami.",
     color: "from-orange-400/20 to-orange-500/5",
   },
+  {
+    icon: "Landmark",
+    title: "Gadai Simpanan",
+    desc: "Butuh dana mendesak? Cairkan simpananmu sebagai jaminan tanpa kehilangan kepemilikan selama mampu melunasi.",
+    color: "from-blue-500/20 to-blue-600/5",
+  },
+  {
+    icon: "BadgeDollarSign",
+    title: "SHU Tahunan",
+    desc: "Nikmati Sisa Hasil Usaha (SHU) setiap tahun — bagi hasil koperasi untuk seluruh anggota aktif.",
+    color: "from-purple-500/20 to-purple-600/5",
+  },
 ];
 
 export const FAQ_ITEMS = [
@@ -143,6 +155,21 @@ export const FAQ_ITEMS = [
     question: "Bagaimana cicilan emas bekerja?",
     answer:
       "Pilih produk emas, tentukan tenor 3-36 bulan, bayar DP minimal 20%, dan cicil sisanya setiap bulan. Tanpa bunga dan tanpa biaya admin untuk member aktif.",
+  },
+  {
+    question: "Apa itu Gadai Simpanan dan bagaimana cara kerjanya?",
+    answer:
+      "Gadai simpanan memungkinkan member mencairkan dana menggunakan simpanan sebagai jaminan. Contoh: simpanan Rp 20 juta dengan harga buyback Rp 1 juta/gram → member mendapat setara 20 gram (Rp 20 juta) dicairkan. Simpanan tetap tercatat selama member melunasi. Jika tidak mampu melunasi, simpanan otomatis menjadi pelunasan. Fitur ini khusus member dengan simpanan pokok minimal Rp 5 juta.",
+  },
+  {
+    question: "Apa itu SHU (Sisa Hasil Usaha)?",
+    answer:
+      "SHU adalah bagi hasil keuntungan koperasi yang dibagikan kepada anggota aktif setiap tahun. Besarnya proporsional berdasarkan total simpanan dan volume transaksi emas masing-masing anggota selama setahun. SHU merupakan hak eksklusif member koperasi.",
+  },
+  {
+    question: "Apakah buyback dan gadai bisa dilakukan non-member?",
+    answer:
+      "Tidak. Buyback dengan harga terbaik dan fitur gadai simpanan hanya tersedia untuk member aktif yang telah memenuhi kewajiban simpanan pokok Rp 5.000.000 dan simpanan wajib Rp 200.000/bulan. Non-member hanya dapat membeli emas dengan harga umum.",
   },
 ];
 

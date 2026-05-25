@@ -3,13 +3,15 @@
 import { motion } from "framer-motion";
 import {
   PiggyBank, CreditCard, ArrowLeftRight, TrendingUp,
-  ShoppingBag, Send, Users, Gift, FileText, Wallet
+  ShoppingBag, Send, Users, Gift, FileText, Wallet,
+  Landmark, BadgeDollarSign,
 } from "lucide-react";
 import { FEATURES } from "@/lib/constants";
 
 const ICONS: Record<string, any> = {
   PiggyBank, CreditCard, ArrowLeftRight, TrendingUp,
   ShoppingBag, Send, Users, Gift, FileText, Wallet,
+  Landmark, BadgeDollarSign,
 };
 
 export default function FeaturesSection() {

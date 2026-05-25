@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import { Coins, TrendingUp, Wallet, Gift, ArrowRight, CreditCard, ArrowLeftRight, PiggyBank } from "lucide-react";
+import { Coins, TrendingUp, Wallet, Gift, ArrowRight, CreditCard, ArrowLeftRight, PiggyBank, Landmark } from "lucide-react";
 import Link from "next/link";
 import StatCard from "@/components/dashboard/StatCard";
 import TransactionTable from "@/components/dashboard/TransactionTable";
@@ -31,11 +31,11 @@ const CICILAN_ACTIVE = [
 ];
 
 const QUICK_ACTIONS = [
-  { label:"Beli Emas",  href:"/dashboard/member/beli",     icon:TrendingUp,   color:"#D4AF37", bg:"rgba(212,175,55,0.1)" },
-  { label:"Buyback",    href:"/dashboard/member/buyback",  icon:ArrowLeftRight,color:"#4ade80", bg:"rgba(74,222,128,0.1)" },
-  { label:"Cicilan",    href:"/dashboard/member/cicilan",  icon:CreditCard,   color:"#60a5fa", bg:"rgba(96,165,250,0.1)" },
-  { label:"Simpanan",   href:"/dashboard/member/simpanan", icon:PiggyBank,    color:"#c084fc", bg:"rgba(192,132,252,0.1)" },
-  { label:"Referral",   href:"/dashboard/member/referral", icon:Gift,         color:"#fb923c", bg:"rgba(251,146,60,0.1)" },
+  { label:"Beli Emas",  href:"/dashboard/member/beli",     icon:TrendingUp,    color:"#D4AF37", bg:"rgba(212,175,55,0.1)" },
+  { label:"Buyback",    href:"/dashboard/member/buyback",  icon:ArrowLeftRight, color:"#4ade80", bg:"rgba(74,222,128,0.1)" },
+  { label:"Gadai",      href:"/dashboard/member/gadai",    icon:Landmark,      color:"#60a5fa", bg:"rgba(96,165,250,0.1)" },
+  { label:"Simpanan",   href:"/dashboard/member/simpanan", icon:PiggyBank,     color:"#c084fc", bg:"rgba(192,132,252,0.1)" },
+  { label:"Referral",   href:"/dashboard/member/referral", icon:Gift,          color:"#fb923c", bg:"rgba(251,146,60,0.1)" },
 ];
 
 export default function MemberDashboardPage() {

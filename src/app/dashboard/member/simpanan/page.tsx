@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PiggyBank, CheckCircle, Clock, Plus, AlertCircle, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
+import { PiggyBank, CheckCircle, Clock, Plus, AlertCircle, TrendingUp, ChevronDown, ChevronUp, Landmark, BadgeDollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -243,6 +243,35 @@ export default function SimpananPage() {
             </motion.div>
           )}
         </AnimatePresence>
+      </motion.div>
+
+      {/* SHU & Gadai Info */}
+      <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ delay:.3 }}
+        style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+        {/* SHU */}
+        <div style={{ background:"linear-gradient(135deg,rgba(192,132,252,0.08),rgba(96,165,250,0.04))", border:"1px solid rgba(192,132,252,0.2)", borderRadius:16, padding:16 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+            <BadgeDollarSign style={{ width:18, height:18, color:"#c084fc" }} />
+            <p style={{ color:"#c084fc", fontWeight:700, fontSize:".85rem" }}>SHU Tahunan</p>
+          </div>
+          <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem", lineHeight:1.6 }}>
+            Sisa Hasil Usaha dibagikan setiap akhir tahun buku. Estimasi:{" "}
+            <strong style={{ color:"#c084fc" }}>{((totalAll * 0.07)).toLocaleString("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0})}</strong>{" "}
+            (±7% dari total simpanan).
+          </p>
+        </div>
+        {/* Gadai */}
+        <div style={{ background:"linear-gradient(135deg,rgba(96,165,250,0.08),rgba(74,222,128,0.04))", border:"1px solid rgba(96,165,250,0.2)", borderRadius:16, padding:16 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+            <Landmark style={{ width:18, height:18, color:"#60a5fa" }} />
+            <p style={{ color:"#60a5fa", fontWeight:700, fontSize:".85rem" }}>Gadai Simpanan</p>
+          </div>
+          <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem", lineHeight:1.6 }}>
+            Simpanan kamu senilai{" "}
+            <strong style={{ color:"#D4AF37" }}>{new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(totalAll)}</strong>{" "}
+            bisa dijadikan jaminan untuk pinjaman dana mendesak.
+          </p>
+        </div>
       </motion.div>
 
       {/* Histori */}

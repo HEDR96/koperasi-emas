@@ -28,6 +28,7 @@ const TITLES: Record<string, string> = {
   "/dashboard/admin/berita": "Manajemen Berita",
   "/dashboard/admin/chat": "Chat Member",
   "/dashboard/admin/invoice": "Invoice",
+  "/dashboard/admin/gadai": "Gadai Emas Member",
   "/dashboard/member": "Dashboard Saya",
   "/dashboard/member/saldo": "Saldo & Emas",
   "/dashboard/member/beli": "Beli Emas",
@@ -38,6 +39,7 @@ const TITLES: Record<string, string> = {
   "/dashboard/member/histori": "Histori Transaksi",
   "/dashboard/member/referral": "Program Referral",
   "/dashboard/member/upload": "Upload Bukti Bayar",
+  "/dashboard/member/gadai": "Gadai Simpanan",
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
