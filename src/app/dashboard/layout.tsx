@@ -40,9 +40,15 @@ const TITLES: Record<string, string> = {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, syncUser } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
+
+  useEffect(() => {
+    // Sync Supabase session on mount
+    syncUser();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated) {

@@ -26,7 +26,7 @@ export default function SaldoPage() {
   const goldGram  = user?.balance?.gold || 125.5;
   const goldValue = goldGram * goldPrice;
   const rupiah    = user?.balance?.rupiah || 5000000;
-  const savings   = user?.balance?.savings || 2500000;
+  const savings   = 2500000; // tabungan emas (from savings table)
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:24 }}>

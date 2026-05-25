@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Check, Shield } from "lucide-react";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const STEPS = ["Data Diri", "Akun & Password", "Konfirmasi"];
 
@@ -31,9 +32,10 @@ function Field({ label, type="text", placeholder, value, onChange, required }: {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { register, isLoading } = useAuthStore();
   const [step, setStep] = useState(0);
-  const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
+  const [error, setError] = useState("");
   const [form, setForm] = useState({
     name:"", phone:"", email:"", nik:"",
     password:"", confirmPassword:"", referral:"", agree:false,
@@ -42,13 +44,22 @@ export default function RegisterPage() {
   const update = (field: string, value: string|boolean) => setForm(f => ({ ...f, [field]:value }));
 
   const next = async () => {
-    if (step < STEPS.length-1) {
-      setStep(s => s+1);
+    setError("");
+    if (step === 0) {
+      if (!form.name || !form.nik || !form.phone) { setError("Lengkapi semua data diri."); return; }
+      setStep(1);
+    } else if (step === 1) {
+      if (!form.email || !form.password) { setError("Email dan password wajib diisi."); return; }
+      if (form.password.length < 8) { setError("Password minimal 8 karakter."); return; }
+      if (form.password !== form.confirmPassword) { setError("Password tidak sama."); return; }
+      setStep(2);
     } else {
-      setLoading(true);
-      await new Promise(r => setTimeout(r, 1800));
-      setLoading(false);
-      router.push("/auth/login");
+      const result = await register({
+        name: form.name, email: form.email, password: form.password,
+        phone: form.phone, nik: form.nik, referral: form.referral || undefined,
+      });
+      if (!result.success) { setError(result.error || "Pendaftaran gagal."); return; }
+      router.push("/auth/login?registered=1");
     }
   };
 
@@ -70,6 +81,12 @@ export default function RegisterPage() {
           </div>
         ))}
       </div>
+
+      {error && (
+        <div style={{ background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:12, padding:"10px 14px", color:"#f87171", fontSize:".83rem", marginBottom:14 }}>
+          {error}
+        </div>
+      )}
 
       <AnimatePresence mode="wait">
         <motion.div key={step} initial={{ opacity:0, x:30 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0, x:-30 }} transition={{ duration:.25 }}>
@@ -154,9 +171,9 @@ export default function RegisterPage() {
             <ArrowLeft style={{ width:15,height:15 }} /> Kembali
           </button>
         )}
-        <button className="btn-gold" onClick={next} disabled={loading||(step===2&&!form.agree)}
-          style={{ flex:1, padding:"13px", borderRadius:13, border:"none", cursor:(loading||(step===2&&!form.agree))?"not-allowed":"pointer", fontSize:".9rem", display:"flex", alignItems:"center", justifyContent:"center", gap:8, opacity:(step===2&&!form.agree)?0.5:1 }}>
-          {loading ? "Memproses..." : step===STEPS.length-1 ? (
+        <button className="btn-gold" onClick={next} disabled={isLoading||(step===2&&!form.agree)}
+          style={{ flex:1, padding:"13px", borderRadius:13, border:"none", cursor:(isLoading||(step===2&&!form.agree))?"not-allowed":"pointer", fontSize:".9rem", display:"flex", alignItems:"center", justifyContent:"center", gap:8, opacity:(step===2&&!form.agree)?0.5:1 }}>
+          {isLoading ? "Memproses..." : step===STEPS.length-1 ? (
             <><Check style={{ width:16,height:16 }} /> Daftar Sekarang</>
           ) : (
             <>Lanjut <ArrowRight style={{ width:15,height:15 }} /></>

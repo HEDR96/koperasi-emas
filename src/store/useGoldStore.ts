@@ -1,7 +1,9 @@
 "use client";
 
 import { create } from "zustand";
+import { supabase } from "@/lib/supabase";
 import type { GoldPrice } from "@/types";
+import type { GoldPriceRow } from "@/lib/database.types";
 import { MOCK_GOLD_PRICES } from "@/lib/constants";
 
 interface GoldState {
@@ -16,27 +18,38 @@ export const useGoldStore = create<GoldState>((set) => ({
   prices: MOCK_GOLD_PRICES,
   isLoading: false,
   lastFetch: null,
+
   setPrices: (prices) => set({ prices }),
+
   fetchPrices: async () => {
     set({ isLoading: true });
-    await new Promise((r) => setTimeout(r, 800));
-    // Small deterministic fluctuation based on current second to simulate live feed
-    const second = new Date().getSeconds();
-    const fluctuation = ((second % 10) - 5) * 400; // range -2000 to +2000
-    set((state) => ({
-      isLoading: false,
-      lastFetch: new Date().toISOString(),
-      prices: {
-        ...state.prices,
-        buyMember: state.prices.buyMember + fluctuation,
-        buyNonMember: state.prices.buyNonMember + fluctuation,
-        buybackMember: state.prices.buybackMember + fluctuation,
-        buybackNonMember: state.prices.buybackNonMember + fluctuation,
-        change: fluctuation,
-        changePercent: +(fluctuation / state.prices.buyMember * 100).toFixed(2),
-        trend: fluctuation > 0 ? "up" : fluctuation < 0 ? "down" : "stable",
-        lastUpdate: new Date().toISOString(),
-      },
-    }));
+    try {
+      const { data, error } = await supabase
+        .from("gold_prices")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single() as { data: GoldPriceRow | null; error: unknown };
+
+      if (error || !data) throw new Error("No price data");
+
+      set({
+        isLoading: false,
+        lastFetch: new Date().toISOString(),
+        prices: {
+          buyMember:        data.buy_member,
+          buyNonMember:     data.buy_non_member,
+          buybackMember:    data.buyback_member,
+          buybackNonMember: data.buyback_non_member,
+          change:           data.change_amount,
+          changePercent:    Number(data.change_percent),
+          trend:            data.trend as "up" | "down",
+          lastUpdate:       data.created_at,
+        },
+      });
+    } catch {
+      // Fallback to constants if DB unreachable
+      set({ isLoading: false, lastFetch: new Date().toISOString() });
+    }
   },
 }));
