@@ -1,23 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Gift, Copy, Share2, Check, Users, TrendingUp } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
+import { supabase } from "@/lib/supabase";
 import { formatCurrency } from "@/lib/utils";
-
-const REFERRAL_HISTORY = Array.from({ length: 8 }, (_, i) => ({
-  id: i+1,
-  name: ["Wahyu H.","Mega P.","Farhan A.","Linda S.","Bagus K."][i%5],
-  joinDate: new Date(Date.now()-i*7*86400000).toISOString().slice(0,10),
-  bonus: 50000,
-  status: i%3===2?"pending":"paid" as "paid"|"pending",
-}));
 
 export default function ReferralPage() {
   const { user } = useAuthStore();
   const [copied, setCopied] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [referralHistory, setReferralHistory] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    (async () => {
+      const { data } = await (supabase.from("referrals") as any)
+        .select("*, referred:referred_id(name, created_at)")
+        .eq("referrer_id", user.id)
+        .order("created_at", { ascending: false });
+      setReferralHistory(data ?? []);
+    })();
+  }, [user?.id]);
 
   const link = `https://koperasiemas.co.id/register?ref=${user?.referralCode || "KE-DEMO"}`;
 
@@ -27,15 +32,15 @@ export default function ReferralPage() {
     else { setCopiedLink(true); setTimeout(()=>setCopiedLink(false),2000); }
   };
 
-  const totalEarned = REFERRAL_HISTORY.filter(r=>r.status==="paid").length*50000;
-  const totalPending = REFERRAL_HISTORY.filter(r=>r.status==="pending").length*50000;
+  const totalEarned = referralHistory.filter(r=>r.status==="paid").reduce((a: number, b: any) => a + (b.bonus_amount || 50000), 0);
+  const totalPending = referralHistory.filter(r=>r.status==="pending").reduce((a: number, b: any) => a + (b.bonus_amount || 50000), 0);
 
   return (
     <div style={{ maxWidth:580, margin:"0 auto", display:"flex", flexDirection:"column", gap:24 }}>
       {/* Stats */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:14 }}>
         {[
-          { label:"Total Diajak", value:String(REFERRAL_HISTORY.length), icon:Users, color:"#60a5fa" },
+          { label:"Total Diajak", value:String(referralHistory.length), icon:Users, color:"#60a5fa" },
           { label:"Bonus Diterima", value:formatCurrency(totalEarned), icon:Check, color:"#4ade80" },
           { label:"Pending", value:formatCurrency(totalPending), icon:TrendingUp, color:"#D4AF37" },
         ].map(s => {
@@ -120,23 +125,29 @@ export default function ReferralPage() {
         style={{ background:"rgba(14,14,14,0.8)", border:"1px solid rgba(212,175,55,0.15)", borderRadius:20, padding:24 }}>
         <h3 style={{ color:"#fff", fontWeight:700, marginBottom:16 }}>Riwayat Referral</h3>
         <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
-          {REFERRAL_HISTORY.map((r, i) => (
-            <div key={r.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 0", borderBottom: i<REFERRAL_HISTORY.length-1?"1px solid rgba(255,255,255,0.05)":"none" }}>
-              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <div className="bg-gold-gradient" style={{ width:32, height:32, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, color:"#0a0a0a", fontSize:".78rem", flexShrink:0 }}>{r.name[0]}</div>
-                <div>
-                  <p style={{ color:"#fff", fontSize:".84rem", fontWeight:600 }}>{r.name}</p>
-                  <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem" }}>{r.joinDate}</p>
+          {referralHistory.length === 0 ? (
+            <div style={{ textAlign:"center", color:"rgba(255,255,255,0.3)", padding:"24px 0", fontSize:".82rem" }}>Belum ada referral</div>
+          ) : referralHistory.map((r: any, i: number) => {
+            const name: string = r.referred?.name || "Anggota";
+            const joinDate: string = (r.referred?.created_at || r.created_at || "").slice(0, 10);
+            return (
+              <div key={r.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 0", borderBottom: i<referralHistory.length-1?"1px solid rgba(255,255,255,0.05)":"none" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  <div className="bg-gold-gradient" style={{ width:32, height:32, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, color:"#0a0a0a", fontSize:".78rem", flexShrink:0 }}>{name[0]}</div>
+                  <div>
+                    <p style={{ color:"#fff", fontSize:".84rem", fontWeight:600 }}>{name}</p>
+                    <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem" }}>{joinDate}</p>
+                  </div>
+                </div>
+                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  <span style={{ color:"#D4AF37", fontWeight:700, fontSize:".83rem" }}>+{formatCurrency(r.bonus_amount || 50000)}</span>
+                  <span style={{ background: r.status==="paid"?"rgba(74,222,128,0.1)":"rgba(251,146,60,0.1)", color: r.status==="paid"?"#4ade80":"#fb923c", borderRadius:8, padding:"3px 9px", fontSize:".73rem", fontWeight:700 }}>
+                    {r.status==="paid"?"Dibayar":"Pending"}
+                  </span>
                 </div>
               </div>
-              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <span style={{ color:"#D4AF37", fontWeight:700, fontSize:".83rem" }}>+{formatCurrency(r.bonus)}</span>
-                <span style={{ background: r.status==="paid"?"rgba(74,222,128,0.1)":"rgba(251,146,60,0.1)", color: r.status==="paid"?"#4ade80":"#fb923c", borderRadius:8, padding:"3px 9px", fontSize:".73rem", fontWeight:700 }}>
-                  {r.status==="paid"?"Dibayar":"Pending"}
-                </span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </motion.div>
     </div>

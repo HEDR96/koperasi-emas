@@ -4,6 +4,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Coins, Save, TrendingUp, TrendingDown, History } from "lucide-react";
 import { useGoldStore } from "@/store/useGoldStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { supabase } from "@/lib/supabase";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 
 const HISTORY = [
@@ -26,7 +28,20 @@ export default function HargaEmasPage() {
 
   const handleSave = async () => {
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1000));
+    const admin = useAuthStore.getState().user;
+    const newPrices = {
+      buy_member: +form.buyMember,
+      buy_non_member: +form.buyNonMember,
+      buyback_member: +form.buybackMember,
+      buyback_non_member: +form.buybackNonMember,
+      updated_by: admin?.id,
+    };
+    const { data: existing } = await (supabase.from("gold_prices") as any).select("id").limit(1).single();
+    if (existing?.id) {
+      await (supabase.from("gold_prices") as any).update(newPrices).eq("id", existing.id);
+    } else {
+      await (supabase.from("gold_prices") as any).insert(newPrices);
+    }
     setPrices({
       ...prices,
       buyMember: +form.buyMember,

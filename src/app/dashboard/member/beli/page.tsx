@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { Coins, ShoppingCart, Check, ArrowRight, CheckCircle } from "lucide-react";
 import { formatCurrency, formatGoldWeight } from "@/lib/utils";
 import { useGoldStore } from "@/store/useGoldStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { supabase } from "@/lib/supabase";
 import { GOLD_DENOMINATIONS } from "@/lib/constants";
 
 const PAYMENT_METHODS = [
@@ -22,14 +24,28 @@ export default function BeliEmasPage() {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [orderError, setOrderError] = useState<string | null>(null);
 
   const selectedGram = customGram ? +customGram : gram;
   const total = selectedGram * prices.buyMember;
 
   const handleOrder = async () => {
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1800));
+    setOrderError(null);
+    const { user } = useAuthStore.getState();
+    const { error } = await (supabase.from("transactions") as any).insert({
+      user_id: user?.id,
+      type: "buy",
+      gram: selectedGram,
+      amount: total,
+      status: "pending",
+      notes: `Beli ${selectedGram}g via ${paymentMethod}`,
+    });
     setLoading(false);
+    if (error) {
+      setOrderError(error.message);
+      return;
+    }
     setSuccess(true);
   };
 
@@ -150,6 +166,9 @@ export default function BeliEmasPage() {
           </div>
         </div>
 
+        {orderError && (
+          <p style={{ color:"#f87171", fontSize:".8rem", marginTop:12 }}>{orderError}</p>
+        )}
         <button className="btn-gold" onClick={handleOrder} disabled={!paymentMethod||selectedGram<=0||loading}
           style={{ width:"100%", marginTop:18, padding:"14px", borderRadius:13, border:"none", cursor:(!paymentMethod||selectedGram<=0)?"not-allowed":"pointer", fontSize:".92rem", display:"flex", alignItems:"center", justifyContent:"center", gap:8, opacity:(!paymentMethod||selectedGram<=0)?0.5:1 }}>
           {loading ? (

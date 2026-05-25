@@ -4,25 +4,33 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Coins, ArrowLeftRight, CheckCircle, AlertCircle, TrendingDown } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useGoldStore } from "@/store/useGoldStore";
+import { supabase } from "@/lib/supabase";
 import { formatCurrency } from "@/lib/utils";
-
-const BUYBACK_PRICE = 1890000; // per gram
 
 export default function BuybackPage() {
   const { user } = useAuthStore();
+  const { prices } = useGoldStore();
   const totalGold = user?.balance?.gold || 125.5;
   const [gram, setGram] = useState(1);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [step, setStep] = useState<"form"|"confirm">("form");
 
-  const amount = gram * BUYBACK_PRICE;
+  const amount = gram * prices.buybackMember;
   const fee = Math.floor(amount * 0.002);
   const net = amount - fee;
 
   const handleSubmit = async () => {
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1500));
+    await (supabase.from("transactions") as any).insert({
+      user_id: user?.id,
+      type: "buyback",
+      gram: gram,
+      amount: net,
+      status: "pending",
+      notes: `Buyback ${gram}g, harga ${prices.buybackMember}/g`,
+    });
     setLoading(false);
     setSuccess(true);
   };
@@ -55,7 +63,7 @@ export default function BuybackPage() {
       <div style={{ background:"rgba(251,146,60,0.08)", border:"1px solid rgba(251,146,60,0.2)", borderRadius:14, padding:"12px 16px", display:"flex", alignItems:"flex-start", gap:10 }}>
         <AlertCircle style={{ width:16, height:16, color:"#fb923c", flexShrink:0, marginTop:1 }} />
         <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".8rem", lineHeight:1.5 }}>
-          Buyback harga member: <strong style={{ color:"#D4AF37" }}>{formatCurrency(BUYBACK_PRICE)}/gram</strong>.
+          Buyback harga member: <strong style={{ color:"#D4AF37" }}>{formatCurrency(prices.buybackMember)}/gram</strong>.
           Proses 1–2 hari kerja. Biaya admin 0.2% dari nilai transaksi.
         </p>
       </div>
@@ -68,7 +76,7 @@ export default function BuybackPage() {
           <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".82rem" }}>Emas Tersedia untuk Buyback</span>
         </div>
         <p style={{ color:"#D4AF37", fontSize:"2.2rem", fontWeight:900 }}>{totalGold}<span style={{ fontSize:"1rem", color:"rgba(212,175,55,0.5)" }}>g</span></p>
-        <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".78rem" }}>≈ {formatCurrency(totalGold * BUYBACK_PRICE)}</p>
+        <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".78rem" }}>≈ {formatCurrency(totalGold * prices.buybackMember)}</p>
       </motion.div>
 
       <AnimatePresence mode="wait">
@@ -107,7 +115,7 @@ export default function BuybackPage() {
             {/* Summary */}
             <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:14, padding:16, marginBottom:20 }}>
               {[
-                { label:"Harga per gram", value:formatCurrency(BUYBACK_PRICE) },
+                { label:"Harga per gram", value:formatCurrency(prices.buybackMember) },
                 { label:"Total emas", value:`${gram}g` },
                 { label:"Nilai bruto", value:formatCurrency(amount) },
                 { label:"Biaya admin (0.2%)", value:`-${formatCurrency(fee)}`, color:"#f87171" },
@@ -138,7 +146,7 @@ export default function BuybackPage() {
             <div style={{ background:"rgba(212,175,55,0.05)", border:"1px solid rgba(212,175,55,0.15)", borderRadius:14, padding:18, marginBottom:20 }}>
               {[
                 { label:"Emas yang dijual", value:`${gram}g` },
-                { label:"Harga buyback", value:formatCurrency(BUYBACK_PRICE)+"/g" },
+                { label:"Harga buyback", value:formatCurrency(prices.buybackMember)+"/g" },
                 { label:"Dana diterima", value:formatCurrency(net), highlight:true },
                 { label:"Estimasi proses", value:"1–2 Hari Kerja" },
               ].map(r => (
