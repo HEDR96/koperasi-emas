@@ -279,6 +279,14 @@ CREATE POLICY "branches_write" ON public.branches FOR ALL
   USING (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role IN ('admin','master')));
 
 -- ─────────────────────────────────────────────
+-- SAFE COLUMN ADDITIONS (idempotent — safe to re-run)
+-- ─────────────────────────────────────────────
+ALTER TABLE public.promos ADD COLUMN IF NOT EXISTS discount_percent INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE public.promos ADD COLUMN IF NOT EXISTS start_date DATE;
+ALTER TABLE public.promos ADD COLUMN IF NOT EXISTS end_date DATE;
+ALTER TABLE public.promos ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;
+
+-- ─────────────────────────────────────────────
 -- SEED DATA
 -- ─────────────────────────────────────────────
 -- Sample branches
