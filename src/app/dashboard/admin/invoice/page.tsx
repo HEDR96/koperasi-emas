@@ -87,7 +87,7 @@ export default function InvoicePage() {
             {/* Invoice Header */}
             <div className="bg-gold-gradient" style={{ borderRadius:12, padding:"14px 18px", marginBottom:20, textAlign:"center" }}>
               <p style={{ color:"#0a0a0a", fontWeight:900, fontSize:"1.1rem" }}>INVOICE</p>
-              <p style={{ color:"rgba(0,0,0,0.6)", fontSize:".75rem" }}>Koperasi Emas Digital</p>
+              <p style={{ color:"rgba(0,0,0,0.6)", fontSize:".75rem" }}>Koperasi Emas</p>
             </div>
             <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
               {[

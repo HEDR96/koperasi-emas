@@ -152,6 +152,53 @@ export default function ContactSection() {
             </Card>
           </motion.div>
         </div>
+
+        {/* ── Map Section ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2 }}
+          style={{ marginTop: 32 }}
+        >
+          <div style={{
+            background: "rgba(14,14,14,0.85)",
+            border: "1px solid rgba(212,175,55,0.18)",
+            borderRadius: 20,
+            overflow: "hidden",
+          }}>
+            {/* Map header */}
+            <div style={{ padding: "16px 24px", borderBottom: "1px solid rgba(212,175,55,0.1)", display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(212,175,55,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <MapPin style={{ width: 18, height: 18, color: "#D4AF37" }} />
+              </div>
+              <div>
+                <p style={{ color: "#fff", fontWeight: 700, fontSize: ".9rem", lineHeight: 1 }}>Lokasi Kantor Kami</p>
+                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: ".75rem", marginTop: 3 }}>{SITE_CONFIG.address}</p>
+              </div>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(SITE_CONFIG.address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.25)", color: "#D4AF37", fontSize: ".78rem", fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}
+              >
+                <MapPin style={{ width: 13, height: 13 }} />
+                Buka di Maps
+              </a>
+            </div>
+            {/* Iframe */}
+            <iframe
+              title="Lokasi Koperasi Emas"
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(SITE_CONFIG.address)}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
+              width="100%"
+              height="380"
+              style={{ display: "block", border: "none", filter: "invert(90%) hue-rotate(180deg)" }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+        </motion.div>
+
       </div>
     </section>
   );

@@ -102,7 +102,7 @@ export default function HeroSection() {
           <br />
           Bersama{" "}
           <span style={{ position:"relative", display:"inline-block" }}>
-            Koperasi Emas Digital
+            Koperasi Emas
             <span style={{ position:"absolute", bottom:-6, left:0, right:0, height:3, background:"linear-gradient(90deg,#D4AF37,#F5D060)", borderRadius:2 }} />
           </span>
         </motion.h1>
@@ -112,7 +112,7 @@ export default function HeroSection() {
           initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay:.5 }}
           style={{ fontSize:"clamp(1rem,2vw,1.2rem)", color:"rgba(255,255,255,0.55)", maxWidth:640, margin:"0 auto 2.5rem", lineHeight:1.7 }}
         >
-          Platform koperasi emas digital terpercaya untuk 150.000+ anggota Indonesia.
+          Platform koperasi emas terpercaya untuk 150.000+ anggota Indonesia.
           Tabung, cicil, buyback, dan investasi emas mulai dari 0.01 gram dengan keamanan berlapis.
         </motion.p>
 

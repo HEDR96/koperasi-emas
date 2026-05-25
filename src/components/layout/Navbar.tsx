@@ -35,13 +35,13 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link href="/" style={{ display:"flex", alignItems:"center", gap:10, textDecoration:"none", flexShrink:0 }}>
-            <img src="/logo.svg" alt="KED" style={{ width:42, height:42, borderRadius:10, objectFit:"contain" }}
+            <img src="/logo.svg" alt="KE" style={{ width:42, height:42, borderRadius:10, objectFit:"contain" }}
               onError={e => { const el = e.currentTarget as HTMLImageElement; el.style.display="none"; (el.nextElementSibling as HTMLElement).style.display="flex"; }}
             />
             <div className="bg-gold-gradient" style={{ width:42, height:42, borderRadius:10, display:"none", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 14px rgba(212,175,55,0.35)", fontSize:"1rem", fontWeight:900, color:"#0a0a0a", flexShrink:0 }}>K</div>
             <div>
-              <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:"1rem", lineHeight:1 }}>KED</div>
-              <div style={{ fontSize:".65rem", color:"rgba(255,255,255,0.3)", lineHeight:1 }}>Koperasi Emas Digital</div>
+              <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:"1rem", lineHeight:1 }}>KE</div>
+              <div style={{ fontSize:".65rem", color:"rgba(255,255,255,0.3)", lineHeight:1 }}>Koperasi Emas</div>
             </div>
           </Link>
 

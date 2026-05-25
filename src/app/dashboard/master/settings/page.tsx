@@ -50,7 +50,7 @@ export default function SettingsPage() {
             <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".82rem", marginBottom:24 }}>Konfigurasi dasar sistem koperasi</p>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:18 }}>
               {[
-                { label:"Nama Koperasi", value:"Koperasi Emas Digital", type:"text" },
+                { label:"Nama Koperasi", value:"Koperasi Emas", type:"text" },
                 { label:"Tagline", value:"Platform Investasi Emas Terpercaya", type:"text" },
                 { label:"Email Resmi", value:"info@ked.id", type:"email" },
                 { label:"No. Telepon", value:"+62-21-5000-0000", type:"tel" },

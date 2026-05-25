@@ -12,7 +12,7 @@ const PAYMENT_METHODS = [
   { id:"mandiri", label:"Mandiri Transfer", icon:"🏦" },
   { id:"bni",     label:"BNI Transfer",    icon:"🏦" },
   { id:"qris",    label:"QRIS",            icon:"📱" },
-  { id:"ewallet", label:"E-Wallet KED",    icon:"💳" },
+  { id:"ewallet", label:"E-Wallet KE",    icon:"💳" },
 ];
 
 export default function BeliEmasPage() {

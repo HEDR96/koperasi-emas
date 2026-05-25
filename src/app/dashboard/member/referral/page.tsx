@@ -19,7 +19,7 @@ export default function ReferralPage() {
   const [copied, setCopied] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
-  const link = `https://koperasiemasdigital.co.id/register?ref=${user?.referralCode || "KED-DEMO"}`;
+  const link = `https://koperasiemas.co.id/register?ref=${user?.referralCode || "KE-DEMO"}`;
 
   const copy = (text: string, type: "code"|"link") => {
     navigator.clipboard?.writeText(text).catch(()=>{});
@@ -66,8 +66,8 @@ export default function ReferralPage() {
 
         {/* Code Display */}
         <div style={{ background:"rgba(212,175,55,0.06)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:14, padding:"16px 20px", display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
-          <span className="text-gold-gradient" style={{ fontSize:"1.6rem", fontWeight:900, letterSpacing:".15em" }}>{user?.referralCode || "KED-DEMO"}</span>
-          <button onClick={() => copy(user?.referralCode || "KED-DEMO", "code")} className="btn-outline-gold"
+          <span className="text-gold-gradient" style={{ fontSize:"1.6rem", fontWeight:900, letterSpacing:".15em" }}>{user?.referralCode || "KE-DEMO"}</span>
+          <button onClick={() => copy(user?.referralCode || "KE-DEMO", "code")} className="btn-outline-gold"
             style={{ display:"flex", alignItems:"center", gap:7, padding:"7px 14px", borderRadius:9, cursor:"pointer", fontSize:".8rem" }}>
             {copied ? <Check style={{ width:13, height:13 }} /> : <Copy style={{ width:13, height:13 }} />}
             {copied ? "Disalin!" : "Salin"}

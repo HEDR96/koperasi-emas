@@ -175,7 +175,7 @@ export default function RegisterPage() {
                   <a href="#" style={{ color:"#D4AF37", textDecoration:"none" }}>Syarat & Ketentuan</a>
                   {" "}dan{" "}
                   <a href="#" style={{ color:"#D4AF37", textDecoration:"none" }}>Kebijakan Privasi</a>
-                  {" "}Koperasi Emas Digital.
+                  {" "}Koperasi Emas.
                 </span>
               </label>
             </div>

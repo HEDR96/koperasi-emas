@@ -67,5 +67,5 @@ export function getStatusColor(status: string): string {
 }
 
 export function generateReferralCode(userId: string): string {
-  return `KED${userId.slice(0, 4).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+  return `KE${userId.slice(0, 4).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 }

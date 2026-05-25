@@ -162,7 +162,7 @@ export default function MemberDashboardPage() {
           </div>
           <div>
             <p style={{ color:"#fff", fontWeight:700, fontSize:".9rem" }}>Ajak Teman, Dapat Bonus!</p>
-            <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem" }}>Kode referral kamu: <strong style={{ color:"#fb923c" }}>{user?.referralCode || "KED-DEMO"}</strong> · Bonus Rp 50.000/referral</p>
+            <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem" }}>Kode referral kamu: <strong style={{ color:"#fb923c" }}>{user?.referralCode || "KE-DEMO"}</strong> · Bonus Rp 50.000/referral</p>
           </div>
         </div>
         <Link href="/dashboard/member/referral" style={{ textDecoration:"none" }}>

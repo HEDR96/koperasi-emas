@@ -13,17 +13,17 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
-              <img src="/logo.svg" alt="KED" style={{ width:42, height:42, objectFit:"contain", borderRadius:10 }}
+              <img src="/logo.svg" alt="KE" style={{ width:42, height:42, objectFit:"contain", borderRadius:10 }}
                 onError={e => { const el = e.currentTarget as HTMLImageElement; el.style.display="none"; (el.nextElementSibling as HTMLElement).style.display="flex"; }}
               />
               <div className="bg-gold-gradient" style={{ width:42, height:42, borderRadius:10, display:"none", alignItems:"center", justifyContent:"center", fontSize:"1.1rem", fontWeight:900, color:"#0a0a0a", flexShrink:0 }}>K</div>
               <div>
-                <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:"1rem" }}>KED</div>
-                <div style={{ fontSize:".65rem", color:"rgba(255,255,255,0.3)" }}>Koperasi Emas Digital</div>
+                <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:"1rem" }}>KE</div>
+                <div style={{ fontSize:".65rem", color:"rgba(255,255,255,0.3)" }}>Koperasi Emas</div>
               </div>
             </div>
             <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".82rem", lineHeight:1.7, marginBottom:16 }}>
-              Platform koperasi emas digital terpercaya untuk 150.000+ anggota Indonesia.
+              Platform koperasi emas terpercaya untuk 150.000+ anggota Indonesia.
             </p>
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
               {[

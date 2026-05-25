@@ -1,15 +1,15 @@
 export const SITE_CONFIG = {
-  name: "Koperasi Emas Digital",
-  shortName: "KED",
+  name: "Koperasi Emas",
+  shortName: "KE",
   tagline: "Investasi Emas Aman & Terpercaya",
   description:
-    "Platform koperasi emas digital terpercaya untuk tabungan, cicilan, buyback, dan investasi emas online bersama jutaan anggota Indonesia.",
-  url: "https://koperasiemasdigital.co.id",
-  email: "info@koperasiemasdigital.co.id",
+    "Platform koperasi emas terpercaya untuk tabungan, cicilan, buyback, dan investasi emas online bersama jutaan anggota Indonesia.",
+  url: "https://koperasiemas.co.id",
+  email: "info@koperasiemas.co.id",
   phone: "+62 811-0000-1234",
   whatsapp: "6281100001234",
   address: "Jl. Sudirman No. 88, Jakarta Pusat 10220",
-  instagram: "@koperasiemasdigital",
+  instagram: "@koperasiemas",
   legalNumber: "BH.0012345/KOP.2019",
   ojkNumber: "S-3456/KO.023/2020",
 };
@@ -110,9 +110,9 @@ export const FEATURES = [
 
 export const FAQ_ITEMS = [
   {
-    question: "Apakah Koperasi Emas Digital sudah terdaftar dan diawasi OJK?",
+    question: "Apakah Koperasi Emas sudah terdaftar dan diawasi OJK?",
     answer:
-      "Ya, Koperasi Emas Digital telah terdaftar di Kementerian Koperasi dan UKM RI dengan nomor BH.0012345/KOP.2019 serta telah mendapat izin operasional dari OJK dengan nomor S-3456/KO.023/2020.",
+      "Ya, Koperasi Emas telah terdaftar di Kementerian Koperasi dan UKM RI dengan nomor BH.0012345/KOP.2019 serta telah mendapat izin operasional dari OJK dengan nomor S-3456/KO.023/2020.",
   },
   {
     question: "Bagaimana cara mendaftar menjadi member?",

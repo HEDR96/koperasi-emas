@@ -91,17 +91,17 @@ function SidebarInner({ collapsed, onToggle, onClose }: { collapsed: boolean; on
       <div style={{ padding:"16px 14px", borderBottom:"1px solid rgba(255,255,255,0.05)", display:"flex", alignItems:"center", justifyContent: collapsed ? "center" : "space-between", gap:8, flexShrink:0 }}>
         {!collapsed && (
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <img src="/logo.svg" alt="KED" style={{ width:30, height:30, objectFit:"contain", borderRadius:7 }}
+            <img src="/logo.svg" alt="KE" style={{ width:30, height:30, objectFit:"contain", borderRadius:7 }}
               onError={e => { (e.currentTarget as HTMLImageElement).style.display="none"; }}
             />
             <div>
-              <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:".9rem", lineHeight:1 }}>KED</div>
+              <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:".9rem", lineHeight:1 }}>KE</div>
               <div style={{ fontSize:".65rem", color:"rgba(255,255,255,0.3)", textTransform:"capitalize" }}>{role} Panel</div>
             </div>
           </div>
         )}
         {collapsed && (
-          <img src="/logo.svg" alt="KED" style={{ width:30, height:30, objectFit:"contain", borderRadius:7 }}
+          <img src="/logo.svg" alt="KE" style={{ width:30, height:30, objectFit:"contain", borderRadius:7 }}
             onError={e => { (e.currentTarget as HTMLImageElement).style.display="none"; }}
           />
         )}

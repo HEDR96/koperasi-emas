@@ -10,19 +10,19 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Koperasi Emas Digital | Investasi Emas Aman & Terpercaya",
-    template: "%s | Koperasi Emas Digital",
+    default: "Koperasi Emas | Investasi Emas Aman & Terpercaya",
+    template: "%s | Koperasi Emas",
   },
   description:
-    "Platform koperasi emas digital terpercaya. Tabungan emas, cicilan 0%, buyback instan, dan investasi emas untuk 150.000+ anggota Indonesia.",
+    "Platform koperasi emas terpercaya. Tabungan emas, cicilan 0%, buyback instan, dan investasi emas untuk 150.000+ anggota Indonesia.",
   keywords: ["koperasi emas", "investasi emas", "tabungan emas", "cicilan emas", "buyback emas"],
   openGraph: {
     type: "website",
     locale: "id_ID",
-    url: "https://koperasiemasdigital.co.id",
-    title: "Koperasi Emas Digital",
-    description: "Platform koperasi emas digital terpercaya",
-    siteName: "Koperasi Emas Digital",
+    url: "https://koperasiemas.co.id",
+    title: "Koperasi Emas",
+    description: "Platform koperasi emas terpercaya",
+    siteName: "Koperasi Emas",
   },
   robots: { index: true, follow: true },
 };

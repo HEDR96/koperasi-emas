@@ -7,7 +7,7 @@ import { Plus, Edit2, Trash2, Eye, FileText, Calendar } from "lucide-react";
 const ARTICLES = [
   { id:"ART001", title:"Harga Emas Tembus Rp 1.100.000/gram", category:"Berita", date:"2024-03-15", status:"published", views:1240 },
   { id:"ART002", title:"Tips Investasi Emas untuk Pemula 2024", category:"Edukasi", date:"2024-03-12", status:"published", views:856 },
-  { id:"ART003", title:"KED Raih Penghargaan Koperasi Digital Terbaik", category:"Pengumuman", date:"2024-03-10", status:"published", views:2180 },
+  { id:"ART003", title:"KE Raih Penghargaan Koperasi Digital Terbaik", category:"Pengumuman", date:"2024-03-10", status:"published", views:2180 },
   { id:"ART004", title:"Cara Menghitung ROI Investasi Emas", category:"Edukasi", date:"2024-03-08", status:"draft", views:0 },
   { id:"ART005", title:"Update Regulasi OJK Tentang Koperasi Digital", category:"Regulasi", date:"2024-03-05", status:"published", views:643 },
 ];
