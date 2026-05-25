@@ -115,11 +115,14 @@ export default function GoldPriceSection() {
             </div>
             <div>
               <p style={{ color:"#fff", fontWeight:600, fontSize:".9rem" }}>Hemat lebih banyak sebagai Member!</p>
-              <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem" }}>Selisih harga beli: {formatCurrency(prices.buyNonMember - prices.buyMember)}/gram vs non-member</p>
+              <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem" }}>
+                Selisih harga beli: {formatCurrency(prices.buyNonMember - prices.buyMember)}/gram vs non-member ·{" "}
+                <span style={{ color:"rgba(212,175,55,0.7)" }}>Simpanan pokok Rp 5 jt · Wajib Rp 200 rb/bln</span>
+              </p>
             </div>
           </div>
           <Link href="/auth/register">
-            <button className="btn-gold" style={{ padding:"10px 22px", borderRadius:11, fontSize:".85rem", border:"none", cursor:"pointer", whiteSpace:"nowrap" }}>Daftar Sekarang</button>
+            <button className="btn-gold" style={{ padding:"10px 22px", borderRadius:11, fontSize:".85rem", border:"none", cursor:"pointer", whiteSpace:"nowrap" }}>Daftar Jadi Member</button>
           </Link>
         </motion.div>
       </div>

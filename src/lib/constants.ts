@@ -117,7 +117,7 @@ export const FAQ_ITEMS = [
   {
     question: "Bagaimana cara mendaftar menjadi member?",
     answer:
-      "Daftar sangat mudah: isi formulir online, upload KTP & selfie, setorkan simpanan pokok Rp 100.000, dan akun member Anda aktif dalam 1x24 jam. Proses 100% online!",
+      "Daftar mudah secara online: isi formulir, upload KTP & selfie, lalu setorkan simpanan pokok Rp 5.000.000 (sekali bayar, menjadi hak anggota) dan simpanan wajib Rp 200.000/bulan sebagai syarat aktif. Akun diaktivasi dalam 1x24 jam setelah verifikasi.",
   },
   {
     question: "Berapa minimal pembelian emas?",

@@ -71,8 +71,8 @@ export default function FeaturesSection() {
         <motion.div initial={{ opacity:0 }} whileInView={{ opacity:1 }} viewport={{ once:true }} transition={{ delay:.5 }}
           style={{ textAlign:"center", marginTop:40, color:"rgba(255,255,255,0.35)", fontSize:".85rem" }}
         >
-          Semua fitur tersedia untuk member aktif.{" "}
-          <a href="/auth/register" style={{ color:"#D4AF37", fontWeight:600, textDecoration:"none" }}>Daftar sekarang →</a>
+          Semua fitur tersedia untuk member aktif (simpanan pokok Rp 5 jt + wajib Rp 200 rb/bln).{" "}
+          <a href="/auth/register" style={{ color:"#D4AF37", fontWeight:600, textDecoration:"none" }}>Daftar jadi member →</a>
         </motion.div>
       </div>
 

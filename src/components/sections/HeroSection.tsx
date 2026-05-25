@@ -124,7 +124,7 @@ export default function HeroSection() {
           <Link href="/auth/register">
             <button className="btn-gold pulse-glow" style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"14px 32px", borderRadius:14, fontSize:"1rem", border:"none", cursor:"pointer" }}>
               <Users style={{ width:20, height:20 }} />
-              Daftar Member Gratis
+              Daftar Jadi Member
             </button>
           </Link>
           <Link href="#harga-emas">
@@ -138,6 +138,25 @@ export default function HeroSection() {
               Simulasi Cicilan
             </button>
           </Link>
+        </motion.div>
+
+        {/* Syarat keanggotaan */}
+        <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:.75 }}
+          style={{ display:"flex", flexWrap:"wrap", gap:10, justifyContent:"center", marginBottom:"2.5rem" }}>
+          {[
+            { icon:"🏦", label:"Simpanan Pokok", value:"Rp 5.000.000", sub:"sekali bayar, milik Anda" },
+            { icon:"📅", label:"Simpanan Wajib",  value:"Rp 200.000/bln", sub:"syarat aktif anggota" },
+            { icon:"🥇", label:"Harga Member",    value:"Lebih hemat",   sub:`vs non-member /gram` },
+          ].map(b => (
+            <div key={b.label} style={{ display:"flex", alignItems:"center", gap:10, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(212,175,55,0.15)", borderRadius:12, padding:"10px 16px" }}>
+              <span style={{ fontSize:"1.2rem" }}>{b.icon}</span>
+              <div>
+                <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".68rem", marginBottom:1 }}>{b.label}</p>
+                <p style={{ color:"#D4AF37", fontWeight:800, fontSize:".82rem", lineHeight:1 }}>{b.value}</p>
+                <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".65rem" }}>{b.sub}</p>
+              </div>
+            </div>
+          ))}
         </motion.div>
 
         {/* Stats */}
