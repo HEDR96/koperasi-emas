@@ -20,7 +20,8 @@ export default function MasterLoginPage() {
     const ok = await login(form.email, form.password);
     if (!ok) {
       setAttempts(a => a + 1);
-      setError("Kredensial tidak valid. Akses ditolak.");
+      const realErr = useAuthStore.getState().error;
+      setError(realErr || "Kredensial tidak valid. Akses ditolak.");
       return;
     }
     const user = useAuthStore.getState().user;
