@@ -31,7 +31,7 @@ export async function GET() {
   }
 
   // 2. Upsert profile with role = master
-  const { error: profErr } = await admin.from("profiles").upsert(
+  const { error: profErr } = await (admin.from("profiles") as any).upsert(
     { id: userId, name: "Master Admin", role: "master", status: "active", gold_grams: 0, rupiah_balance: 0 },
     { onConflict: "id" }
   );
