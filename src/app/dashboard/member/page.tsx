@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import { Coins, TrendingUp, Wallet, Gift, ArrowRight, CreditCard, ArrowLeftRight } from "lucide-react";
+import { Coins, TrendingUp, Wallet, Gift, ArrowRight, CreditCard, ArrowLeftRight, PiggyBank } from "lucide-react";
 import Link from "next/link";
 import StatCard from "@/components/dashboard/StatCard";
 import TransactionTable from "@/components/dashboard/TransactionTable";
@@ -31,11 +31,11 @@ const CICILAN_ACTIVE = [
 ];
 
 const QUICK_ACTIONS = [
-  { label:"Beli Emas", href:"/dashboard/member/beli", icon:TrendingUp, color:"#D4AF37", bg:"rgba(212,175,55,0.1)" },
-  { label:"Buyback", href:"/dashboard/member/buyback", icon:ArrowLeftRight, color:"#4ade80", bg:"rgba(74,222,128,0.1)" },
-  { label:"Cicilan", href:"/dashboard/member/cicilan", icon:CreditCard, color:"#60a5fa", bg:"rgba(96,165,250,0.1)" },
-  { label:"Tabungan", href:"/dashboard/member/tabungan", icon:Wallet, color:"#c084fc", bg:"rgba(192,132,252,0.1)" },
-  { label:"Referral", href:"/dashboard/member/referral", icon:Gift, color:"#fb923c", bg:"rgba(251,146,60,0.1)" },
+  { label:"Beli Emas",  href:"/dashboard/member/beli",     icon:TrendingUp,   color:"#D4AF37", bg:"rgba(212,175,55,0.1)" },
+  { label:"Buyback",    href:"/dashboard/member/buyback",  icon:ArrowLeftRight,color:"#4ade80", bg:"rgba(74,222,128,0.1)" },
+  { label:"Cicilan",    href:"/dashboard/member/cicilan",  icon:CreditCard,   color:"#60a5fa", bg:"rgba(96,165,250,0.1)" },
+  { label:"Simpanan",   href:"/dashboard/member/simpanan", icon:PiggyBank,    color:"#c084fc", bg:"rgba(192,132,252,0.1)" },
+  { label:"Referral",   href:"/dashboard/member/referral", icon:Gift,         color:"#fb923c", bg:"rgba(251,146,60,0.1)" },
 ];
 
 export default function MemberDashboardPage() {
@@ -44,6 +44,8 @@ export default function MemberDashboardPage() {
   const goldGrams = user?.balance?.gold || 125.5;
   const goldValue = goldGrams * prices.buybackMember;
   const rupiah    = user?.balance?.rupiah || 5000000;
+  // Simpanan mock — akan diganti query real setelah tabel simpanan ada
+  const simpananTotal = 5_200_000; // pokok 5jt + 1 bulan wajib 200k
 
   const chartData = MOCK_CHART_DATA.slice(0, 30).map(d => ({
     ...d, portfolio: goldGrams * d.price,
@@ -55,7 +57,7 @@ export default function MemberDashboardPage() {
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:16 }}>
         <StatCard title="Total Emas" value={`${goldGrams}g`} change={2.5} icon={<Coins style={{ width:20, height:20 }} />} color="#D4AF37" delay={0} />
         <StatCard title="Nilai Portfolio" value={`Rp ${(goldValue/1000000).toFixed(1)}jt`} change={1.8} icon={<TrendingUp style={{ width:20, height:20 }} />} color="#4ade80" delay={0.1} />
-        <StatCard title="Saldo Rupiah" value={`Rp ${(rupiah/1000000).toFixed(1)}jt`} icon={<Wallet style={{ width:20, height:20 }} />} color="#60a5fa" delay={0.2} />
+        <StatCard title="Total Simpanan" value={formatCurrency(simpananTotal)} icon={<PiggyBank style={{ width:20, height:20 }} />} color="#c084fc" delay={0.2} />
         <StatCard title="Harga Emas/g" value={formatCurrency(prices.buyMember)} change={0.3} icon={<Coins style={{ width:20, height:20 }} />} color="#fb923c" delay={0.3} />
       </div>
 
@@ -126,6 +128,29 @@ export default function MemberDashboardPage() {
             );
           })}
         </div>
+      </motion.div>
+
+      {/* Simpanan Banner */}
+      <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.55 }}
+        style={{ background:"linear-gradient(135deg, rgba(192,132,252,0.08), rgba(96,165,250,0.05))", border:"1px solid rgba(192,132,252,0.2)", borderRadius:18, padding:20, display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+          <div style={{ width:42, height:42, borderRadius:12, background:"rgba(192,132,252,0.1)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <PiggyBank style={{ width:20, height:20, color:"#c084fc" }} />
+          </div>
+          <div>
+            <p style={{ color:"#fff", fontWeight:700, fontSize:".9rem" }}>Simpanan Koperasi</p>
+            <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem" }}>
+              Pokok <strong style={{ color:"#D4AF37" }}>Rp 5.000.000</strong> · Wajib{" "}
+              <strong style={{ color:"#60a5fa" }}>Rp 200.000/bln</strong> · Total:{" "}
+              <strong style={{ color:"#c084fc" }}>{formatCurrency(simpananTotal)}</strong>
+            </p>
+          </div>
+        </div>
+        <Link href="/dashboard/member/simpanan" style={{ textDecoration:"none" }}>
+          <button className="btn-outline-gold" style={{ padding:"9px 20px", borderRadius:11, cursor:"pointer", fontSize:".82rem", whiteSpace:"nowrap" }}>
+            Lihat Simpanan
+          </button>
+        </Link>
       </motion.div>
 
       {/* Referral Banner */}

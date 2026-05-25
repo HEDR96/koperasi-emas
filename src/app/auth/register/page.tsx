@@ -136,15 +136,35 @@ export default function RegisterPage() {
                 ))}
               </div>
 
-              <div style={{ background:"rgba(212,175,55,0.06)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:14, padding:"14px 16px", display:"flex", gap:12 }}>
-                <div style={{ width:36, height:36, borderRadius:10, background:"rgba(212,175,55,0.1)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                  <Shield style={{ width:16, height:16, color:"#D4AF37" }} />
+              {/* Kewajiban finansial */}
+              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                <div style={{ background:"rgba(212,175,55,0.06)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:14, padding:"14px 16px", display:"flex", gap:12 }}>
+                  <div style={{ width:36, height:36, borderRadius:10, background:"rgba(212,175,55,0.12)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <Shield style={{ width:16, height:16, color:"#D4AF37" }} />
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:3 }}>
+                      <p style={{ color:"#fff", fontSize:".85rem", fontWeight:700 }}>Simpanan Pokok</p>
+                      <span style={{ color:"#D4AF37", fontWeight:900, fontSize:".9rem" }}>Rp 5.000.000</span>
+                    </div>
+                    <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".76rem", lineHeight:1.6 }}>
+                      Dibayar sekali saat mendaftar. Dana ini adalah hak Anda sebagai anggota koperasi dan dapat dikembalikan jika keluar.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p style={{ color:"#fff", fontSize:".85rem", fontWeight:600, marginBottom:4 }}>Simpanan Pokok</p>
-                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".76rem", lineHeight:1.6 }}>
-                    Setoran awal Rp 100.000 sebagai simpanan pokok koperasi. Dana ini merupakan hak Anda sebagai anggota.
-                  </p>
+                <div style={{ background:"rgba(96,165,250,0.06)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:14, padding:"14px 16px", display:"flex", gap:12 }}>
+                  <div style={{ width:36, height:36, borderRadius:10, background:"rgba(96,165,250,0.1)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <Shield style={{ width:16, height:16, color:"#60a5fa" }} />
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:3 }}>
+                      <p style={{ color:"#fff", fontSize:".85rem", fontWeight:700 }}>Simpanan Wajib</p>
+                      <span style={{ color:"#60a5fa", fontWeight:900, fontSize:".9rem" }}>Rp 200.000 / bln</span>
+                    </div>
+                    <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".76rem", lineHeight:1.6 }}>
+                      Wajib dibayar setiap bulan. Menambah saldo simpanan koperasi Anda dan menjadi syarat aktif sebagai anggota.
+                    </p>
+                  </div>
                 </div>
               </div>
 

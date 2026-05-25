@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, Coins, TrendingUp, FileText, Settings,
   LogOut, ChevronLeft, ChevronRight, Shield, Tag,
   BarChart3, CreditCard, ArrowLeftRight, Wallet, Gift,
-  MessageCircle, Upload, Building, X,
+  MessageCircle, Upload, Building, X, PiggyBank,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -44,28 +44,32 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Verifikasi", href:"/dashboard/admin/verifikasi", icon:FileText },
       { label:"Kelola Member", href:"/dashboard/admin/member", icon:Users },
     ]},
+    { group:"Simpanan", items:[
+      { label:"Verif. Simpanan", href:"/dashboard/admin/simpanan", icon:PiggyBank },
+    ]},
     { group:"Konten", items:[
-      { label:"Upload Promo", href:"/dashboard/admin/promo", icon:Tag },
-      { label:"Berita", href:"/dashboard/admin/berita", icon:FileText },
-      { label:"Chat Member", href:"/dashboard/admin/chat", icon:MessageCircle },
-      { label:"Invoice", href:"/dashboard/admin/invoice", icon:FileText },
+      { label:"Upload Promo", href:"/dashboard/admin/promo",   icon:Tag },
+      { label:"Berita",       href:"/dashboard/admin/berita",  icon:FileText },
+      { label:"Chat Member",  href:"/dashboard/admin/chat",    icon:MessageCircle },
+      { label:"Invoice",      href:"/dashboard/admin/invoice", icon:FileText },
     ]},
   ],
   member: [
     { group:"Portofolio", items:[
-      { label:"Dashboard", href:"/dashboard/member", icon:LayoutDashboard },
-      { label:"Saldo & Emas", href:"/dashboard/member/saldo", icon:Coins },
+      { label:"Dashboard",    href:"/dashboard/member",          icon:LayoutDashboard },
+      { label:"Saldo & Emas", href:"/dashboard/member/saldo",    icon:Coins },
+      { label:"Simpanan",     href:"/dashboard/member/simpanan", icon:PiggyBank },
     ]},
     { group:"Transaksi", items:[
-      { label:"Beli Emas", href:"/dashboard/member/beli", icon:TrendingUp },
-      { label:"Buyback", href:"/dashboard/member/buyback", icon:ArrowLeftRight },
-      { label:"Cicilan Emas", href:"/dashboard/member/cicilan", icon:CreditCard },
-      { label:"Tabungan Emas", href:"/dashboard/member/tabungan", icon:Wallet },
+      { label:"Beli Emas",    href:"/dashboard/member/beli",     icon:TrendingUp },
+      { label:"Buyback",      href:"/dashboard/member/buyback",  icon:ArrowLeftRight },
+      { label:"Cicilan Emas", href:"/dashboard/member/cicilan",  icon:CreditCard },
+      { label:"Tabungan Emas",href:"/dashboard/member/tabungan", icon:Wallet },
     ]},
     { group:"Akun", items:[
-      { label:"Histori", href:"/dashboard/member/histori", icon:FileText },
-      { label:"Referral", href:"/dashboard/member/referral", icon:Gift },
-      { label:"Upload Bukti", href:"/dashboard/member/upload", icon:Upload },
+      { label:"Histori",      href:"/dashboard/member/histori",  icon:FileText },
+      { label:"Referral",     href:"/dashboard/member/referral", icon:Gift },
+      { label:"Upload Bukti", href:"/dashboard/member/upload",   icon:Upload },
     ]},
   ],
 };
