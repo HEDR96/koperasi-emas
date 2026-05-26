@@ -41,16 +41,16 @@ export default function Navbar() {
             <div className="bg-gold-gradient" style={{ width:42, height:42, borderRadius:10, display:"none", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 14px rgba(212,175,55,0.35)", fontSize:"1rem", fontWeight:900, color:"#0a0a0a", flexShrink:0 }}>K</div>
             <div>
               <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:"1rem", lineHeight:1 }}>KE</div>
-              <div style={{ fontSize:".65rem", color:"rgba(255,255,255,0.3)", lineHeight:1 }}>Koperasi Emas</div>
+              <div style={{ fontSize:".65rem", color:"rgba(255,255,255,0.55)", lineHeight:1 }}>Koperasi Emas</div>
             </div>
           </Link>
 
           {/* Desktop Nav */}
           <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:2 }} className="hidden-mobile">
             {NAV_ITEMS.slice(0, 8).map(item => (
-              <Link key={item.label} href={item.href} style={{ padding:"6px 12px", borderRadius:8, fontSize:".85rem", fontWeight:500, color:"rgba(255,255,255,0.65)", textDecoration:"none", transition:"color .2s, background .2s", whiteSpace:"nowrap" }}
+              <Link key={item.label} href={item.href} style={{ padding:"6px 12px", borderRadius:8, fontSize:".85rem", fontWeight:500, color:"rgba(255,255,255,0.85)", textDecoration:"none", transition:"color .2s, background .2s", whiteSpace:"nowrap" }}
                 onMouseEnter={e => { (e.target as HTMLElement).style.color="#D4AF37"; (e.target as HTMLElement).style.background="rgba(212,175,55,0.06)"; }}
-                onMouseLeave={e => { (e.target as HTMLElement).style.color="rgba(255,255,255,0.65)"; (e.target as HTMLElement).style.background="transparent"; }}
+                onMouseLeave={e => { (e.target as HTMLElement).style.color="rgba(255,255,255,0.85)"; (e.target as HTMLElement).style.background="transparent"; }}
               >{item.label}</Link>
             ))}
           </div>
@@ -96,9 +96,9 @@ export default function Navbar() {
               {NAV_ITEMS.map((item, i) => (
                 <motion.div key={item.label} initial={{ opacity:0, x:-16 }} animate={{ opacity:1, x:0 }} transition={{ delay:i*.04 }}>
                   <Link href={item.href} onClick={() => setOpen(false)}
-                    style={{ display:"block", padding:"12px 16px", borderRadius:10, color:"rgba(255,255,255,0.65)", fontSize:".9rem", fontWeight:500, textDecoration:"none", marginBottom:2, transition:"background .2s, color .2s" }}
+                    style={{ display:"block", padding:"12px 16px", borderRadius:10, color:"rgba(255,255,255,0.85)", fontSize:".9rem", fontWeight:500, textDecoration:"none", marginBottom:2, transition:"background .2s, color .2s" }}
                     onMouseEnter={e => { (e.target as HTMLElement).style.color="#D4AF37"; (e.target as HTMLElement).style.background="rgba(212,175,55,0.07)"; }}
-                    onMouseLeave={e => { (e.target as HTMLElement).style.color="rgba(255,255,255,0.65)"; (e.target as HTMLElement).style.background="transparent"; }}
+                    onMouseLeave={e => { (e.target as HTMLElement).style.color="rgba(255,255,255,0.85)"; (e.target as HTMLElement).style.background="transparent"; }}
                   >{item.label}</Link>
                 </motion.div>
               ))}

@@ -26,16 +26,13 @@ export const GOLD_DENOMINATIONS = [
 ];
 
 export const NAV_ITEMS = [
-  { label: "Home", href: "/" },
-  { label: "Tentang", href: "/#tentang" },
-  { label: "Harga Emas", href: "/#harga-emas" },
-  { label: "Buyback", href: "/#buyback" },
-  { label: "Promo", href: "/#promo" },
-  { label: "Tabungan Emas", href: "/#tabungan" },
-  { label: "Kegiatan", href: "/#kegiatan" },
-  { label: "Simulasi", href: "/#simulasi" },
-  { label: "FAQ", href: "/#faq" },
-  { label: "Kontak", href: "/#kontak" },
+  { label: "Home",       href: "/"           },
+  { label: "Tentang",    href: "/#tentang"   },
+  { label: "Harga Emas", href: "/#harga-emas"},
+  { label: "Simulasi",   href: "/#simulasi"  },
+  { label: "Promo",      href: "/#promo"     },
+  { label: "FAQ",        href: "/#faq"       },
+  { label: "Kontak",     href: "/#kontak"    },
 ];
 
 export const STATS = [

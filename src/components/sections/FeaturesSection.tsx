@@ -16,7 +16,7 @@ const ICONS: Record<string, any> = {
 
 export default function FeaturesSection() {
   return (
-    <section id="fitur" style={{ padding:"80px 0", background:"#0a0a0a", position:"relative", overflow:"hidden" }}>
+    <section id="tentang" style={{ padding:"80px 0", background:"#0a0a0a", position:"relative", overflow:"hidden" }}>
       <div style={{ position:"absolute", top:0, left:0, right:0, bottom:0, background:"linear-gradient(180deg, #0a0a0a 0%, rgba(13,13,0,0.5) 50%, #0a0a0a 100%)", pointerEvents:"none" }} />
 
       <div style={{ maxWidth:1200, margin:"0 auto", padding:"0 24px", position:"relative" }}>

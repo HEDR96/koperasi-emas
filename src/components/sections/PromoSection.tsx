@@ -55,7 +55,7 @@ function PriceTable({ promo }: { promo: Promo }) {
             </div>
             <div>
               <p style={{ color:"#fff", fontWeight:900, fontSize:"1rem" }}>{promo.title}</p>
-              {promo.description && <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", marginTop:2 }}>{promo.description}</p>}
+              {promo.description && <p style={{ color:"rgba(255,255,255,0.70)", fontSize:".78rem", marginTop:2 }}>{promo.description}</p>}
             </div>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
@@ -63,7 +63,7 @@ function PriceTable({ promo }: { promo: Promo }) {
               HARGA HARI INI
             </span>
             {(fmtDate(promo.start_date)||fmtDate(promo.end_date)) && (
-              <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem" }}>
+              <span style={{ color:"rgba(255,255,255,0.60)", fontSize:".72rem" }}>
                 {fmtDate(promo.start_date)} {fmtDate(promo.end_date) ? `– ${fmtDate(promo.end_date)}` : ""}
               </span>
             )}
@@ -76,10 +76,10 @@ function PriceTable({ promo }: { promo: Promo }) {
         <table style={{ width:"100%", borderCollapse:"collapse" }}>
           <thead>
             <tr style={{ borderBottom:"1px solid rgba(255,255,255,0.06)", background:"rgba(255,255,255,0.02)" }}>
-              <th style={{ padding:"10px 20px", textAlign:"left", color:"rgba(255,255,255,0.4)", fontSize:".72rem", fontWeight:600, whiteSpace:"nowrap" }}>GRAMASI</th>
-              <th style={{ padding:"10px 20px", textAlign:"left", color:"rgba(255,255,255,0.4)", fontSize:".72rem", fontWeight:600, whiteSpace:"nowrap" }}>NON ANGGOTA</th>
+              <th style={{ padding:"10px 20px", textAlign:"left", color:"rgba(255,255,255,0.70)", fontSize:".72rem", fontWeight:600, whiteSpace:"nowrap" }}>GRAMASI</th>
+              <th style={{ padding:"10px 20px", textAlign:"left", color:"rgba(255,255,255,0.70)", fontSize:".72rem", fontWeight:600, whiteSpace:"nowrap" }}>NON ANGGOTA</th>
               <th style={{ padding:"10px 20px", textAlign:"left", color:"#D4AF37", fontSize:".72rem", fontWeight:700, whiteSpace:"nowrap" }}>★ ANGGOTA</th>
-              <th style={{ padding:"10px 20px", textAlign:"left", color:"rgba(255,255,255,0.4)", fontSize:".72rem", fontWeight:600, whiteSpace:"nowrap" }}>BUYBACK</th>
+              <th style={{ padding:"10px 20px", textAlign:"left", color:"rgba(255,255,255,0.70)", fontSize:".72rem", fontWeight:600, whiteSpace:"nowrap" }}>BUYBACK</th>
             </tr>
           </thead>
           <tbody>
@@ -90,7 +90,7 @@ function PriceTable({ promo }: { promo: Promo }) {
                     {gp.gram_weight}g
                   </span>
                 </td>
-                <td style={{ padding:"12px 20px", color:"rgba(255,255,255,0.55)", fontSize:".9rem", fontWeight:500 }}>
+                <td style={{ padding:"12px 20px", color:"rgba(255,255,255,0.80)", fontSize:".9rem", fontWeight:500 }}>
                   {fmtPrice(gp.price_non_member)}
                 </td>
                 <td style={{ padding:"12px 20px" }}>
@@ -113,7 +113,7 @@ function PriceTable({ promo }: { promo: Promo }) {
       </div>
 
       <div style={{ padding:"10px 20px", borderTop:"1px solid rgba(255,255,255,0.04)" }}>
-        <p style={{ color:"rgba(255,255,255,0.2)", fontSize:".7rem" }}>
+        <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".7rem" }}>
           ★ Harga anggota berlaku untuk anggota koperasi aktif. Harga dapat berubah sewaktu-waktu.
         </p>
       </div>
@@ -141,10 +141,10 @@ function PromoCard({ promo, index }: { promo: Promo; index: number }) {
       </div>
       <div>
         <p style={{ color:"#fff", fontWeight:800, fontSize:"1rem", marginBottom:6 }}>{promo.title}</p>
-        {promo.description && <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".83rem", lineHeight:1.6 }}>{promo.description}</p>}
+        {promo.description && <p style={{ color:"rgba(255,255,255,0.78)", fontSize:".83rem", lineHeight:1.6 }}>{promo.description}</p>}
       </div>
       {(fmtDate(promo.start_date)||fmtDate(promo.end_date)) && (
-        <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".74rem" }}>
+        <p style={{ color:"rgba(255,255,255,0.60)", fontSize:".74rem" }}>
           📅 {fmtDate(promo.start_date)} {fmtDate(promo.end_date)?`– ${fmtDate(promo.end_date)}`:""}
         </p>
       )}
@@ -201,7 +201,7 @@ export default function PromoSection() {
             Harga Emas &{" "}
             <span className="text-gold-gradient">Penawaran Terbaik</span>
           </h2>
-          <p style={{ color:"rgba(255,255,255,0.45)", fontSize:"clamp(.9rem,2vw,1.05rem)", maxWidth:520, margin:"0 auto" }}>
+          <p style={{ color:"rgba(255,255,255,0.80)", fontSize:"clamp(.9rem,2vw,1.05rem)", maxWidth:520, margin:"0 auto" }}>
             Harga dan promo dikelola langsung oleh koperasi, diperbarui secara real-time.
           </p>
         </motion.div>
@@ -227,7 +227,7 @@ export default function PromoSection() {
               <div>
                 {hargaPromos.length > 1 && (
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-                    <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".82rem" }}>
+                    <p style={{ color:"rgba(255,255,255,0.75)", fontSize:".82rem" }}>
                       {activeCard + 1} / {hargaPromos.length} daftar harga
                     </p>
                     <div style={{ display:"flex", gap:8 }}>
@@ -256,7 +256,7 @@ export default function PromoSection() {
             {otherPromos.length > 0 && (
               <div>
                 {hargaPromos.length > 0 && (
-                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".8rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".06em", marginBottom:16 }}>
+                  <p style={{ color:"rgba(255,255,255,0.70)", fontSize:".8rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".06em", marginBottom:16 }}>
                     Penawaran Spesial
                   </p>
                 )}
@@ -277,7 +277,7 @@ export default function PromoSection() {
                   <ExternalLink style={{ width:15, height:15 }} />
                 </button>
               </Link>
-              <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".78rem", marginTop:10 }}>
+              <p style={{ color:"rgba(255,255,255,0.60)", fontSize:".78rem", marginTop:10 }}>
                 Harga anggota lebih hemat dari non-anggota
               </p>
             </motion.div>

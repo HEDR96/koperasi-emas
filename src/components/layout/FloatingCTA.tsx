@@ -23,7 +23,7 @@ export default function FloatingCTA() {
       </motion.button>
 
       {/* WhatsApp FAB */}
-      <div className="fixed bottom-22 right-6 z-50 flex flex-col items-end gap-3">
+      <div style={{ position:"fixed", bottom:88, right:24, zIndex:50, display:"flex", flexDirection:"column", alignItems:"flex-end", gap:12 }}>
         <AnimatePresence>
           {open && (
             <>
@@ -44,7 +44,7 @@ export default function FloatingCTA() {
                     transition={{ delay: i * 0.05 }}
                     className="flex items-center gap-3 glass-dark gold-border-glow rounded-full px-4 py-2.5 hover:border-yellow-500/40 transition-all duration-200 shadow-lg"
                   >
-                    <span className="text-white/60 text-sm whitespace-nowrap">{item.label}</span>
+                    <span className="text-white/85 text-sm whitespace-nowrap">{item.label}</span>
                     <div className={`w-8 h-8 rounded-full bg-white/5 flex items-center justify-center ${item.color}`}>
                       <Icon className="w-4 h-4" />
                     </div>

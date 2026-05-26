@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -177,7 +178,9 @@ export default function SimulationSection() {
                   <div className="mt-2 p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm text-center font-medium">
                     0% Bunga untuk Member Aktif ✓
                   </div>
-                  <Button variant="gold" fullWidth>Ajukan Cicilan Sekarang</Button>
+                  <Link href="/auth/register" style={{ display:"block" }}>
+                    <Button variant="gold" fullWidth>Ajukan Cicilan Sekarang</Button>
+                  </Link>
                 </div>
               </Card>
             </div>
@@ -287,7 +290,9 @@ export default function SimulationSection() {
                     <p className="text-yellow-400 font-black text-2xl">{formatGoldWeight(tabunganGram)}</p>
                     <p className="text-white/70 text-sm">Emas yang Anda kumpulkan</p>
                   </div>
-                  <Button variant="gold" fullWidth>Mulai Tabungan Emas</Button>
+                  <Link href="/auth/register" style={{ display:"block" }}>
+                    <Button variant="gold" fullWidth>Mulai Tabungan Emas</Button>
+                  </Link>
                 </div>
               </Card>
             </div>
@@ -330,7 +335,9 @@ export default function SimulationSection() {
                     </div>
                     <p className="text-green-400 text-xs mt-2 text-center">Selisih +{formatCurrency((prices.buybackMember - prices.buybackNonMember) * buybackGram)} vs Non-Member</p>
                   </div>
-                  <Button variant="gold" fullWidth>Ajukan Buyback Sekarang</Button>
+                  <Link href="/auth/login" style={{ display:"block" }}>
+                    <Button variant="gold" fullWidth>Ajukan Buyback Sekarang</Button>
+                  </Link>
                 </div>
               </Card>
             </div>
