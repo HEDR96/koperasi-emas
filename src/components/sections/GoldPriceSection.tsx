@@ -24,7 +24,7 @@ function PriceCard({ label, price, badge, trend, delay, sub }: {
       style={{ background:"rgba(15,15,15,0.7)", border:"1px solid rgba(212,175,55,0.18)", borderRadius:18, padding:"22px 20px", backdropFilter:"blur(12px)" }}
     >
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
-        <span style={{ color:"rgba(255,255,255,0.45)", fontSize:".8rem", fontWeight:500 }}>{label}</span>
+        <span style={{ color:"rgba(255,255,255,0.80)", fontSize:".8rem", fontWeight:500 }}>{label}</span>
         {badge && (
           <span className="badge-gold" style={{ padding:"2px 10px", borderRadius:20, fontSize:".7rem", fontWeight:600 }}>{badge}</span>
         )}
@@ -34,7 +34,7 @@ function PriceCard({ label, price, badge, trend, delay, sub }: {
         {trend === "up" && <TrendingUp style={{ width:18, height:18, color:"#4ade80", marginBottom:2 }} />}
         {trend === "down" && <TrendingDown style={{ width:18, height:18, color:"#f87171", marginBottom:2 }} />}
       </div>
-      <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem" }}>{sub}</p>
+      <p style={{ color:"rgba(255,255,255,0.62)", fontSize:".72rem" }}>{sub}</p>
     </motion.div>
   );
 }
@@ -68,7 +68,7 @@ export default function GoldPriceSection() {
             <span className="text-gold-gradient">Hari Ini</span>
           </h2>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:16, fontSize:".82rem", flexWrap:"wrap" }}>
-            <span style={{ color:"rgba(255,255,255,0.35)", display:"flex", alignItems:"center", gap:6 }}>
+            <span style={{ color:"rgba(255,255,255,0.70)", display:"flex", alignItems:"center", gap:6 }}>
               <Clock style={{ width:14, height:14 }} />
               Update: {formatDateTime(prices.lastUpdate)}
             </span>
@@ -94,7 +94,7 @@ export default function GoldPriceSection() {
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24, flexWrap:"wrap", gap:12 }}>
             <div>
               <h3 style={{ color:"#fff", fontWeight:700, fontSize:"1.05rem", marginBottom:4 }}>Grafik Harga 30 Hari</h3>
-              <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".8rem" }}>Harga beli member per gram (IDR)</p>
+              <p style={{ color:"rgba(255,255,255,0.70)", fontSize:".8rem" }}>Harga beli member per gram (IDR)</p>
             </div>
             <button onClick={fetchPrices} disabled={isLoading} className="btn-outline-gold"
               style={{ display:"flex", alignItems:"center", gap:8, padding:"7px 16px", borderRadius:9, fontSize:".82rem", cursor:"pointer" }}>
@@ -115,9 +115,9 @@ export default function GoldPriceSection() {
             </div>
             <div>
               <p style={{ color:"#fff", fontWeight:600, fontSize:".9rem" }}>Hemat lebih banyak sebagai Member!</p>
-              <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem" }}>
+              <p style={{ color:"rgba(255,255,255,0.75)", fontSize:".78rem" }}>
                 Selisih harga beli: {formatCurrency(prices.buyNonMember - prices.buyMember)}/gram vs non-member ·{" "}
-                <span style={{ color:"rgba(212,175,55,0.7)" }}>Simpanan pokok Rp 5 jt · Wajib Rp 200 rb/bln</span>
+                <span style={{ color:"rgba(212,175,55,0.9)" }}>Simpanan pokok Rp 5 jt · Wajib Rp 200 rb/bln</span>
               </p>
             </div>
           </div>

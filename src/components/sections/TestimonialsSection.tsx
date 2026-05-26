@@ -76,7 +76,7 @@ export default function TestimonialsSection() {
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-4">
             Dipercaya <span className="text-gold-gradient">150.000+ Member</span>
           </h2>
-          <p className="text-white/50">Cerita sukses anggota koperasi dari seluruh Indonesia.</p>
+          <p className="text-white/80">Cerita sukses anggota koperasi dari seluruh Indonesia.</p>
         </motion.div>
 
         <div className="relative">
@@ -91,7 +91,7 @@ export default function TestimonialsSection() {
               className="glass-dark gold-border-glow rounded-3xl p-8 lg:p-12"
             >
               <Quote className="w-10 h-10 text-yellow-400/30 mb-6" />
-              <p className="text-xl lg:text-2xl text-white/80 font-medium leading-relaxed mb-8 italic">
+              <p className="text-xl lg:text-2xl text-white/90 font-medium leading-relaxed mb-8 italic">
                 "{TESTIMONIALS[active].comment}"
               </p>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -101,18 +101,18 @@ export default function TestimonialsSection() {
                   </div>
                   <div>
                     <p className="font-bold text-white">{TESTIMONIALS[active].name}</p>
-                    <p className="text-sm text-white/40">{TESTIMONIALS[active].role}</p>
+                    <p className="text-sm text-white/70">{TESTIMONIALS[active].role}</p>
                     <StarRating rating={TESTIMONIALS[active].rating} />
                   </div>
                 </div>
                 <div className="flex gap-4 text-center">
                   <div>
                     <p className="text-gold-gradient font-black text-lg">{TESTIMONIALS[active].goldSaved}</p>
-                    <p className="text-xs text-white/40">Emas Terkumpul</p>
+                    <p className="text-xs text-white/70">Emas Terkumpul</p>
                   </div>
                   <div>
                     <p className="text-gold-gradient font-black text-lg">{TESTIMONIALS[active].joinedYear}</p>
-                    <p className="text-xs text-white/40">Bergabung</p>
+                    <p className="text-xs text-white/70">Bergabung</p>
                   </div>
                 </div>
               </div>
@@ -134,7 +134,7 @@ export default function TestimonialsSection() {
               key={t.id}
               onClick={() => { setDirection(i > active ? 1 : -1); setActive(i); }}
               className={`w-10 h-10 rounded-full transition-all duration-300 flex items-center justify-center text-xs font-bold ${
-                i === active ? "bg-gold-gradient text-black scale-110 shadow-lg shadow-yellow-500/30" : "glass-dark text-white/40 hover:text-white"
+                i === active ? "bg-gold-gradient text-black scale-110 shadow-lg shadow-yellow-500/30" : "glass-dark text-white/70 hover:text-white"
               }`}
             >
               {t.avatar}

@@ -32,7 +32,7 @@ export default function FeaturesSection() {
             Semua Kebutuhan Emas{" "}
             <span className="text-gold-gradient">dalam Satu Platform</span>
           </h2>
-          <p style={{ color:"rgba(255,255,255,0.45)", fontSize:"clamp(.9rem,1.5vw,1.1rem)", maxWidth:540, margin:"0 auto", lineHeight:1.7 }}>
+          <p style={{ color:"rgba(255,255,255,0.82)", fontSize:"clamp(.9rem,1.5vw,1.1rem)", maxWidth:540, margin:"0 auto", lineHeight:1.7 }}>
             Dari tabungan harian hingga investasi jangka panjang, ekosistem lengkap untuk perjalanan emas Anda.
           </p>
         </motion.div>
@@ -61,7 +61,7 @@ export default function FeaturesSection() {
                 </div>
                 {/* Content */}
                 <h3 style={{ color:"#fff", fontWeight:700, fontSize:".9rem", marginBottom:8 }}>{f.title}</h3>
-                <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", lineHeight:1.6 }}>{f.desc}</p>
+                <p style={{ color:"rgba(255,255,255,0.75)", fontSize:".78rem", lineHeight:1.6 }}>{f.desc}</p>
                 {/* Underline on hover */}
                 <div style={{ height:2, marginTop:16, background:"linear-gradient(90deg,#D4AF37,#F5D060)", borderRadius:1, width:"0%", transition:"width .4s ease" }}
                   className="feature-underline" />
@@ -71,7 +71,7 @@ export default function FeaturesSection() {
         </div>
 
         <motion.div initial={{ opacity:0 }} whileInView={{ opacity:1 }} viewport={{ once:true }} transition={{ delay:.5 }}
-          style={{ textAlign:"center", marginTop:40, color:"rgba(255,255,255,0.35)", fontSize:".85rem" }}
+          style={{ textAlign:"center", marginTop:40, color:"rgba(255,255,255,0.65)", fontSize:".85rem" }}
         >
           Semua fitur tersedia untuk member aktif (simpanan pokok Rp 5 jt + wajib Rp 200 rb/bln).{" "}
           <a href="/auth/register" style={{ color:"#D4AF37", fontWeight:600, textDecoration:"none" }}>Daftar jadi member →</a>

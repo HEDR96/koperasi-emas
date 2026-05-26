@@ -54,7 +54,7 @@ export default function ContactSection() {
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-4">
             Kami Siap <span className="text-gold-gradient">Membantu Anda</span>
           </h2>
-          <p className="text-white/50 max-w-xl mx-auto">
+          <p className="text-white/80 max-w-xl mx-auto">
             Tim kami tersedia 7 hari seminggu untuk menjawab pertanyaan dan membantu kebutuhan Anda.
           </p>
         </motion.div>
@@ -81,7 +81,7 @@ export default function ContactSection() {
                       <Icon className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-white/40 text-xs mb-0.5">{item.label}</p>
+                      <p className="text-white/65 text-xs mb-0.5">{item.label}</p>
                       <p className="text-white font-medium text-sm">{item.value}</p>
                     </div>
                   </div>
@@ -101,7 +101,7 @@ export default function ContactSection() {
               </div>
               <div>
                 <p className="text-white font-semibold">Chat via WhatsApp</p>
-                <p className="text-white/40 text-sm">Respon dalam 5-15 menit</p>
+                <p className="text-white/70 text-sm">Respon dalam 5-15 menit</p>
               </div>
               <div className="ml-auto w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             </a>
@@ -120,7 +120,7 @@ export default function ContactSection() {
                     <Send className="w-8 h-8 text-green-400" />
                   </div>
                   <h3 className="text-xl font-bold text-white mb-2">Pesan Terkirim!</h3>
-                  <p className="text-white/50 mb-6">Tim kami akan menghubungi Anda dalam 1x24 jam.</p>
+                  <p className="text-white/80 mb-6">Tim kami akan menghubungi Anda dalam 1x24 jam.</p>
                   <Button variant="outline-gold" onClick={() => setSent(false)}>Kirim Pesan Lain</Button>
                 </div>
               ) : (
@@ -150,7 +150,7 @@ export default function ContactSection() {
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   />
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium text-white/70">Pesan</label>
+                    <label className="text-sm font-medium text-white/85">Pesan</label>
                     <textarea
                       rows={4}
                       placeholder="Tuliskan pertanyaan atau pesan Anda..."

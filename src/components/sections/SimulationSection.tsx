@@ -85,7 +85,7 @@ export default function SimulationSection() {
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-4">
             Simulasi <span className="text-gold-gradient">Investasi Emas</span>
           </h2>
-          <p className="text-white/50 max-w-xl mx-auto">
+          <p className="text-white/80 max-w-xl mx-auto">
             Hitung estimasi cicilan, keuntungan investasi, dan nilai buyback emas Anda.
           </p>
         </motion.div>
@@ -101,7 +101,7 @@ export default function SimulationSection() {
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
                   activeTab === tab.id
                     ? "btn-gold text-black"
-                    : "glass-dark text-white/60 hover:text-white border border-white/10 hover:border-yellow-500/30"
+                    : "glass-dark text-white/80 hover:text-white border border-white/10 hover:border-yellow-500/30"
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -125,33 +125,33 @@ export default function SimulationSection() {
                 <div className="space-y-6">
                   <div>
                     <div className="flex justify-between mb-2">
-                      <label className="text-sm text-white/60">Berat Emas</label>
+                      <label className="text-sm text-white/80">Berat Emas</label>
                       <span className="text-sm font-bold text-yellow-400">{cicilanGram} gram</span>
                     </div>
                     <input type="range" min={1} max={100} value={cicilanGram}
                       onChange={(e) => setCicilanGram(+e.target.value)}
                       className="w-full accent-yellow-400 h-2 rounded-lg" />
-                    <div className="flex justify-between text-xs text-white/30 mt-1"><span>1g</span><span>100g</span></div>
+                    <div className="flex justify-between text-xs text-white/55 mt-1"><span>1g</span><span>100g</span></div>
                   </div>
                   <div>
                     <div className="flex justify-between mb-2">
-                      <label className="text-sm text-white/60">Tenor</label>
+                      <label className="text-sm text-white/80">Tenor</label>
                       <span className="text-sm font-bold text-yellow-400">{cicilanTenor} bulan</span>
                     </div>
                     <input type="range" min={3} max={36} step={3} value={cicilanTenor}
                       onChange={(e) => setCicilanTenor(+e.target.value)}
                       className="w-full accent-yellow-400 h-2 rounded-lg" />
-                    <div className="flex justify-between text-xs text-white/30 mt-1"><span>3 bln</span><span>36 bln</span></div>
+                    <div className="flex justify-between text-xs text-white/55 mt-1"><span>3 bln</span><span>36 bln</span></div>
                   </div>
                   <div>
                     <div className="flex justify-between mb-2">
-                      <label className="text-sm text-white/60">Uang Muka</label>
+                      <label className="text-sm text-white/80">Uang Muka</label>
                       <span className="text-sm font-bold text-yellow-400">{cicilanDpPercent}%</span>
                     </div>
                     <input type="range" min={20} max={80} step={5} value={cicilanDpPercent}
                       onChange={(e) => setCicilanDpPercent(+e.target.value)}
                       className="w-full accent-yellow-400 h-2 rounded-lg" />
-                    <div className="flex justify-between text-xs text-white/30 mt-1"><span>20%</span><span>80%</span></div>
+                    <div className="flex justify-between text-xs text-white/55 mt-1"><span>20%</span><span>80%</span></div>
                   </div>
                 </div>
               </Card>
@@ -166,7 +166,7 @@ export default function SimulationSection() {
                     { label: "Tenor", value: `${cicilanTenor} bulan` },
                   ].map((row) => (
                     <div key={row.label} className="flex justify-between py-3 border-b border-white/5">
-                      <span className="text-white/50 text-sm">{row.label}</span>
+                      <span className="text-white/80 text-sm">{row.label}</span>
                       <span className={`font-bold text-sm ${row.highlight ? "text-yellow-400" : "text-white"}`}>{row.value}</span>
                     </div>
                   ))}
@@ -191,7 +191,7 @@ export default function SimulationSection() {
                 <div className="space-y-6">
                   <div>
                     <div className="flex justify-between mb-2">
-                      <label className="text-sm text-white/60">Modal Awal</label>
+                      <label className="text-sm text-white/80">Modal Awal</label>
                       <span className="text-sm font-bold text-yellow-400">{formatCurrency(investAwal)}</span>
                     </div>
                     <input type="range" min={100000} max={10000000} step={100000} value={investAwal}
@@ -200,7 +200,7 @@ export default function SimulationSection() {
                   </div>
                   <div>
                     <div className="flex justify-between mb-2">
-                      <label className="text-sm text-white/60">Investasi Bulanan</label>
+                      <label className="text-sm text-white/80">Investasi Bulanan</label>
                       <span className="text-sm font-bold text-yellow-400">{formatCurrency(investBulanan)}</span>
                     </div>
                     <input type="range" min={100000} max={5000000} step={100000} value={investBulanan}
@@ -209,7 +209,7 @@ export default function SimulationSection() {
                   </div>
                   <div>
                     <div className="flex justify-between mb-2">
-                      <label className="text-sm text-white/60">Jangka Waktu</label>
+                      <label className="text-sm text-white/80">Jangka Waktu</label>
                       <span className="text-sm font-bold text-yellow-400">{investTahun} tahun</span>
                     </div>
                     <input type="range" min={1} max={10} value={investTahun}
@@ -225,8 +225,8 @@ export default function SimulationSection() {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={investChartData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(212,175,55,0.08)" />
-                      <XAxis dataKey="tahun" tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 10 }} tickFormatter={(v) => `${(v/1000000).toFixed(0)}M`} axisLine={false} tickLine={false} />
+                      <XAxis dataKey="tahun" tick={{ fill: "rgba(255,255,255,0.70)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: "rgba(255,255,255,0.70)", fontSize: 10 }} tickFormatter={(v) => `${(v/1000000).toFixed(0)}M`} axisLine={false} tickLine={false} />
                       <Tooltip formatter={(v: any) => formatCurrency(Number(v))} contentStyle={{ background: "#0a0a0a", border: "1px solid rgba(212,175,55,0.2)", borderRadius: "12px", color: "white" }} />
                       <Bar dataKey="modal" name="Modal" fill="rgba(212,175,55,0.3)" radius={[4,4,0,0]} />
                       <Bar dataKey="nilai" name="Estimasi Nilai" fill="#D4AF37" radius={[4,4,0,0]} />
@@ -238,7 +238,7 @@ export default function SimulationSection() {
                   <p className="text-2xl font-black text-gold-gradient">
                     {formatCurrency(investChartData[investChartData.length - 1]?.nilai || 0)}
                   </p>
-                  <p className="text-white/30 text-xs mt-1">*Estimasi berdasarkan historis kenaikan emas 8%/tahun</p>
+                  <p className="text-white/55 text-xs mt-1">*Estimasi berdasarkan historis kenaikan emas 8%/tahun</p>
                 </div>
               </Card>
             </div>
@@ -252,7 +252,7 @@ export default function SimulationSection() {
                 <div className="space-y-6">
                   <div>
                     <div className="flex justify-between mb-2">
-                      <label className="text-sm text-white/60">Tabungan Harian</label>
+                      <label className="text-sm text-white/80">Tabungan Harian</label>
                       <span className="text-sm font-bold text-yellow-400">{formatCurrency(tabunganHarian)}</span>
                     </div>
                     <input type="range" min={5000} max={500000} step={5000} value={tabunganHarian}
@@ -261,7 +261,7 @@ export default function SimulationSection() {
                   </div>
                   <div>
                     <div className="flex justify-between mb-2">
-                      <label className="text-sm text-white/60">Durasi Menabung</label>
+                      <label className="text-sm text-white/80">Durasi Menabung</label>
                       <span className="text-sm font-bold text-yellow-400">{tabunganBulan} bulan</span>
                     </div>
                     <input type="range" min={1} max={60} value={tabunganBulan}
@@ -279,13 +279,13 @@ export default function SimulationSection() {
                     { label: "Nilai Emas Saat Ini", value: formatCurrency(tabunganGram * prices.buyMember) },
                   ].map((row) => (
                     <div key={row.label} className="flex justify-between py-3 border-b border-white/5">
-                      <span className="text-white/50 text-sm">{row.label}</span>
+                      <span className="text-white/80 text-sm">{row.label}</span>
                       <span className="font-bold text-sm text-white">{row.value}</span>
                     </div>
                   ))}
                   <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20 text-center">
                     <p className="text-yellow-400 font-black text-2xl">{formatGoldWeight(tabunganGram)}</p>
-                    <p className="text-white/40 text-sm">Emas yang Anda kumpulkan</p>
+                    <p className="text-white/70 text-sm">Emas yang Anda kumpulkan</p>
                   </div>
                   <Button variant="gold" fullWidth>Mulai Tabungan Emas</Button>
                 </div>
@@ -301,7 +301,7 @@ export default function SimulationSection() {
                 <div className="space-y-6">
                   <div>
                     <div className="flex justify-between mb-2">
-                      <label className="text-sm text-white/60">Berat Emas yang Dijual</label>
+                      <label className="text-sm text-white/80">Berat Emas yang Dijual</label>
                       <span className="text-sm font-bold text-yellow-400">{buybackGram} gram</span>
                     </div>
                     <input type="range" min={0.1} max={500} step={0.1} value={buybackGram}
@@ -319,7 +319,7 @@ export default function SimulationSection() {
                     { label: "Harga Buyback Non-Member", value: formatCurrency(prices.buybackNonMember) + "/g" },
                   ].map((row) => (
                     <div key={row.label} className="flex justify-between py-3 border-b border-white/5">
-                      <span className="text-white/50 text-sm">{row.label}</span>
+                      <span className="text-white/80 text-sm">{row.label}</span>
                       <span className="font-bold text-sm text-white">{row.value}</span>
                     </div>
                   ))}

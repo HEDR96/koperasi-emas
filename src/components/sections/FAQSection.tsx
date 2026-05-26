@@ -24,7 +24,7 @@ export default function FAQSection() {
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-4">
             Pertanyaan <span className="text-gold-gradient">Umum</span>
           </h2>
-          <p className="text-white/50">Temukan jawaban atas pertanyaan yang paling sering ditanyakan.</p>
+          <p className="text-white/80">Temukan jawaban atas pertanyaan yang paling sering ditanyakan.</p>
         </motion.div>
 
         <div className="space-y-3">
@@ -42,8 +42,8 @@ export default function FAQSection() {
                 className="w-full flex items-center justify-between p-5 text-left gap-4"
               >
                 <div className="flex items-center gap-3">
-                  <HelpCircle className={`w-5 h-5 flex-shrink-0 transition-colors ${openIndex === i ? "text-yellow-400" : "text-white/30"}`} />
-                  <span className={`font-semibold text-sm sm:text-base transition-colors ${openIndex === i ? "text-white" : "text-white/70"}`}>
+                  <HelpCircle className={`w-5 h-5 flex-shrink-0 transition-colors ${openIndex === i ? "text-yellow-400" : "text-white/55"}`} />
+                  <span className={`font-semibold text-sm sm:text-base transition-colors ${openIndex === i ? "text-white" : "text-white/90"}`}>
                     {item.question}
                   </span>
                 </div>
@@ -51,7 +51,7 @@ export default function FAQSection() {
                   animate={{ rotate: openIndex === i ? 180 : 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <ChevronDown className={`w-5 h-5 flex-shrink-0 transition-colors ${openIndex === i ? "text-yellow-400" : "text-white/30"}`} />
+                  <ChevronDown className={`w-5 h-5 flex-shrink-0 transition-colors ${openIndex === i ? "text-yellow-400" : "text-white/55"}`} />
                 </motion.div>
               </button>
 
@@ -63,7 +63,7 @@ export default function FAQSection() {
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="px-5 pb-5 pl-14 text-white/60 text-sm leading-relaxed border-t border-yellow-500/10">
+                    <div className="px-5 pb-5 pl-14 text-white/85 text-sm leading-relaxed border-t border-yellow-500/10">
                       <p className="pt-4">{item.answer}</p>
                     </div>
                   </motion.div>
@@ -79,7 +79,7 @@ export default function FAQSection() {
           viewport={{ once: true }}
           className="text-center mt-10"
         >
-          <p className="text-white/40 text-sm">
+          <p className="text-white/70 text-sm">
             Masih ada pertanyaan?{" "}
             <a href="/#kontak" className="text-yellow-400 hover:text-yellow-300 font-semibold transition-colors">
               Hubungi kami →

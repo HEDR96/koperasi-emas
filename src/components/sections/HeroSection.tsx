@@ -110,7 +110,7 @@ export default function HeroSection() {
         {/* Sub */}
         <motion.p
           initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay:.5 }}
-          style={{ fontSize:"clamp(1rem,2vw,1.2rem)", color:"rgba(255,255,255,0.55)", maxWidth:640, margin:"0 auto 2.5rem", lineHeight:1.7 }}
+          style={{ fontSize:"clamp(1rem,2vw,1.2rem)", color:"rgba(255,255,255,0.85)", maxWidth:640, margin:"0 auto 2.5rem", lineHeight:1.7 }}
         >
           Platform koperasi emas terpercaya untuk 150.000+ anggota Indonesia.
           Tabung, cicil, buyback, gadai simpanan, dan dapatkan SHU tahunan — mulai dari 0.01 gram.
@@ -151,9 +151,9 @@ export default function HeroSection() {
             <div key={b.label} style={{ display:"flex", alignItems:"center", gap:10, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(212,175,55,0.15)", borderRadius:12, padding:"10px 16px" }}>
               <span style={{ fontSize:"1.2rem" }}>{b.icon}</span>
               <div>
-                <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".68rem", marginBottom:1 }}>{b.label}</p>
+                <p style={{ color:"rgba(255,255,255,0.70)", fontSize:".68rem", marginBottom:1 }}>{b.label}</p>
                 <p style={{ color:"#D4AF37", fontWeight:800, fontSize:".82rem", lineHeight:1 }}>{b.value}</p>
-                <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".65rem" }}>{b.sub}</p>
+                <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".65rem" }}>{b.sub}</p>
               </div>
             </div>
           ))}
@@ -173,7 +173,7 @@ export default function HeroSection() {
               <div className="text-gold-gradient" style={{ fontSize:"clamp(1.5rem,3vw,2rem)", fontWeight:900, lineHeight:1 }}>
                 <Counter end={s.value} suffix={s.suffix} />
               </div>
-              <div style={{ color:"rgba(255,255,255,0.45)", fontSize:".8rem", marginTop:6, fontWeight:500 }}>{s.label}</div>
+              <div style={{ color:"rgba(255,255,255,0.75)", fontSize:".8rem", marginTop:6, fontWeight:500 }}>{s.label}</div>
             </motion.div>
           ))}
         </motion.div>
