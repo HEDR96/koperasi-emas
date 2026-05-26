@@ -23,7 +23,6 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Kelola Member", href:"/dashboard/master/member", icon:Users },
       { label:"Harga Emas", href:"/dashboard/master/harga", icon:Coins },
       { label:"Promo", href:"/dashboard/master/promo", icon:Tag },
-      { label:"Cabang", href:"/dashboard/master/cabang", icon:Building },
     ]},
     { group:"Laporan", items:[
       { label:"Approval", href:"/dashboard/master/approval", icon:FileText },
@@ -68,7 +67,8 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Cicilan Emas", href:"/dashboard/member/cicilan",  icon:CreditCard },
       { label:"Tabungan Emas",href:"/dashboard/member/tabungan", icon:Wallet },
     ]},
-    { group:"Akun", items:[
+    { group:"Info", items:[
+      { label:"Promo & Harga",href:"/dashboard/member/promo",   icon:Tag },
       { label:"Histori",      href:"/dashboard/member/histori",  icon:FileText },
       { label:"Referral",     href:"/dashboard/member/referral", icon:Gift },
       { label:"Upload Bukti", href:"/dashboard/member/upload",   icon:Upload },
@@ -93,7 +93,7 @@ function SidebarInner({ collapsed, onToggle, onClose }: { collapsed: boolean; on
       <div style={{ padding:"16px 14px", borderBottom:"1px solid rgba(255,255,255,0.05)", display:"flex", alignItems:"center", justifyContent: collapsed ? "center" : "space-between", gap:8, flexShrink:0 }}>
         {!collapsed && (
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <img src="/logo.svg" alt="KE" style={{ width:30, height:30, objectFit:"contain", borderRadius:7 }}
+            <img src="/logo.jpg" alt="KE" style={{ width:30, height:30, objectFit:"cover", borderRadius:"50%" }}
               onError={e => { (e.currentTarget as HTMLImageElement).style.display="none"; }}
             />
             <div>
@@ -103,7 +103,7 @@ function SidebarInner({ collapsed, onToggle, onClose }: { collapsed: boolean; on
           </div>
         )}
         {collapsed && (
-          <img src="/logo.svg" alt="KE" style={{ width:30, height:30, objectFit:"contain", borderRadius:7 }}
+          <img src="/logo.jpg" alt="KE" style={{ width:30, height:30, objectFit:"cover", borderRadius:"50%" }}
             onError={e => { (e.currentTarget as HTMLImageElement).style.display="none"; }}
           />
         )}

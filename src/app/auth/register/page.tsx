@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Check, Shield } from "lucide-react";
-import { useAuthStore } from "@/store/useAuthStore";
+// useAuthStore not needed — registration goes via server-side API route
 
 const STEPS = ["Data Diri", "Akun & Password", "Konfirmasi"];
 
@@ -32,7 +32,7 @@ function Field({ label, type="text", placeholder, value, onChange, required }: {
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register, isLoading } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(0);
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
@@ -54,12 +54,23 @@ export default function RegisterPage() {
       if (form.password !== form.confirmPassword) { setError("Password tidak sama."); return; }
       setStep(2);
     } else {
-      const result = await register({
-        name: form.name, email: form.email, password: form.password,
-        phone: form.phone, nik: form.nik, referral: form.referral || undefined,
-      });
-      if (!result.success) { setError(result.error || "Pendaftaran gagal."); return; }
-      router.push("/auth/login?registered=1");
+      setIsLoading(true);
+      try {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: form.name, email: form.email, password: form.password,
+            phone: form.phone, nik: form.nik, referral: form.referral || undefined,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) { setError(data.error || "Pendaftaran gagal."); setIsLoading(false); return; }
+        router.push("/auth/pending");
+      } catch {
+        setError("Terjadi kesalahan jaringan.");
+        setIsLoading(false);
+      }
     }
   };
 

@@ -59,7 +59,7 @@ export default function MasterLoginPage() {
         animate={{ opacity: 1, y: 0 }}
         style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 12, marginBottom: 40 }}
       >
-        <img src="/logo.svg" alt="KE" style={{ width: 52, height: 52, objectFit: "contain", borderRadius: 13 }}
+        <img src="/logo.jpg" alt="KE" style={{ width: 52, height: 52, objectFit: "cover", borderRadius: "50%" }}
           onError={e => { const el = e.currentTarget as HTMLImageElement; el.style.display="none"; (el.nextElementSibling as HTMLElement).style.display="flex"; }}
         />
         <div className="bg-gold-gradient" style={{ width:52, height:52, borderRadius:13, display:"none", alignItems:"center", justifyContent:"center", fontSize:"1.3rem", fontWeight:900, color:"#0a0a0a", flexShrink:0 }}>K</div>

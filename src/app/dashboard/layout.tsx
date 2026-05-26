@@ -13,7 +13,7 @@ const TITLES: Record<string, string> = {
   "/dashboard/master/member": "Kelola Member",
   "/dashboard/master/harga": "Manajemen Harga Emas",
   "/dashboard/master/promo": "Manajemen Promo",
-  "/dashboard/master/cabang": "Manajemen Cabang",
+
   "/dashboard/master/approval": "Approval Transaksi",
   "/dashboard/master/laporan": "Laporan Koperasi",
   "/dashboard/master/audit": "Audit Log",
@@ -36,6 +36,7 @@ const TITLES: Record<string, string> = {
   "/dashboard/member/cicilan": "Cicilan Emas",
   "/dashboard/member/simpanan": "Simpanan Koperasi",
   "/dashboard/member/tabungan": "Tabungan Emas",
+  "/dashboard/member/promo": "Promo & Harga Emas",
   "/dashboard/member/histori": "Histori Transaksi",
   "/dashboard/member/referral": "Program Referral",
   "/dashboard/member/upload": "Upload Bukti Bayar",

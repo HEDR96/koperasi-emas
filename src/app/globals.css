@@ -256,3 +256,9 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 14px rgba(212,17
 
 /* ─── Accent color for checkboxes ─── */
 input[type=checkbox] { accent-color: #D4AF37; }
+
+/* ─── Map + Building responsive grid ─── */
+.map-grid { grid-template-columns: 1fr 1fr; }
+@media (max-width: 768px) {
+  .map-grid { grid-template-columns: 1fr !important; }
+}

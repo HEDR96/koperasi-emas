@@ -32,6 +32,16 @@ export default function LoginPage() {
       return;
     }
     const user = useAuthStore.getState().user;
+    if (user?.status === "pending") {
+      useAuthStore.getState().logout();
+      setError("Akun kamu masih menunggu persetujuan admin. Coba lagi setelah diaktifkan.");
+      return;
+    }
+    if (user?.status === "suspended") {
+      useAuthStore.getState().logout();
+      setError("Akun kamu telah dinonaktifkan. Hubungi admin.");
+      return;
+    }
     router.push(`/dashboard/${user?.role || "member"}`);
   }
 

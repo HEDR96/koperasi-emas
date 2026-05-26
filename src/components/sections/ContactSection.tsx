@@ -7,12 +7,29 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { MapPin, Phone, Mail, MessageCircle, Clock, Send } from "lucide-react";
 import { SITE_CONFIG } from "@/lib/constants";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+
+const FALLBACK_PHOTO = "https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=800&q=80";
 
 export default function ContactSection() {
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [buildingPhoto, setBuildingPhoto] = useState<string>(FALLBACK_PHOTO);
+
+  useEffect(() => {
+    supabase
+      .from("site_settings" as any)
+      .select("value")
+      .eq("key", "building_photo_url")
+      .single()
+      .then(({ data }) => {
+        if (data && (data as any).value) {
+          setBuildingPhoto((data as any).value);
+        }
+      });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,46 +170,77 @@ export default function ContactSection() {
           </motion.div>
         </div>
 
-        {/* ── Map Section ── */}
+        {/* ── Map + Building Photo ── */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2 }}
-          style={{ marginTop: 32 }}
+          style={{ marginTop: 32, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0, background: "rgba(14,14,14,0.85)", border: "1px solid rgba(212,175,55,0.18)", borderRadius: 20, overflow: "hidden" }}
+          className="map-grid"
         >
-          <div style={{
-            background: "rgba(14,14,14,0.85)",
-            border: "1px solid rgba(212,175,55,0.18)",
-            borderRadius: 20,
-            overflow: "hidden",
-          }}>
-            {/* Map header */}
-            <div style={{ padding: "16px 24px", borderBottom: "1px solid rgba(212,175,55,0.1)", display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(212,175,55,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <MapPin style={{ width: 18, height: 18, color: "#D4AF37" }} />
+          {/* Building Photo — left */}
+          <div style={{ position: "relative", minHeight: 420, overflow: "hidden" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={buildingPhoto}
+              alt="Gedung Kantor Koperasi"
+              style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block", minHeight: 420 }}
+            />
+            {/* Dark gradient overlay */}
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0.1) 100%)" }} />
+            {/* Gold ring top-right decoration */}
+            <div style={{ position: "absolute", top: -40, right: -40, width: 180, height: 180, borderRadius: "50%", border: "1px solid rgba(212,175,55,0.12)", pointerEvents: "none" }} />
+            <div style={{ position: "absolute", top: -20, right: -20, width: 120, height: 120, borderRadius: "50%", border: "1px solid rgba(212,175,55,0.08)", pointerEvents: "none" }} />
+
+            {/* Content overlay */}
+            <div style={{ position: "absolute", inset: 0, padding: 28, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+              {/* Top badge */}
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 10, padding: "6px 14px", width: "fit-content", backdropFilter: "blur(10px)" }}>
+                <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px #4ade80" }} />
+                <span style={{ color: "#D4AF37", fontWeight: 700, fontSize: ".75rem" }}>Kantor Buka Hari Ini</span>
               </div>
+
+              {/* Bottom info */}
               <div>
-                <p style={{ color: "#fff", fontWeight: 700, fontSize: ".9rem", lineHeight: 1 }}>Lokasi Kantor Kami</p>
-                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: ".75rem", marginTop: 3 }}>{SITE_CONFIG.address}</p>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <img src="/logo.jpg" alt="KE" style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.4)" }} />
+                  <div>
+                    <p style={{ color: "#fff", fontWeight: 900, fontSize: ".95rem", lineHeight: 1.1 }}>{SITE_CONFIG.name}</p>
+                    <p style={{ color: "#D4AF37", fontSize: ".72rem", fontWeight: 600 }}>Kantor Pusat</p>
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                  {[
+                    { icon: MapPin, text: SITE_CONFIG.address, color: "#D4AF37" },
+                    { icon: Phone,  text: SITE_CONFIG.phone,   color: "#4ade80" },
+                    { icon: Clock,  text: "Senin–Sabtu: 08.00 – 17.00 WIB", color: "#60a5fa" },
+                  ].map(({ icon: Icon, text, color }) => (
+                    <div key={text} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                      <Icon style={{ width: 13, height: 13, color, flexShrink: 0, marginTop: 2 }} />
+                      <span style={{ color: "rgba(255,255,255,0.7)", fontSize: ".78rem", lineHeight: 1.5 }}>{text}</span>
+                    </div>
+                  ))}
+                </div>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(SITE_CONFIG.address)}`}
+                  target="_blank" rel="noopener noreferrer"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 16, padding: "8px 16px", borderRadius: 10, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.35)", color: "#D4AF37", fontSize: ".78rem", fontWeight: 700, textDecoration: "none", backdropFilter: "blur(10px)" }}>
+                  <MapPin style={{ width: 12, height: 12 }} />
+                  Buka di Google Maps
+                </a>
               </div>
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(SITE_CONFIG.address)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.25)", color: "#D4AF37", fontSize: ".78rem", fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}
-              >
-                <MapPin style={{ width: 13, height: 13 }} />
-                Buka di Maps
-              </a>
             </div>
-            {/* Iframe */}
+          </div>
+
+          {/* Google Maps — right */}
+          <div style={{ position: "relative", minHeight: 420 }}>
             <iframe
               title="Lokasi Koperasi Emas"
               src={`https://maps.google.com/maps?q=${encodeURIComponent(SITE_CONFIG.address)}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
               width="100%"
-              height="380"
-              style={{ display: "block", border: "none", filter: "invert(90%) hue-rotate(180deg)" }}
+              height="100%"
+              style={{ display: "block", border: "none", minHeight: 420, filter: "invert(90%) hue-rotate(180deg)" }}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
             />
