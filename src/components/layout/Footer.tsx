@@ -17,10 +17,7 @@ export default function Footer() {
                 onError={e => { const el = e.currentTarget as HTMLImageElement; el.style.display="none"; (el.nextElementSibling as HTMLElement).style.display="flex"; }}
               />
               <div className="bg-gold-gradient" style={{ width:42, height:42, borderRadius:10, display:"none", alignItems:"center", justifyContent:"center", fontSize:"1.1rem", fontWeight:900, color:"#0a0a0a", flexShrink:0 }}>K</div>
-              <div>
-                <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:"1rem" }}>KE</div>
-                <div style={{ fontSize:".65rem", color:"rgba(255,255,255,0.55)" }}>Koperasi Emas</div>
-              </div>
+              <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:".82rem", letterSpacing:".02em" }}>KOPERASI EMAS</div>
             </div>
             <p style={{ color:"rgba(255,255,255,0.70)", fontSize:".82rem", lineHeight:1.7, marginBottom:16 }}>
               Platform koperasi emas terpercaya untuk 150.000+ anggota Indonesia.

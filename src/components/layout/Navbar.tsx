@@ -39,10 +39,7 @@ export default function Navbar() {
               onError={e => { const el = e.currentTarget as HTMLImageElement; el.style.display="none"; (el.nextElementSibling as HTMLElement).style.display="flex"; }}
             />
             <div className="bg-gold-gradient" style={{ width:42, height:42, borderRadius:10, display:"none", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 14px rgba(212,175,55,0.35)", fontSize:"1rem", fontWeight:900, color:"#0a0a0a", flexShrink:0 }}>K</div>
-            <div>
-              <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:"1rem", lineHeight:1 }}>KE</div>
-              <div style={{ fontSize:".65rem", color:"rgba(255,255,255,0.55)", lineHeight:1 }}>Koperasi Emas</div>
-            </div>
+            <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:".82rem", lineHeight:1, letterSpacing:".02em" }}>KOPERASI EMAS</div>
           </Link>
 
           {/* Desktop Nav */}
@@ -62,14 +59,9 @@ export default function Navbar() {
                 <button className="btn-gold" style={{ padding:"8px 18px", borderRadius:10, fontSize:".85rem", border:"none", cursor:"pointer" }}>Dashboard</button>
               </Link>
             ) : (
-              <>
-                <Link href="/auth/login" className="desktop-only">
-                  <button className="btn-outline-gold" style={{ padding:"8px 18px", borderRadius:10, fontSize:".85rem", cursor:"pointer" }}>Login</button>
-                </Link>
-                <Link href="/auth/register" className="desktop-only">
-                  <button className="btn-gold" style={{ padding:"8px 18px", borderRadius:10, fontSize:".85rem", border:"none", cursor:"pointer" }}>Daftar Member</button>
-                </Link>
-              </>
+              <Link href="/auth/login" className="desktop-only">
+                <button className="btn-gold" style={{ padding:"8px 18px", borderRadius:10, fontSize:".85rem", border:"none", cursor:"pointer" }}>Login</button>
+              </Link>
             )}
             {/* Hamburger */}
             <button
@@ -104,10 +96,7 @@ export default function Navbar() {
               ))}
               <div style={{ display:"flex", gap:10, marginTop:16 }}>
                 <Link href="/auth/login" onClick={() => setOpen(false)} style={{ flex:1 }}>
-                  <button className="btn-outline-gold" style={{ width:"100%", padding:"11px", borderRadius:11, fontSize:".9rem", cursor:"pointer" }}>Login</button>
-                </Link>
-                <Link href="/auth/register" onClick={() => setOpen(false)} style={{ flex:1 }}>
-                  <button className="btn-gold" style={{ width:"100%", padding:"11px", borderRadius:11, fontSize:".9rem", border:"none", cursor:"pointer" }}>Daftar</button>
+                  <button className="btn-gold" style={{ width:"100%", padding:"11px", borderRadius:11, fontSize:".9rem", border:"none", cursor:"pointer" }}>Login</button>
                 </Link>
               </div>
             </div>

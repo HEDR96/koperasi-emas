@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
-import { ChevronDown, Shield, Award, TrendingUp, Users } from "lucide-react";
+import { ChevronDown, Shield, Award, TrendingUp } from "lucide-react";
 import { STATS } from "@/lib/constants";
 import { formatNumber } from "@/lib/utils";
 
@@ -121,21 +121,16 @@ export default function HeroSection() {
           initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay:.65 }}
           style={{ display:"flex", flexWrap:"wrap", gap:12, justifyContent:"center", marginBottom:"4rem" }}
         >
-          <Link href="/auth/register">
+          <Link href="/auth/login">
             <button className="btn-gold pulse-glow" style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"14px 32px", borderRadius:14, fontSize:"1rem", border:"none", cursor:"pointer" }}>
-              <Users style={{ width:20, height:20 }} />
-              Daftar Jadi Member
+              <TrendingUp style={{ width:20, height:20 }} />
+              Masuk & Mulai Investasi
             </button>
           </Link>
           <Link href="#harga-emas">
             <button className="btn-outline-gold" style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"14px 28px", borderRadius:14, fontSize:"1rem", cursor:"pointer" }}>
               <TrendingUp style={{ width:18, height:18 }} />
               Lihat Harga Emas
-            </button>
-          </Link>
-          <Link href="#simulasi">
-            <button style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"14px 28px", borderRadius:14, fontSize:"1rem", cursor:"pointer", background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", color:"rgba(255,255,255,0.75)", transition:"background .2s" }}>
-              Simulasi Cicilan
             </button>
           </Link>
         </motion.div>

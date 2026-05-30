@@ -1,6 +1,6 @@
 export const SITE_CONFIG = {
   name: "Koperasi Emas",
-  shortName: "KE",
+  shortName: "KOPERASI EMAS",
   tagline: "Investasi Emas Aman & Terpercaya",
   description:
     "Platform koperasi emas terpercaya untuk tabungan, cicilan, buyback, dan investasi emas online bersama jutaan anggota Indonesia.",
@@ -175,7 +175,7 @@ export const MOCK_GOLD_PRICES = {
   buyNonMember: 1_745_000,
   buybackMember: 1_658_000,
   buybackNonMember: 1_625_000,
-  lastUpdate: new Date().toISOString(),
+  lastUpdate: "2026-01-01T00:00:00.000Z",
   change: 4000,
   changePercent: 0.24,
   trend: "up" as "up" | "down",

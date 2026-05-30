@@ -5,10 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  LayoutDashboard, Users, Coins, TrendingUp, FileText, Settings,
-  LogOut, ChevronLeft, ChevronRight, Shield, Tag,
-  BarChart3, CreditCard, ArrowLeftRight, Wallet, Gift,
-  MessageCircle, Upload, Building, X, PiggyBank, Landmark,
+  LayoutDashboard, LogOut, ChevronLeft, ChevronRight, X,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -16,62 +13,16 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
   master: [
     { group:"Utama", items:[
       { label:"Dashboard", href:"/dashboard/master", icon:LayoutDashboard },
-      { label:"Statistik", href:"/dashboard/master/statistik", icon:BarChart3 },
-    ]},
-    { group:"Manajemen", items:[
-      { label:"Kelola Admin", href:"/dashboard/master/admin", icon:Shield },
-      { label:"Kelola Member", href:"/dashboard/master/member", icon:Users },
-      { label:"Harga Emas", href:"/dashboard/master/harga", icon:Coins },
-      { label:"Promo", href:"/dashboard/master/promo", icon:Tag },
-    ]},
-    { group:"Laporan", items:[
-      { label:"Approval", href:"/dashboard/master/approval", icon:FileText },
-      { label:"Laporan", href:"/dashboard/master/laporan", icon:BarChart3 },
-      { label:"Audit Log", href:"/dashboard/master/audit", icon:FileText },
-    ]},
-    { group:"Sistem", items:[
-      { label:"Pengaturan", href:"/dashboard/master/settings", icon:Settings },
     ]},
   ],
   admin: [
     { group:"Utama", items:[
       { label:"Dashboard", href:"/dashboard/admin", icon:LayoutDashboard },
     ]},
-    { group:"Operasional", items:[
-      { label:"Transaksi", href:"/dashboard/admin/transaksi", icon:ArrowLeftRight },
-      { label:"Pembayaran", href:"/dashboard/admin/pembayaran", icon:CreditCard },
-      { label:"Verifikasi", href:"/dashboard/admin/verifikasi", icon:FileText },
-      { label:"Kelola Member", href:"/dashboard/admin/member", icon:Users },
-    ]},
-    { group:"Simpanan & Gadai", items:[
-      { label:"Verif. Simpanan", href:"/dashboard/admin/simpanan", icon:PiggyBank },
-      { label:"Gadai Emas",      href:"/dashboard/admin/gadai",    icon:Landmark },
-    ]},
-    { group:"Konten", items:[
-      { label:"Upload Promo", href:"/dashboard/admin/promo",   icon:Tag },
-      { label:"Berita",       href:"/dashboard/admin/berita",  icon:FileText },
-      { label:"Chat Member",  href:"/dashboard/admin/chat",    icon:MessageCircle },
-      { label:"Invoice",      href:"/dashboard/admin/invoice", icon:FileText },
-    ]},
   ],
   member: [
-    { group:"Portofolio", items:[
-      { label:"Dashboard",    href:"/dashboard/member",          icon:LayoutDashboard },
-      { label:"Saldo & Emas", href:"/dashboard/member/saldo",    icon:Coins },
-      { label:"Simpanan",     href:"/dashboard/member/simpanan", icon:PiggyBank },
-    ]},
-    { group:"Transaksi", items:[
-      { label:"Beli Emas",    href:"/dashboard/member/beli",     icon:TrendingUp },
-      { label:"Buyback",      href:"/dashboard/member/buyback",  icon:ArrowLeftRight },
-      { label:"Gadai Emas",   href:"/dashboard/member/gadai",    icon:Landmark },
-      { label:"Cicilan Emas", href:"/dashboard/member/cicilan",  icon:CreditCard },
-      { label:"Tabungan Emas",href:"/dashboard/member/tabungan", icon:Wallet },
-    ]},
-    { group:"Info", items:[
-      { label:"Promo & Harga",href:"/dashboard/member/promo",   icon:Tag },
-      { label:"Histori",      href:"/dashboard/member/histori",  icon:FileText },
-      { label:"Referral",     href:"/dashboard/member/referral", icon:Gift },
-      { label:"Upload Bukti", href:"/dashboard/member/upload",   icon:Upload },
+    { group:"Utama", items:[
+      { label:"Dashboard", href:"/dashboard/member", icon:LayoutDashboard },
     ]},
   ],
 };

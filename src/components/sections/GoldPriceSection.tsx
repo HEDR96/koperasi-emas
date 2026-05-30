@@ -68,7 +68,7 @@ export default function GoldPriceSection() {
             <span className="text-gold-gradient">Hari Ini</span>
           </h2>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:16, fontSize:".82rem", flexWrap:"wrap" }}>
-            <span style={{ color:"rgba(255,255,255,0.70)", display:"flex", alignItems:"center", gap:6 }}>
+            <span suppressHydrationWarning style={{ color:"rgba(255,255,255,0.70)", display:"flex", alignItems:"center", gap:6 }}>
               <Clock style={{ width:14, height:14 }} />
               Update: {formatDateTime(prices.lastUpdate)}
             </span>
