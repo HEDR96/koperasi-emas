@@ -6,18 +6,44 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, LogOut, ChevronLeft, ChevronRight, X,
+  BarChart2, Users, ShieldCheck, Coins, CheckSquare, FileText,
+  ClipboardList, Bell, Settings, Upload, MessageSquare, PlusCircle,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const NAV: Record<string, { group: string; items: { label:string; href:string; icon:any }[] }[]> = {
   master: [
     { group:"Utama", items:[
-      { label:"Dashboard", href:"/dashboard/master", icon:LayoutDashboard },
+      { label:"Dashboard",  href:"/dashboard/master",           icon:LayoutDashboard },
+      { label:"Statistik",  href:"/dashboard/master/statistik", icon:BarChart2 },
+    ]},
+    { group:"Manajemen", items:[
+      { label:"Kelola Admin",  href:"/dashboard/master/admin",  icon:ShieldCheck },
+      { label:"Kelola Member", href:"/dashboard/master/member", icon:Users },
+      { label:"Harga Emas",   href:"/dashboard/master/harga",   icon:Coins },
+    ]},
+    { group:"Laporan", items:[
+      { label:"Approval", href:"/dashboard/master/approval", icon:CheckSquare },
+      { label:"Laporan",  href:"/dashboard/master/laporan",  icon:FileText },
+      { label:"Audit",    href:"/dashboard/master/audit",    icon:ClipboardList },
+    ]},
+    { group:"Sistem", items:[
+      { label:"Notifikasi", href:"/dashboard/master/notifikasi", icon:Bell },
+      { label:"Pengaturan", href:"/dashboard/master/settings",   icon:Settings },
     ]},
   ],
   admin: [
     { group:"Utama", items:[
       { label:"Dashboard", href:"/dashboard/admin", icon:LayoutDashboard },
+    ]},
+    { group:"Operasional", items:[
+      { label:"Transaksi & Approval", href:"/dashboard/admin/transaksi", icon:CheckSquare },
+      { label:"Input Deposit",        href:"/dashboard/admin/deposit",   icon:PlusCircle },
+      { label:"Kelola Member",        href:"/dashboard/admin/member",    icon:Users },
+    ]},
+    { group:"Konten", items:[
+      { label:"Upload Promo", href:"/dashboard/admin/promo", icon:Upload },
+      { label:"Chat",         href:"/dashboard/admin/chat",  icon:MessageSquare },
     ]},
   ],
   member: [
