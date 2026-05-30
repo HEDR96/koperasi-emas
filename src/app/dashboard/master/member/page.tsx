@@ -233,32 +233,49 @@ export default function MemberManagementPage() {
               style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:300 }} />
             <motion.div
               initial={{ opacity:0, scale:.95, y:20 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95 }}
-              style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:"min(600px,96vw)", background:"#111", border:"1px solid rgba(212,175,55,0.2)", borderRadius:20, padding:28, zIndex:301, maxHeight:"88vh", overflowY:"auto" }}
+              style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:"min(560px,96vw)", background:"#0f0f0f", border:"1px solid rgba(212,175,55,0.2)", borderRadius:22, zIndex:301, maxHeight:"90vh", overflowY:"auto", boxShadow:"0 32px 80px rgba(0,0,0,0.6)" }}
             >
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
-                <h2 style={{ color:"#fff", fontWeight:700, fontSize:"1.1rem", margin:0 }}>Profil Member</h2>
+              {/* Modal Header */}
+              <div style={{ padding:"20px 22px 16px", borderBottom:"1px solid rgba(255,255,255,0.06)", display:"flex", alignItems:"center", gap:14 }}>
+                <div style={{ width:44, height:44, borderRadius:12, background:"linear-gradient(135deg,rgba(212,175,55,0.3),rgba(212,175,55,0.1))", display:"flex", alignItems:"center", justifyContent:"center", color:"#D4AF37", fontWeight:800, fontSize:"1.1rem", flexShrink:0 }}>
+                  {detail.name?.[0]?.toUpperCase()||"M"}
+                </div>
+                <div style={{ flex:1 }}>
+                  <h2 style={{ color:"#fff", fontWeight:700, fontSize:"1.05rem", margin:0 }}>{detail.name}</h2>
+                  <span style={{ background:STATUS_BG[detail.status]||"rgba(255,255,255,0.08)", color:STATUS_COLOR[detail.status]||"#fff", borderRadius:5, padding:"2px 8px", fontSize:".72rem", fontWeight:600, textTransform:"capitalize" }}>{detail.status}</span>
+                </div>
                 <button onClick={()=>setDetail(null)}
-                  style={{ background:"rgba(255,255,255,0.07)", border:"none", borderRadius:8, width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>
+                  style={{ background:"rgba(255,255,255,0.07)", border:"none", borderRadius:8, width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.5)", cursor:"pointer", flexShrink:0 }}>
                   <X style={{ width:15, height:15 }} />
                 </button>
               </div>
-              {/* Info */}
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:20 }}>
-                {[
-                  ["Nama",   detail.name],
-                  ["NIK",    detail.nik||"—"],
-                  ["HP",     detail.phone||"—"],
-                  ["Status", detail.status],
-                  ["Emas",   Number(detail.gold_grams).toFixed(2)+" gr"],
-                  ["Saldo",  fmt(detail.rupiah_balance)],
-                  ["Bergabung", fmtDate(detail.created_at)],
-                ].map(([k,v])=>(
-                  <div key={k} style={{ background:"rgba(255,255,255,0.04)", borderRadius:10, padding:"10px 14px" }}>
-                    <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".72rem", margin:"0 0 4px" }}>{k}</p>
-                    <p style={{ color:"#fff", fontWeight:600, fontSize:".88rem", margin:0 }}>{v}</p>
+
+              <div style={{ padding:"18px 22px 24px" }}>
+                {/* Emas & Saldo highlight */}
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:18 }}>
+                  <div style={{ background:"rgba(212,175,55,0.07)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:12, padding:"14px 16px" }}>
+                    <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".73rem", margin:"0 0 5px" }}>Total Emas</p>
+                    <p style={{ color:"#D4AF37", fontWeight:800, fontSize:"1.3rem", margin:0 }}>{Number(detail.gold_grams).toFixed(2)}<span style={{ fontSize:".78rem", fontWeight:500, marginLeft:4 }}>gram</span></p>
                   </div>
-                ))}
-              </div>
+                  <div style={{ background:"rgba(96,165,250,0.07)", border:"1px solid rgba(96,165,250,0.15)", borderRadius:12, padding:"14px 16px" }}>
+                    <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".73rem", margin:"0 0 5px" }}>Saldo Rupiah</p>
+                    <p style={{ color:"#60a5fa", fontWeight:800, fontSize:"1.1rem", margin:0 }}>{fmt(detail.rupiah_balance)}</p>
+                  </div>
+                </div>
+
+                {/* Info rows */}
+                <div style={{ display:"flex", flexDirection:"column", gap:0, marginBottom:18, background:"rgba(255,255,255,0.02)", borderRadius:12, overflow:"hidden", border:"1px solid rgba(255,255,255,0.05)" }}>
+                  {[
+                    ["NIK",       detail.nik||"—"],
+                    ["Nomor HP",  detail.phone||"—"],
+                    ["Bergabung", fmtDate(detail.created_at)],
+                  ].map(([k,v], i, arr)=>(
+                    <div key={k} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"11px 16px", borderBottom: i < arr.length-1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
+                      <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".83rem" }}>{k}</span>
+                      <span style={{ color:"#fff", fontWeight:600, fontSize:".83rem" }}>{v}</span>
+                    </div>
+                  ))}
+                </div>
               {/* Recent Transactions */}
               <h3 style={{ color:"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", marginBottom:10 }}>5 Transaksi Terakhir</h3>
               {detailLoading ? (
@@ -306,6 +323,7 @@ export default function MemberManagementPage() {
                   </div>
                 </>
               )}
+              </div>{/* end padding wrapper */}
             </motion.div>
           </>
         )}

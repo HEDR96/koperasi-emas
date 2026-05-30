@@ -25,7 +25,6 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
     { group:"Laporan", items:[
       { label:"Approval", href:"/dashboard/master/approval", icon:CheckSquare },
       { label:"Laporan",  href:"/dashboard/master/laporan",  icon:FileText },
-      { label:"Audit",    href:"/dashboard/master/audit",    icon:ClipboardList },
     ]},
     { group:"Sistem", items:[
       { label:"Notifikasi", href:"/dashboard/master/notifikasi", icon:Bell },
