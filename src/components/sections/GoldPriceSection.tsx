@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, RefreshCw, Clock, Star } from "lucide-react";
+import { TrendingUp, TrendingDown, RefreshCw, Clock } from "lucide-react";
 import { useGoldStore } from "@/store/useGoldStore";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import { MOCK_CHART_DATA } from "@/lib/constants";
@@ -105,26 +105,6 @@ export default function GoldPriceSection() {
           <Chart data={MOCK_CHART_DATA} />
         </motion.div>
 
-        {/* Member advantage */}
-        <motion.div initial={{ opacity:0, y:16 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} transition={{ delay:.3 }}
-          style={{ marginTop:16, background:"rgba(212,175,55,0.06)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:16, padding:"18px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}
-        >
-          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-            <div style={{ width:40, height:40, borderRadius:11, background:"rgba(212,175,55,0.12)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <Star style={{ width:20, height:20, color:"#D4AF37" }} />
-            </div>
-            <div>
-              <p style={{ color:"#fff", fontWeight:600, fontSize:".9rem" }}>Hemat lebih banyak sebagai Member!</p>
-              <p style={{ color:"rgba(255,255,255,0.75)", fontSize:".78rem" }}>
-                Selisih harga beli: {formatCurrency(prices.buyNonMember - prices.buyMember)}/gram vs non-member ·{" "}
-                <span style={{ color:"rgba(212,175,55,0.9)" }}>Simpanan pokok Rp 5 jt · Wajib Rp 200 rb/bln</span>
-              </p>
-            </div>
-          </div>
-          <Link href="/auth/register">
-            <button className="btn-gold" style={{ padding:"10px 22px", borderRadius:11, fontSize:".85rem", border:"none", cursor:"pointer", whiteSpace:"nowrap" }}>Daftar Jadi Member</button>
-          </Link>
-        </motion.div>
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </section>

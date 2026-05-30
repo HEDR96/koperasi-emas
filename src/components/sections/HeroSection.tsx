@@ -1,40 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
 import { ChevronDown, Shield, Award, TrendingUp } from "lucide-react";
-import { STATS } from "@/lib/constants";
-import { formatNumber } from "@/lib/utils";
-
-/* ── Animated counter ── */
-function Counter({ end, suffix = "" }: { end: number; suffix?: string }) {
-  const [val, setVal] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const started = useRef(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting && !started.current) {
-        started.current = true;
-        const dur = 2200;
-        const start = performance.now();
-        const tick = (now: number) => {
-          const t = Math.min((now - start) / dur, 1);
-          setVal(Math.floor((1 - Math.pow(1 - t, 3)) * end));
-          if (t < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-      }
-    });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [end]);
-
-  return <span ref={ref}>{formatNumber(val)}{suffix}</span>;
-}
 
 /* ── Particle (fixed positions — no hydration mismatch) ── */
 const PARTICLES = [
@@ -135,43 +104,6 @@ export default function HeroSection() {
           </Link>
         </motion.div>
 
-        {/* Syarat keanggotaan */}
-        <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:.75 }}
-          style={{ display:"flex", flexWrap:"wrap", gap:10, justifyContent:"center", marginBottom:"2.5rem" }}>
-          {[
-            { icon:"🏦", label:"Simpanan Pokok", value:"Rp 5.000.000", sub:"sekali bayar, milik Anda" },
-            { icon:"📅", label:"Simpanan Wajib",  value:"Rp 200.000/bln", sub:"syarat aktif anggota" },
-            { icon:"🥇", label:"Harga Member",    value:"Lebih hemat",   sub:`vs non-member /gram` },
-          ].map(b => (
-            <div key={b.label} style={{ display:"flex", alignItems:"center", gap:10, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(212,175,55,0.15)", borderRadius:12, padding:"10px 16px" }}>
-              <span style={{ fontSize:"1.2rem" }}>{b.icon}</span>
-              <div>
-                <p style={{ color:"rgba(255,255,255,0.70)", fontSize:".68rem", marginBottom:1 }}>{b.label}</p>
-                <p style={{ color:"#D4AF37", fontWeight:800, fontSize:".82rem", lineHeight:1 }}>{b.value}</p>
-                <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".65rem" }}>{b.sub}</p>
-              </div>
-            </div>
-          ))}
-        </motion.div>
-
-        {/* Stats */}
-        <motion.div
-          initial={{ opacity:0, y:30 }} animate={{ opacity:1, y:0 }} transition={{ delay:.8 }}
-          style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(160px, 1fr))", gap:16, maxWidth:800, margin:"0 auto" }}
-        >
-          {STATS.map((s, i) => (
-            <motion.div key={s.label}
-              initial={{ opacity:0, scale:.85 }} animate={{ opacity:1, scale:1 }} transition={{ delay:.8 + i*.1 }}
-              className="glass-dark gold-border-glow"
-              style={{ borderRadius:16, padding:"20px 16px", textAlign:"center" }}
-            >
-              <div className="text-gold-gradient" style={{ fontSize:"clamp(1.5rem,3vw,2rem)", fontWeight:900, lineHeight:1 }}>
-                <Counter end={s.value} suffix={s.suffix} />
-              </div>
-              <div style={{ color:"rgba(255,255,255,0.75)", fontSize:".8rem", marginTop:6, fontWeight:500 }}>{s.label}</div>
-            </motion.div>
-          ))}
-        </motion.div>
       </motion.div>
 
       {/* Scroll cue */}

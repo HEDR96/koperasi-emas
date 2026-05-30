@@ -17,7 +17,6 @@ type SimType = "cicilan" | "investasi" | "tabungan" | "buyback";
 
 const TABS: { id: SimType; label: string; icon: any }[] = [
   { id: "cicilan", label: "Cicilan Emas", icon: Calculator },
-  { id: "investasi", label: "Investasi", icon: TrendingUp },
   { id: "tabungan", label: "Tabungan Emas", icon: PiggyBank },
   { id: "buyback", label: "Buyback", icon: ArrowLeftRight },
 ];
