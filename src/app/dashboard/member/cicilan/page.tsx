@@ -33,9 +33,9 @@ export default function CicilanPage() {
 
   const grams = [...new Set(plans.map(p => p.gram))].sort((a,b)=>a-b);
 
-  function ajukanCicilan(plan: CicilanHarga) {
+  function buildMsg(plan: CicilanHarga) {
     const um = Math.round(plan.harga_jual * plan.uang_muka_persen / 100);
-    const msg = encodeURIComponent([
+    return encodeURIComponent([
       "Halo, saya ingin mengajukan cicilan emas:",
       `• Berat: ${plan.gram} gram`,
       `• Harga Jual: ${fmt(plan.harga_jual)}`,
@@ -45,8 +45,6 @@ export default function CicilanPage() {
       "",
       "Mohon info lebih lanjut. Terima kasih."
     ].join("\n"));
-    window.open(`https://wa.me/${WA_ADMIN}?text=${msg}`, "_blank");
-    window.open(`https://wa.me/${WA_PENGURUS}?text=${msg}`, "_blank");
   }
 
   return (
@@ -103,10 +101,20 @@ export default function CicilanPage() {
                         <span style={{ color:"#D4AF37", fontWeight:900, fontSize:"1rem" }}>{fmt(plan.angsuran)}</span>
                         <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".72rem" }}>/bulan</span>
                       </div>
-                      <button onClick={() => ajukanCicilan(plan)}
-                        style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6, padding:"9px", borderRadius:9, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", color:"#25d366", fontWeight:600, fontSize:".8rem", cursor:"pointer" }}>
-                        <MessageCircle style={{ width:14, height:14 }} /> Ajukan via WA
-                      </button>
+                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6 }}>
+                        <a href={`https://wa.me/${WA_ADMIN}?text=${buildMsg(plan)}`} target="_blank" rel="noopener noreferrer"
+                          style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:2, padding:"8px 4px", borderRadius:10, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.25)", textDecoration:"none" }}>
+                          <MessageCircle style={{ width:13, height:13, color:"#25d366" }} />
+                          <span style={{ color:"#25d366", fontWeight:700, fontSize:".72rem" }}>Admin</span>
+                          <span style={{ color:"rgba(255,255,255,0.35)", fontSize:".65rem" }}>0812-9753-3899</span>
+                        </a>
+                        <a href={`https://wa.me/${WA_PENGURUS}?text=${buildMsg(plan)}`} target="_blank" rel="noopener noreferrer"
+                          style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:2, padding:"8px 4px", borderRadius:10, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.25)", textDecoration:"none" }}>
+                          <MessageCircle style={{ width:13, height:13, color:"#25d366" }} />
+                          <span style={{ color:"#25d366", fontWeight:700, fontSize:".72rem" }}>Pengurus</span>
+                          <span style={{ color:"rgba(255,255,255,0.35)", fontSize:".65rem" }}>0882-1446-0345</span>
+                        </a>
+                      </div>
                     </div>
                   );
                 })}

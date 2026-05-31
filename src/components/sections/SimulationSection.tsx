@@ -106,20 +106,18 @@ export default function SimulationSection() {
     ? Math.round(selectedPlan.harga_jual * (selectedPlan.uang_muka_persen / 100))
     : 0;
 
-  function kirimKeduaWA() {
-    if (!selectedPlan) return;
-    const msg = encodeURIComponent([
+  function buildMsg(plan: CicilanHarga) {
+    const um = Math.round(plan.harga_jual * plan.uang_muka_persen / 100);
+    return encodeURIComponent([
       "Halo, saya ingin mengajukan cicilan emas:",
-      `• Berat: ${selectedPlan.gram} gram`,
-      `• Harga Jual: ${formatCurrency(selectedPlan.harga_jual)}`,
-      `• Tenor: ${selectedPlan.tenor} bulan`,
-      `• Uang Muka (${selectedPlan.uang_muka_persen}%): ${formatCurrency(uangMuka)}`,
-      `• Angsuran/bulan: ${formatCurrency(selectedPlan.angsuran)}`,
+      `• Berat: ${plan.gram} gram`,
+      `• Harga Jual: ${formatCurrency(plan.harga_jual)}`,
+      `• Tenor: ${plan.tenor} bulan`,
+      `• Uang Muka (${plan.uang_muka_persen}%): ${formatCurrency(um)}`,
+      `• Angsuran/bulan: ${formatCurrency(plan.angsuran)}`,
       "",
       "Mohon info lebih lanjut. Terima kasih."
     ].join("\n"));
-    window.open(`https://wa.me/${WA_ADMIN}?text=${msg}`, "_blank");
-    window.open(`https://wa.me/${WA_PENGURUS}?text=${msg}`, "_blank");
   }
 
   const buybackTotal = Math.round(buybackPrice * buybackGram);
@@ -221,11 +219,20 @@ export default function SimulationSection() {
                     <div className="mt-2 p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm text-center font-medium">
                       Tanpa bunga untuk anggota aktif ✓
                     </div>
-                    <button onClick={kirimKeduaWA}
-                      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm btn-gold">
-                      <MessageCircle className="w-4 h-4" />
-                      Ajukan Cicilan via WhatsApp
-                    </button>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+                      <a href={`https://wa.me/${WA_ADMIN}?text=${buildMsg(selectedPlan)}`} target="_blank" rel="noopener noreferrer"
+                        style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none" }}>
+                        <MessageCircle className="w-4 h-4" style={{ color:"#25d366" }} />
+                        <span style={{ color:"#25d366", fontWeight:700, fontSize:".8rem" }}>Admin</span>
+                        <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>0812-9753-3899</span>
+                      </a>
+                      <a href={`https://wa.me/${WA_PENGURUS}?text=${buildMsg(selectedPlan)}`} target="_blank" rel="noopener noreferrer"
+                        style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none" }}>
+                        <MessageCircle className="w-4 h-4" style={{ color:"#25d366" }} />
+                        <span style={{ color:"#25d366", fontWeight:700, fontSize:".8rem" }}>Pengurus</span>
+                        <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>0882-1446-0345</span>
+                      </a>
+                    </div>
                   </div>
                 ) : (
                   <p className="text-white/40 text-sm">Pilih berat dan tenor untuk melihat simulasi.</p>

@@ -8,7 +8,7 @@ import {
   LayoutDashboard, LogOut, ChevronLeft, ChevronRight, X,
   BarChart2, Users, ShieldCheck, Coins, CheckSquare, FileText,
   Bell, Settings, Upload, MessageSquare, PlusCircle,
-  Send, History, Star, HelpCircle, Image, Landmark, CreditCard,
+  Send, History, Star, HelpCircle, Image, Landmark, CreditCard, UserCircle,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -28,13 +28,15 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"FAQ",        href:"/dashboard/master/faq",       icon:HelpCircle },
       { label:"Foto Gedung",href:"/dashboard/master/konten",    icon:Image },
     ]},
-    { group:"Laporan", items:[
-      { label:"Approval", href:"/dashboard/master/approval", icon:CheckSquare },
-      { label:"Laporan",  href:"/dashboard/master/laporan",  icon:FileText },
+    { group:"Transaksi", items:[
+      { label:"Approval",           href:"/dashboard/master/approval",         icon:CheckSquare },
+      { label:"Input Transaksi",    href:"/dashboard/master/input-transaksi",  icon:PlusCircle },
+      { label:"Laporan",            href:"/dashboard/master/laporan",          icon:FileText },
     ]},
     { group:"Sistem", items:[
       { label:"Notifikasi", href:"/dashboard/master/notifikasi", icon:Bell },
       { label:"Pengaturan", href:"/dashboard/master/settings",   icon:Settings },
+      { label:"Profil Saya",href:"/dashboard/profil",            icon:UserCircle },
     ]},
   ],
   admin: [
@@ -47,8 +49,12 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Kelola Anggota",       href:"/dashboard/admin/member",    icon:Users },
     ]},
     { group:"Konten", items:[
-      { label:"Upload Promo", href:"/dashboard/admin/promo", icon:Upload },
-      { label:"Chat",         href:"/dashboard/admin/chat",  icon:MessageSquare },
+      { label:"Upload Promo",    href:"/dashboard/admin/promo",            icon:Upload },
+      { label:"Chat",            href:"/dashboard/admin/chat",             icon:MessageSquare },
+      { label:"Input Transaksi", href:"/dashboard/admin/input-transaksi",  icon:PlusCircle },
+    ]},
+    { group:"Akun", items:[
+      { label:"Profil Saya", href:"/dashboard/profil", icon:UserCircle },
     ]},
   ],
   member: [
