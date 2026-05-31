@@ -8,6 +8,7 @@ import {
   LayoutDashboard, LogOut, ChevronLeft, ChevronRight, X,
   BarChart2, Users, ShieldCheck, Coins, CheckSquare, FileText,
   ClipboardList, Bell, Settings, Upload, MessageSquare, PlusCircle,
+  Send, History,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -47,7 +48,11 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
   ],
   member: [
     { group:"Utama", items:[
-      { label:"Dashboard", href:"/dashboard/member", icon:LayoutDashboard },
+      { label:"Dashboard",  href:"/dashboard/member",          icon:LayoutDashboard },
+    ]},
+    { group:"Transaksi", items:[
+      { label:"Ajukan Transaksi", href:"/dashboard/member/request", icon:Send },
+      { label:"Histori",          href:"/dashboard/member/histori", icon:History },
     ]},
   ],
 };

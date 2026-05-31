@@ -145,9 +145,9 @@ export default function AdminDepositPage() {
     <div style={{ display:"flex", flexDirection:"column", gap:24, maxWidth:560 }}>
       {/* Header */}
       <div>
-        <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Input Deposit</h1>
+        <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Input Transaksi Member</h1>
         <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>
-          Input transaksi langsung atas nama member. Status otomatis menjadi selesai.
+          Input transaksi atas nama member. Status langsung Selesai (tidak perlu approval).
         </p>
       </div>
 
