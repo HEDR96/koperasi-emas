@@ -132,8 +132,10 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
 );
 
 ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "settings_select" ON public.site_settings FOR SELECT USING (TRUE);
-CREATE POLICY IF NOT EXISTS "settings_write" ON public.site_settings FOR ALL
+DROP POLICY IF EXISTS "settings_select" ON public.site_settings;
+DROP POLICY IF EXISTS "settings_write"  ON public.site_settings;
+CREATE POLICY "settings_select" ON public.site_settings FOR SELECT USING (TRUE);
+CREATE POLICY "settings_write" ON public.site_settings FOR ALL
   USING (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role IN ('admin','master')));
 
 -- ─────────────────────────────────────────────

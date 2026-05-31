@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { formatCurrency } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
-import { Calculator, ArrowLeftRight, MessageCircle, X, Phone } from "lucide-react";
+import { Calculator, ArrowLeftRight, MessageCircle } from "lucide-react";
 
 type SimType = "cicilan" | "buyback";
 
@@ -36,7 +36,6 @@ export default function SimulationSection() {
   const [cicilanPlans, setCicilanPlans]   = useState<CicilanHarga[]>([]);
   const [selectedGram, setSelectedGram]   = useState<number | null>(null);
   const [selectedTenor, setSelectedTenor] = useState<number | null>(null);
-  const [showWAModal, setShowWAModal]     = useState(false);
   const [loadingCicilan, setLoadingCicilan] = useState(true);
 
   // Buyback state
@@ -107,9 +106,9 @@ export default function SimulationSection() {
     ? Math.round(selectedPlan.harga_jual * (selectedPlan.uang_muka_persen / 100))
     : 0;
 
-  function buildWAMessage() {
-    if (!selectedPlan) return "";
-    const msg = [
+  function kirimKeduaWA() {
+    if (!selectedPlan) return;
+    const msg = encodeURIComponent([
       "Halo, saya ingin mengajukan cicilan emas:",
       `• Berat: ${selectedPlan.gram} gram`,
       `• Harga Jual: ${formatCurrency(selectedPlan.harga_jual)}`,
@@ -118,8 +117,9 @@ export default function SimulationSection() {
       `• Angsuran/bulan: ${formatCurrency(selectedPlan.angsuran)}`,
       "",
       "Mohon info lebih lanjut. Terima kasih."
-    ].join("\n");
-    return encodeURIComponent(msg);
+    ].join("\n"));
+    window.open(`https://wa.me/${WA_ADMIN}?text=${msg}`, "_blank");
+    window.open(`https://wa.me/${WA_PENGURUS}?text=${msg}`, "_blank");
   }
 
   const buybackTotal = Math.round(buybackPrice * buybackGram);
@@ -221,7 +221,7 @@ export default function SimulationSection() {
                     <div className="mt-2 p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm text-center font-medium">
                       Tanpa bunga untuk anggota aktif ✓
                     </div>
-                    <button onClick={() => setShowWAModal(true)}
+                    <button onClick={kirimKeduaWA}
                       className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm btn-gold">
                       <MessageCircle className="w-4 h-4" />
                       Ajukan Cicilan via WhatsApp
@@ -292,61 +292,6 @@ export default function SimulationSection() {
 
         </motion.div>
       </div>
-
-      {/* WhatsApp Modal */}
-      <AnimatePresence>
-        {showWAModal && (
-          <>
-            <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
-              onClick={() => setShowWAModal(false)}
-              style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:1000 }} />
-            <motion.div
-              initial={{ opacity:0, scale:.9, y:20 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.9, y:20 }}
-              style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:1001, width:"min(420px,92vw)", background:"rgba(14,14,14,0.98)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:20, padding:28 }}>
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
-                <h3 style={{ color:"#fff", fontWeight:700, fontSize:"1.1rem", margin:0 }}>Pilih Kontak Tujuan</h3>
-                <button onClick={() => setShowWAModal(false)}
-                  style={{ background:"rgba(255,255,255,0.07)", border:"none", borderRadius:8, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>
-                  <X style={{ width:16, height:16 }} />
-                </button>
-              </div>
-              <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".85rem", marginBottom:20 }}>
-                Kirim pesan cicilan via WhatsApp ke:
-              </p>
-              <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-                <a href={`https://wa.me/${WA_ADMIN}?text=${buildWAMessage()}`} target="_blank" rel="noopener noreferrer"
-                  onClick={() => setShowWAModal(false)}
-                  style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 18px", borderRadius:14, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none", transition:"all .2s" }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(37,211,102,0.18)"}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "rgba(37,211,102,0.1)"}
-                >
-                  <div style={{ width:40, height:40, borderRadius:11, background:"rgba(37,211,102,0.15)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                    <Phone style={{ width:18, height:18, color:"#25d366" }} />
-                  </div>
-                  <div>
-                    <p style={{ color:"#fff", fontWeight:700, fontSize:".9rem", margin:0 }}>Admin</p>
-                    <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", margin:0 }}>0812-9753-3899</p>
-                  </div>
-                </a>
-                <a href={`https://wa.me/${WA_PENGURUS}?text=${buildWAMessage()}`} target="_blank" rel="noopener noreferrer"
-                  onClick={() => setShowWAModal(false)}
-                  style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 18px", borderRadius:14, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none", transition:"all .2s" }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(37,211,102,0.18)"}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "rgba(37,211,102,0.1)"}
-                >
-                  <div style={{ width:40, height:40, borderRadius:11, background:"rgba(37,211,102,0.15)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                    <Phone style={{ width:18, height:18, color:"#25d366" }} />
-                  </div>
-                  <div>
-                    <p style={{ color:"#fff", fontWeight:700, fontSize:".9rem", margin:0 }}>Pengurus</p>
-                    <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", margin:0 }}>0882-1446-0345</p>
-                  </div>
-                </a>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </section>
   );
 }

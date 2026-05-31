@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Calculator, MessageCircle, Phone, X } from "lucide-react";
+import { Calculator, MessageCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { AnimatePresence } from "framer-motion";
 
 interface CicilanHarga {
   id: number; gram: number; tenor: number;
@@ -18,10 +17,8 @@ const WA_ADMIN    = "6281297533899";
 const WA_PENGURUS = "6288214460345";
 
 export default function CicilanPage() {
-  const [plans, setPlans]             = useState<CicilanHarga[]>([]);
-  const [loading, setLoading]         = useState(true);
-  const [selectedPlan, setSelectedPlan] = useState<CicilanHarga | null>(null);
-  const [showModal, setShowModal]     = useState(false);
+  const [plans, setPlans] = useState<CicilanHarga[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -36,9 +33,9 @@ export default function CicilanPage() {
 
   const grams = [...new Set(plans.map(p => p.gram))].sort((a,b)=>a-b);
 
-  function buildMsg(plan: CicilanHarga) {
+  function ajukanCicilan(plan: CicilanHarga) {
     const um = Math.round(plan.harga_jual * plan.uang_muka_persen / 100);
-    return encodeURIComponent([
+    const msg = encodeURIComponent([
       "Halo, saya ingin mengajukan cicilan emas:",
       `• Berat: ${plan.gram} gram`,
       `• Harga Jual: ${fmt(plan.harga_jual)}`,
@@ -48,6 +45,8 @@ export default function CicilanPage() {
       "",
       "Mohon info lebih lanjut. Terima kasih."
     ].join("\n"));
+    window.open(`https://wa.me/${WA_ADMIN}?text=${msg}`, "_blank");
+    window.open(`https://wa.me/${WA_PENGURUS}?text=${msg}`, "_blank");
   }
 
   return (
@@ -104,7 +103,7 @@ export default function CicilanPage() {
                         <span style={{ color:"#D4AF37", fontWeight:900, fontSize:"1rem" }}>{fmt(plan.angsuran)}</span>
                         <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".72rem" }}>/bulan</span>
                       </div>
-                      <button onClick={() => { setSelectedPlan(plan); setShowModal(true); }}
+                      <button onClick={() => ajukanCicilan(plan)}
                         style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6, padding:"9px", borderRadius:9, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", color:"#25d366", fontWeight:600, fontSize:".8rem", cursor:"pointer" }}>
                         <MessageCircle style={{ width:14, height:14 }} /> Ajukan via WA
                       </button>
@@ -117,51 +116,6 @@ export default function CicilanPage() {
         })
       )}
 
-      {/* WA Modal */}
-      <AnimatePresence>
-        {showModal && selectedPlan && (
-          <>
-            <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
-              onClick={() => setShowModal(false)}
-              style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:1000 }} />
-            <motion.div
-              initial={{ opacity:0, scale:.9, y:20 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.9 }}
-              style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:1001, width:"min(400px,92vw)", background:"rgba(14,14,14,0.98)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:20, padding:24 }}>
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-                <h3 style={{ color:"#fff", fontWeight:700, fontSize:"1rem", margin:0 }}>Pilih Kontak WhatsApp</h3>
-                <button onClick={() => setShowModal(false)}
-                  style={{ background:"rgba(255,255,255,0.07)", border:"none", borderRadius:8, width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>
-                  <X style={{ width:14, height:14 }} />
-                </button>
-              </div>
-              <div style={{ background:"rgba(212,175,55,0.06)", border:"1px solid rgba(212,175,55,0.15)", borderRadius:12, padding:"12px 14px", marginBottom:16 }}>
-                <p style={{ color:"#D4AF37", fontWeight:700, fontSize:".85rem", margin:"0 0 6px" }}>Paket Dipilih</p>
-                <p style={{ color:"rgba(255,255,255,0.7)", fontSize:".8rem", margin:0 }}>
-                  {selectedPlan.gram}g · {selectedPlan.tenor} bulan · {fmt(selectedPlan.angsuran)}/bln
-                </p>
-              </div>
-              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                {[
-                  { label:"Admin", no:"0812-9753-3899", wa:WA_ADMIN },
-                  { label:"Pengurus", no:"0882-1446-0345", wa:WA_PENGURUS },
-                ].map(c => (
-                  <a key={c.wa} href={`https://wa.me/${c.wa}?text=${buildMsg(selectedPlan)}`} target="_blank" rel="noopener noreferrer"
-                    onClick={() => setShowModal(false)}
-                    style={{ display:"flex", alignItems:"center", gap:12, padding:"13px 16px", borderRadius:13, background:"rgba(37,211,102,0.08)", border:"1px solid rgba(37,211,102,0.25)", textDecoration:"none" }}>
-                    <div style={{ width:38, height:38, borderRadius:10, background:"rgba(37,211,102,0.12)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                      <Phone style={{ width:16, height:16, color:"#25d366" }} />
-                    </div>
-                    <div>
-                      <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:0 }}>{c.label}</p>
-                      <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", margin:0 }}>{c.no}</p>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
