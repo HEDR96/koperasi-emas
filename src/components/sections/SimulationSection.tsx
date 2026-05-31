@@ -1,109 +1,153 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { formatCurrency, formatGoldWeight } from "@/lib/utils";
-import { useGoldStore } from "@/store/useGoldStore";
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
-} from "recharts";
-import { Calculator, TrendingUp, PiggyBank, ArrowLeftRight } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
+import { Calculator, ArrowLeftRight, MessageCircle, X, Phone } from "lucide-react";
 
-type SimType = "cicilan" | "investasi" | "tabungan" | "buyback";
+type SimType = "cicilan" | "buyback";
 
 const TABS: { id: SimType; label: string; icon: any }[] = [
   { id: "cicilan", label: "Cicilan Emas", icon: Calculator },
-  { id: "tabungan", label: "Tabungan Emas", icon: PiggyBank },
   { id: "buyback", label: "Buyback", icon: ArrowLeftRight },
 ];
 
+const WA_ADMIN    = "6281297533899";
+const WA_PENGURUS = "6288214460345";
+
+interface CicilanHarga {
+  id: number;
+  gram: number;
+  tenor: number;
+  harga_jual: number;
+  angsuran: number;
+  uang_muka_persen: number;
+}
+
 export default function SimulationSection() {
   const [activeTab, setActiveTab] = useState<SimType>("cicilan");
-  const { prices } = useGoldStore();
 
   // Cicilan state
-  const [cicilanGram, setCicilanGram] = useState(5);
-  const [cicilanTenor, setCicilanTenor] = useState(12);
-  const [cicilanDpPercent, setCicilanDpPercent] = useState(20);
-
-  // Investasi state
-  const [investAwal, setInvestAwal] = useState(1000000);
-  const [investBulanan, setInvestBulanan] = useState(500000);
-  const [investTahun, setInvestTahun] = useState(3);
-
-  // Tabungan state
-  const [tabunganHarian, setTabunganHarian] = useState(50000);
-  const [tabunganBulan, setTabunganBulan] = useState(24);
+  const [cicilanPlans, setCicilanPlans]   = useState<CicilanHarga[]>([]);
+  const [selectedGram, setSelectedGram]   = useState<number | null>(null);
+  const [selectedTenor, setSelectedTenor] = useState<number | null>(null);
+  const [showWAModal, setShowWAModal]     = useState(false);
+  const [loadingCicilan, setLoadingCicilan] = useState(true);
 
   // Buyback state
-  const [buybackGram, setBuybackGram] = useState(10);
+  const [buybackGram, setBuybackGram]       = useState(10);
+  const [buybackPrice, setBuybackPrice]     = useState(0);
+  const [loadingBuyback, setLoadingBuyback] = useState(true);
 
-  // Cicilan calculations
-  const cicilanTotal = cicilanGram * prices.buyMember;
-  const cicilanDp = (cicilanTotal * cicilanDpPercent) / 100;
-  const cicilanSisa = cicilanTotal - cicilanDp;
-  const cicilanBulanan = cicilanSisa / cicilanTenor;
+  // Load cicilan plans from DB
+  useEffect(() => {
+    (async () => {
+      setLoadingCicilan(true);
+      try {
+        const { data } = await (supabase.from("cicilan_harga") as any)
+          .select("*")
+          .order("gram", { ascending: true })
+          .order("tenor", { ascending: true });
+        if (data?.length) {
+          setCicilanPlans(data.map((d: any) => ({ ...d, gram: Number(d.gram) })));
+          setSelectedGram(Number(data[0].gram));
+          setSelectedTenor(data[0].tenor);
+        }
+      } catch {}
+      setLoadingCicilan(false);
+    })();
+  }, []);
 
-  // Investasi calculations
-  const investChartData = Array.from({ length: investTahun }, (_, i) => {
-    const tahunKe = i + 1;
-    const totalInvest = investAwal + investBulanan * 12 * tahunKe;
-    const growthRate = 0.08; // 8% per year estimated
-    const nilai = investAwal * Math.pow(1 + growthRate, tahunKe) +
-      investBulanan * 12 * ((Math.pow(1 + growthRate, tahunKe) - 1) / growthRate);
-    return {
-      tahun: `Tahun ${tahunKe}`,
-      modal: totalInvest,
-      nilai: Math.round(nilai),
-    };
-  });
+  // Load buyback price from DB (1 gram baseline)
+  useEffect(() => {
+    (async () => {
+      setLoadingBuyback(true);
+      try {
+        // Try per-gram buyback table first
+        const { data } = await (supabase.from("harga_emas_berat") as any)
+          .select("gram, harga")
+          .eq("kategori", "buyback")
+          .order("created_at", { ascending: false })
+          .limit(20);
+        if (data?.length) {
+          // Use 1g price as base rate, fallback to first available
+          const oneGram = data.find((d: any) => Number(d.gram) === 1);
+          setBuybackPrice(Number((oneGram || data[0]).harga) / Number((oneGram || data[0]).gram));
+        } else {
+          // Fallback to gold_prices table
+          const { data: gp } = await (supabase.from("gold_prices") as any)
+            .select("buyback_member")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .single();
+          if (gp) setBuybackPrice(Number(gp.buyback_member));
+        }
+      } catch {}
+      setLoadingBuyback(false);
+    })();
+  }, []);
 
-  // Tabungan calculations
-  const tabunganTotal = tabunganHarian * 30 * tabunganBulan;
-  const tabunganGram = tabunganTotal / prices.buyMember;
+  // Cicilan derived values
+  const availableGrams = [...new Set(cicilanPlans.map(p => p.gram))].sort((a, b) => a - b);
+  const availableTenors = cicilanPlans
+    .filter(p => p.gram === selectedGram)
+    .map(p => p.tenor)
+    .sort((a, b) => a - b);
 
-  // Buyback calculations
-  const buybackTotal = buybackGram * prices.buybackMember;
+  const selectedPlan = cicilanPlans.find(
+    p => p.gram === selectedGram && p.tenor === selectedTenor
+  );
+
+  const uangMuka = selectedPlan
+    ? Math.round(selectedPlan.harga_jual * (selectedPlan.uang_muka_persen / 100))
+    : 0;
+
+  function buildWAMessage() {
+    if (!selectedPlan) return "";
+    const msg = [
+      "Halo, saya ingin mengajukan cicilan emas:",
+      `• Berat: ${selectedPlan.gram} gram`,
+      `• Harga Jual: ${formatCurrency(selectedPlan.harga_jual)}`,
+      `• Tenor: ${selectedPlan.tenor} bulan`,
+      `• Uang Muka (${selectedPlan.uang_muka_persen}%): ${formatCurrency(uangMuka)}`,
+      `• Angsuran/bulan: ${formatCurrency(selectedPlan.angsuran)}`,
+      "",
+      "Mohon info lebih lanjut. Terima kasih."
+    ].join("\n");
+    return encodeURIComponent(msg);
+  }
+
+  const buybackTotal = Math.round(buybackPrice * buybackGram);
 
   return (
     <section id="simulasi" className="py-20 lg:py-28 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-black via-[#0a0900]/50 to-black" />
 
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
+        <motion.div initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} className="text-center mb-12">
           <Badge variant="gold" className="mb-4">Kalkulator Interaktif</Badge>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-4">
-            Simulasi <span className="text-gold-gradient">Investasi Emas</span>
+            Simulasi <span className="text-gold-gradient">Cicilan & Buyback</span>
           </h2>
           <p className="text-white/80 max-w-xl mx-auto">
-            Hitung estimasi cicilan, keuntungan investasi, dan nilai buyback emas Anda.
+            Cek estimasi cicilan emas dan nilai buyback Anda.
           </p>
         </motion.div>
 
         {/* Tab Selector */}
         <div className="flex flex-wrap gap-2 mb-8 justify-center">
-          {TABS.map((tab) => {
+          {TABS.map(tab => {
             const Icon = tab.icon;
             return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                  activeTab === tab.id
-                    ? "btn-gold text-black"
-                    : "glass-dark text-white/80 hover:text-white border border-white/10 hover:border-yellow-500/30"
-                }`}
-              >
+                  activeTab === tab.id ? "btn-gold text-black" : "glass-dark text-white/80 hover:text-white border border-white/10 hover:border-yellow-500/30"
+                }`}>
                 <Icon className="w-4 h-4" />
                 {tab.label}
               </button>
@@ -111,188 +155,81 @@ export default function SimulationSection() {
           })}
         </div>
 
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
+        <motion.div key={activeTab} initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.4 }}>
+
           {/* CICILAN */}
           {activeTab === "cicilan" && (
             <div className="grid lg:grid-cols-2 gap-6">
               <Card variant="glass" className="gradient-border">
-                <h3 className="text-lg font-bold text-white mb-6">Parameter Cicilan</h3>
-                <div className="space-y-6">
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <label className="text-sm text-white/80">Berat Emas</label>
-                      <span className="text-sm font-bold text-yellow-400">{cicilanGram} gram</span>
+                <h3 className="text-lg font-bold text-white mb-6">Pilih Paket Cicilan</h3>
+                {loadingCicilan ? (
+                  <p className="text-white/40 text-sm">Memuat paket cicilan...</p>
+                ) : cicilanPlans.length === 0 ? (
+                  <p className="text-white/40 text-sm">Paket cicilan belum tersedia. Hubungi admin untuk informasi lebih lanjut.</p>
+                ) : (
+                  <div className="space-y-5">
+                    {/* Pilih gram */}
+                    <div>
+                      <label className="text-sm text-white/70 block mb-2">Berat Emas</label>
+                      <div className="flex flex-wrap gap-2">
+                        {availableGrams.map(g => (
+                          <button key={g} onClick={() => { setSelectedGram(g); setSelectedTenor(cicilanPlans.find(p => p.gram === g)?.tenor ?? null); }}
+                            style={{ padding:"7px 16px", borderRadius:10, fontSize:".85rem", fontWeight:600, cursor:"pointer", border: selectedGram === g ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.12)", background: selectedGram === g ? "rgba(212,175,55,0.18)" : "rgba(255,255,255,0.04)", color: selectedGram === g ? "#D4AF37" : "rgba(255,255,255,0.6)" }}>
+                            {g % 1 === 0 ? g : g.toFixed(1)} gram
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <input type="range" min={1} max={100} value={cicilanGram}
-                      onChange={(e) => setCicilanGram(+e.target.value)}
-                      className="w-full accent-yellow-400 h-2 rounded-lg" />
-                    <div className="flex justify-between text-xs text-white/55 mt-1"><span>1g</span><span>100g</span></div>
+
+                    {/* Pilih tenor */}
+                    {selectedGram && availableTenors.length > 0 && (
+                      <div>
+                        <label className="text-sm text-white/70 block mb-2">Tenor (bulan)</label>
+                        <div className="flex flex-wrap gap-2">
+                          {availableTenors.map(t => (
+                            <button key={t} onClick={() => setSelectedTenor(t)}
+                              style={{ padding:"7px 16px", borderRadius:10, fontSize:".85rem", fontWeight:600, cursor:"pointer", border: selectedTenor === t ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.12)", background: selectedTenor === t ? "rgba(212,175,55,0.18)" : "rgba(255,255,255,0.04)", color: selectedTenor === t ? "#D4AF37" : "rgba(255,255,255,0.6)" }}>
+                              {t} bulan
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <label className="text-sm text-white/80">Tenor</label>
-                      <span className="text-sm font-bold text-yellow-400">{cicilanTenor} bulan</span>
-                    </div>
-                    <input type="range" min={3} max={36} step={3} value={cicilanTenor}
-                      onChange={(e) => setCicilanTenor(+e.target.value)}
-                      className="w-full accent-yellow-400 h-2 rounded-lg" />
-                    <div className="flex justify-between text-xs text-white/55 mt-1"><span>3 bln</span><span>36 bln</span></div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <label className="text-sm text-white/80">Uang Muka</label>
-                      <span className="text-sm font-bold text-yellow-400">{cicilanDpPercent}%</span>
-                    </div>
-                    <input type="range" min={20} max={80} step={5} value={cicilanDpPercent}
-                      onChange={(e) => setCicilanDpPercent(+e.target.value)}
-                      className="w-full accent-yellow-400 h-2 rounded-lg" />
-                    <div className="flex justify-between text-xs text-white/55 mt-1"><span>20%</span><span>80%</span></div>
-                  </div>
-                </div>
+                )}
               </Card>
 
               <Card variant="glass" className="gradient-border">
                 <h3 className="text-lg font-bold text-white mb-6">Hasil Simulasi</h3>
-                <div className="space-y-4">
-                  {[
-                    { label: "Harga Emas", value: formatCurrency(cicilanTotal) },
-                    { label: "Uang Muka (DP)", value: formatCurrency(cicilanDp), highlight: true },
-                    { label: "Sisa Pembayaran", value: formatCurrency(cicilanSisa) },
-                    { label: "Tenor", value: `${cicilanTenor} bulan` },
-                  ].map((row) => (
-                    <div key={row.label} className="flex justify-between py-3 border-b border-white/5">
-                      <span className="text-white/80 text-sm">{row.label}</span>
-                      <span className={`font-bold text-sm ${row.highlight ? "text-yellow-400" : "text-white"}`}>{row.value}</span>
+                {selectedPlan ? (
+                  <div className="space-y-4">
+                    {[
+                      { label: "Berat Emas",       value: `${selectedPlan.gram} gram` },
+                      { label: "Harga Jual",        value: formatCurrency(selectedPlan.harga_jual) },
+                      { label: `Uang Muka (${selectedPlan.uang_muka_persen}%)`, value: formatCurrency(uangMuka), highlight: true },
+                      { label: "Tenor",             value: `${selectedPlan.tenor} bulan` },
+                    ].map(row => (
+                      <div key={row.label} className="flex justify-between py-3 border-b border-white/5">
+                        <span className="text-white/80 text-sm">{row.label}</span>
+                        <span className={`font-bold text-sm ${row.highlight ? "text-yellow-400" : "text-white"}`}>{row.value}</span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between pt-2">
+                      <span className="text-white font-semibold">Angsuran / Bulan</span>
+                      <span className="text-2xl font-black text-gold-gradient">{formatCurrency(selectedPlan.angsuran)}</span>
                     </div>
-                  ))}
-                  <div className="flex justify-between pt-2">
-                    <span className="text-white font-semibold">Cicilan per Bulan</span>
-                    <span className="text-2xl font-black text-gold-gradient">{formatCurrency(cicilanBulanan)}</span>
-                  </div>
-                  <div className="mt-2 p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm text-center font-medium">
-                    0% Bunga untuk Member Aktif ✓
-                  </div>
-                  <Link href="/auth/register" style={{ display:"block" }}>
-                    <Button variant="gold" fullWidth>Ajukan Cicilan Sekarang</Button>
-                  </Link>
-                </div>
-              </Card>
-            </div>
-          )}
-
-          {/* INVESTASI */}
-          {activeTab === "investasi" && (
-            <div className="grid lg:grid-cols-2 gap-6">
-              <Card variant="glass" className="gradient-border">
-                <h3 className="text-lg font-bold text-white mb-6">Parameter Investasi</h3>
-                <div className="space-y-6">
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <label className="text-sm text-white/80">Modal Awal</label>
-                      <span className="text-sm font-bold text-yellow-400">{formatCurrency(investAwal)}</span>
+                    <div className="mt-2 p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm text-center font-medium">
+                      Tanpa bunga untuk anggota aktif ✓
                     </div>
-                    <input type="range" min={100000} max={10000000} step={100000} value={investAwal}
-                      onChange={(e) => setInvestAwal(+e.target.value)}
-                      className="w-full accent-yellow-400 h-2 rounded-lg" />
+                    <button onClick={() => setShowWAModal(true)}
+                      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm btn-gold">
+                      <MessageCircle className="w-4 h-4" />
+                      Ajukan Cicilan via WhatsApp
+                    </button>
                   </div>
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <label className="text-sm text-white/80">Investasi Bulanan</label>
-                      <span className="text-sm font-bold text-yellow-400">{formatCurrency(investBulanan)}</span>
-                    </div>
-                    <input type="range" min={100000} max={5000000} step={100000} value={investBulanan}
-                      onChange={(e) => setInvestBulanan(+e.target.value)}
-                      className="w-full accent-yellow-400 h-2 rounded-lg" />
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <label className="text-sm text-white/80">Jangka Waktu</label>
-                      <span className="text-sm font-bold text-yellow-400">{investTahun} tahun</span>
-                    </div>
-                    <input type="range" min={1} max={10} value={investTahun}
-                      onChange={(e) => setInvestTahun(+e.target.value)}
-                      className="w-full accent-yellow-400 h-2 rounded-lg" />
-                  </div>
-                </div>
-              </Card>
-
-              <Card variant="glass" className="gradient-border">
-                <h3 className="text-lg font-bold text-white mb-4">Proyeksi Nilai Investasi</h3>
-                <div className="h-52">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={investChartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(212,175,55,0.08)" />
-                      <XAxis dataKey="tahun" tick={{ fill: "rgba(255,255,255,0.70)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: "rgba(255,255,255,0.70)", fontSize: 10 }} tickFormatter={(v) => `${(v/1000000).toFixed(0)}M`} axisLine={false} tickLine={false} />
-                      <Tooltip formatter={(v: any) => formatCurrency(Number(v))} contentStyle={{ background: "#0a0a0a", border: "1px solid rgba(212,175,55,0.2)", borderRadius: "12px", color: "white" }} />
-                      <Bar dataKey="modal" name="Modal" fill="rgba(212,175,55,0.3)" radius={[4,4,0,0]} />
-                      <Bar dataKey="nilai" name="Estimasi Nilai" fill="#D4AF37" radius={[4,4,0,0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-4 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20 text-center">
-                  <p className="text-yellow-400 text-xs mb-1">Estimasi Nilai Akhir</p>
-                  <p className="text-2xl font-black text-gold-gradient">
-                    {formatCurrency(investChartData[investChartData.length - 1]?.nilai || 0)}
-                  </p>
-                  <p className="text-white/55 text-xs mt-1">*Estimasi berdasarkan historis kenaikan emas 8%/tahun</p>
-                </div>
-              </Card>
-            </div>
-          )}
-
-          {/* TABUNGAN */}
-          {activeTab === "tabungan" && (
-            <div className="grid lg:grid-cols-2 gap-6">
-              <Card variant="glass" className="gradient-border">
-                <h3 className="text-lg font-bold text-white mb-6">Parameter Tabungan</h3>
-                <div className="space-y-6">
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <label className="text-sm text-white/80">Tabungan Harian</label>
-                      <span className="text-sm font-bold text-yellow-400">{formatCurrency(tabunganHarian)}</span>
-                    </div>
-                    <input type="range" min={5000} max={500000} step={5000} value={tabunganHarian}
-                      onChange={(e) => setTabunganHarian(+e.target.value)}
-                      className="w-full accent-yellow-400 h-2 rounded-lg" />
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <label className="text-sm text-white/80">Durasi Menabung</label>
-                      <span className="text-sm font-bold text-yellow-400">{tabunganBulan} bulan</span>
-                    </div>
-                    <input type="range" min={1} max={60} value={tabunganBulan}
-                      onChange={(e) => setTabunganBulan(+e.target.value)}
-                      className="w-full accent-yellow-400 h-2 rounded-lg" />
-                  </div>
-                </div>
-              </Card>
-              <Card variant="glass" className="gradient-border">
-                <h3 className="text-lg font-bold text-white mb-6">Hasil Tabungan</h3>
-                <div className="space-y-4">
-                  {[
-                    { label: "Total Tabungan", value: formatCurrency(tabunganTotal) },
-                    { label: "Emas Terkumpul", value: formatGoldWeight(tabunganGram) },
-                    { label: "Nilai Emas Saat Ini", value: formatCurrency(tabunganGram * prices.buyMember) },
-                  ].map((row) => (
-                    <div key={row.label} className="flex justify-between py-3 border-b border-white/5">
-                      <span className="text-white/80 text-sm">{row.label}</span>
-                      <span className="font-bold text-sm text-white">{row.value}</span>
-                    </div>
-                  ))}
-                  <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20 text-center">
-                    <p className="text-yellow-400 font-black text-2xl">{formatGoldWeight(tabunganGram)}</p>
-                    <p className="text-white/70 text-sm">Emas yang Anda kumpulkan</p>
-                  </div>
-                  <Link href="/auth/register" style={{ display:"block" }}>
-                    <Button variant="gold" fullWidth>Mulai Tabungan Emas</Button>
-                  </Link>
-                </div>
+                ) : (
+                  <p className="text-white/40 text-sm">Pilih berat dan tenor untuk melihat simulasi.</p>
+                )}
               </Card>
             </div>
           )}
@@ -308,41 +245,108 @@ export default function SimulationSection() {
                       <label className="text-sm text-white/80">Berat Emas yang Dijual</label>
                       <span className="text-sm font-bold text-yellow-400">{buybackGram} gram</span>
                     </div>
-                    <input type="range" min={0.1} max={500} step={0.1} value={buybackGram}
-                      onChange={(e) => setBuybackGram(+e.target.value)}
+                    <input type="range" min={1} max={500} step={1} value={buybackGram}
+                      onChange={e => setBuybackGram(+e.target.value)}
                       className="w-full accent-yellow-400 h-2 rounded-lg" />
+                    <div className="flex justify-between text-xs text-white/55 mt-1"><span>1g</span><span>500g</span></div>
+                  </div>
+                  <div>
+                    <label className="text-sm text-white/80 block mb-2">Atau masukkan langsung</label>
+                    <input type="number" min={1} max={10000} value={buybackGram}
+                      onChange={e => setBuybackGram(Math.max(1, Number(e.target.value)))}
+                      className="w-full input-gold rounded-xl px-4 py-2.5 text-sm text-white" />
                   </div>
                 </div>
               </Card>
+
               <Card variant="glass" className="gradient-border">
                 <h3 className="text-lg font-bold text-white mb-6">Estimasi Penerimaan</h3>
-                <div className="space-y-4">
-                  {[
-                    { label: "Berat Emas", value: `${buybackGram} gram` },
-                    { label: "Harga Buyback Member", value: formatCurrency(prices.buybackMember) + "/g" },
-                    { label: "Harga Buyback Non-Member", value: formatCurrency(prices.buybackNonMember) + "/g" },
-                  ].map((row) => (
-                    <div key={row.label} className="flex justify-between py-3 border-b border-white/5">
-                      <span className="text-white/80 text-sm">{row.label}</span>
-                      <span className="font-bold text-sm text-white">{row.value}</span>
+                {loadingBuyback ? (
+                  <p className="text-white/40 text-sm">Memuat harga buyback...</p>
+                ) : (
+                  <div className="space-y-4">
+                    {[
+                      { label: "Berat Emas",         value: `${buybackGram} gram` },
+                      { label: "Harga Buyback /gram", value: buybackPrice ? formatCurrency(buybackPrice) : "-" },
+                    ].map(row => (
+                      <div key={row.label} className="flex justify-between py-3 border-b border-white/5">
+                        <span className="text-white/80 text-sm">{row.label}</span>
+                        <span className="font-bold text-sm text-white">{row.value}</span>
+                      </div>
+                    ))}
+                    <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
+                      <div className="flex justify-between items-center">
+                        <span className="text-yellow-400 font-semibold text-sm">Dana Diterima</span>
+                        <span className="text-2xl font-black text-gold-gradient">{buybackTotal ? formatCurrency(buybackTotal) : "-"}</span>
+                      </div>
+                      <p className="text-white/40 text-xs mt-2 text-center">= Harga Buyback × {buybackGram} gram</p>
                     </div>
-                  ))}
-                  <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
-                    <div className="flex justify-between items-center">
-                      <span className="text-yellow-400 font-semibold">Dana Diterima (Member)</span>
-                      <span className="text-2xl font-black text-gold-gradient">{formatCurrency(buybackTotal)}</span>
-                    </div>
-                    <p className="text-green-400 text-xs mt-2 text-center">Selisih +{formatCurrency((prices.buybackMember - prices.buybackNonMember) * buybackGram)} vs Non-Member</p>
+                    <Link href="/auth/login" style={{ display:"block" }}>
+                      <Button variant="gold" fullWidth>Ajukan Buyback Sekarang</Button>
+                    </Link>
                   </div>
-                  <Link href="/auth/login" style={{ display:"block" }}>
-                    <Button variant="gold" fullWidth>Ajukan Buyback Sekarang</Button>
-                  </Link>
-                </div>
+                )}
               </Card>
             </div>
           )}
+
         </motion.div>
       </div>
+
+      {/* WhatsApp Modal */}
+      <AnimatePresence>
+        {showWAModal && (
+          <>
+            <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+              onClick={() => setShowWAModal(false)}
+              style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:1000 }} />
+            <motion.div
+              initial={{ opacity:0, scale:.9, y:20 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.9, y:20 }}
+              style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:1001, width:"min(420px,92vw)", background:"rgba(14,14,14,0.98)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:20, padding:28 }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
+                <h3 style={{ color:"#fff", fontWeight:700, fontSize:"1.1rem", margin:0 }}>Pilih Kontak Tujuan</h3>
+                <button onClick={() => setShowWAModal(false)}
+                  style={{ background:"rgba(255,255,255,0.07)", border:"none", borderRadius:8, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>
+                  <X style={{ width:16, height:16 }} />
+                </button>
+              </div>
+              <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".85rem", marginBottom:20 }}>
+                Kirim pesan cicilan via WhatsApp ke:
+              </p>
+              <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                <a href={`https://wa.me/${WA_ADMIN}?text=${buildWAMessage()}`} target="_blank" rel="noopener noreferrer"
+                  onClick={() => setShowWAModal(false)}
+                  style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 18px", borderRadius:14, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none", transition:"all .2s" }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(37,211,102,0.18)"}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "rgba(37,211,102,0.1)"}
+                >
+                  <div style={{ width:40, height:40, borderRadius:11, background:"rgba(37,211,102,0.15)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <Phone style={{ width:18, height:18, color:"#25d366" }} />
+                  </div>
+                  <div>
+                    <p style={{ color:"#fff", fontWeight:700, fontSize:".9rem", margin:0 }}>Admin</p>
+                    <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", margin:0 }}>0812-9753-3899</p>
+                  </div>
+                </a>
+                <a href={`https://wa.me/${WA_PENGURUS}?text=${buildWAMessage()}`} target="_blank" rel="noopener noreferrer"
+                  onClick={() => setShowWAModal(false)}
+                  style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 18px", borderRadius:14, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none", transition:"all .2s" }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(37,211,102,0.18)"}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "rgba(37,211,102,0.1)"}
+                >
+                  <div style={{ width:40, height:40, borderRadius:11, background:"rgba(37,211,102,0.15)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <Phone style={{ width:18, height:18, color:"#25d366" }} />
+                  </div>
+                  <div>
+                    <p style={{ color:"#fff", fontWeight:700, fontSize:".9rem", margin:0 }}>Pengurus</p>
+                    <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", margin:0 }}>0882-1446-0345</p>
+                  </div>
+                </a>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

@@ -36,7 +36,7 @@ export const NAV_ITEMS = [
 ];
 
 export const STATS = [
-  { label: "Total Member", value: 150000, suffix: "+" },
+  { label: "Total Anggota", value: 150000, suffix: "+" },
   { label: "Total Transaksi", value: 2800000, suffix: "+" },
   { label: "Emas Terjual (kg)", value: 12500, suffix: "+" },
   { label: "Cabang", value: 45, suffix: "" },
@@ -44,15 +44,9 @@ export const STATS = [
 
 export const FEATURES = [
   {
-    icon: "PiggyBank",
-    title: "Tabungan Emas",
-    desc: "Tabung emas mulai dari 0.01 gram setiap hari dengan imbal hasil kompetitif.",
-    color: "from-yellow-500/20 to-yellow-600/5",
-  },
-  {
     icon: "CreditCard",
     title: "Cicilan Emas",
-    desc: "Beli emas impian dengan cicilan 3-36 bulan tanpa bunga untuk member aktif.",
+    desc: "Beli emas impian dengan cicilan tanpa bunga untuk anggota aktif.",
     color: "from-amber-500/20 to-amber-600/5",
   },
   {
@@ -70,25 +64,25 @@ export const FEATURES = [
   {
     icon: "ShoppingBag",
     title: "Marketplace Emas",
-    desc: "Beli dan jual emas fisik dari antar sesama member dengan aman.",
+    desc: "Beli dan jual emas fisik dari antar sesama anggota dengan aman.",
     color: "from-yellow-600/20 to-yellow-700/5",
   },
   {
     icon: "Send",
     title: "Transfer Saldo",
-    desc: "Transfer saldo emas ke sesama member dengan mudah dan cepat.",
+    desc: "Transfer saldo emas ke sesama anggota dengan mudah dan cepat.",
     color: "from-amber-400/20 to-amber-500/5",
   },
   {
     icon: "Users",
-    title: "Referral Member",
+    title: "Referral Anggota",
     desc: "Dapatkan bonus emas setiap berhasil mengajak teman bergabung.",
     color: "from-yellow-500/20 to-yellow-600/5",
   },
   {
     icon: "Gift",
     title: "Bonus Loyalitas",
-    desc: "Reward eksklusif untuk member setia yang aktif bertransaksi setiap bulan.",
+    desc: "Reward eksklusif untuk anggota setia yang aktif bertransaksi setiap bulan.",
     color: "from-amber-600/20 to-amber-700/5",
   },
   {
@@ -106,7 +100,7 @@ export const FEATURES = [
   {
     icon: "Landmark",
     title: "Gadai Simpanan",
-    desc: "Butuh dana mendesak? Cairkan simpananmu sebagai jaminan tanpa kehilangan kepemilikan selama mampu melunasi.",
+    desc: "Butuh dana mendesak? Ajukan pinjaman dengan simpanan sebagai jaminan. Cicil 1-4 bulan.",
     color: "from-blue-500/20 to-blue-600/5",
   },
   {
@@ -124,7 +118,7 @@ export const FAQ_ITEMS = [
       "Ya, Koperasi Emas telah terdaftar dan memiliki badan hukum resmi dari Kementerian Koperasi dan UKM RI dengan nomor BH.0012345/KOP.2019. Koperasi kami beroperasi sesuai ketentuan perundang-undangan koperasi yang berlaku.",
   },
   {
-    question: "Bagaimana cara mendaftar menjadi member?",
+    question: "Bagaimana cara mendaftar menjadi anggota?",
     answer:
       "Daftar mudah secara online: isi formulir, upload KTP & selfie, lalu setorkan simpanan pokok Rp 5.000.000 (sekali bayar, menjadi hak anggota) dan simpanan wajib Rp 200.000/bulan sebagai syarat aktif. Akun diaktivasi dalam 1x24 jam setelah verifikasi.",
   },
@@ -144,29 +138,29 @@ export const FAQ_ITEMS = [
       "Sangat aman. Emas Anda disimpan di vault bersertifikat dengan asuransi penuh dari Asuransi Jasa Indonesia. Setiap gram emas tercatat di blockchain untuk transparansi penuh.",
   },
   {
-    question: "Apa keuntungan menjadi member dibanding non-member?",
+    question: "Apa keuntungan menjadi anggota dibanding non-anggota?",
     answer:
-      "Member mendapatkan harga beli lebih murah, harga buyback lebih tinggi, cicilan 0%, bonus referral, SHU tahunan, akses promo eksklusif, dan layanan prioritas.",
+      "Anggota mendapatkan harga beli lebih murah, harga buyback lebih tinggi, cicilan emas, bonus referral, SHU tahunan, akses promo eksklusif, dan layanan prioritas.",
   },
   {
     question: "Bagaimana cicilan emas bekerja?",
     answer:
-      "Pilih produk emas, tentukan tenor 3-36 bulan, bayar DP minimal 20%, dan cicil sisanya setiap bulan. Tanpa bunga dan tanpa biaya admin untuk member aktif.",
+      "Pilih paket emas berdasarkan berat dan tenor yang tersedia, bayar uang muka minimal 10%, dan cicil sisanya setiap bulan sesuai angsuran yang telah ditetapkan. Tanpa bunga untuk anggota aktif.",
   },
   {
     question: "Apa itu Gadai Simpanan dan bagaimana cara kerjanya?",
     answer:
-      "Gadai simpanan memungkinkan member mencairkan dana menggunakan simpanan sebagai jaminan. Contoh: simpanan Rp 20 juta dengan harga buyback Rp 1 juta/gram → member mendapat setara 20 gram (Rp 20 juta) dicairkan. Simpanan tetap tercatat selama member melunasi. Jika tidak mampu melunasi, simpanan otomatis menjadi pelunasan. Fitur ini khusus member dengan simpanan pokok minimal Rp 5 juta.",
+      "Gadai simpanan memungkinkan anggota mengajukan pinjaman menggunakan simpanan sebagai jaminan. Simpanan Anda dikonversi ke nilai gram berdasarkan harga buyback. Pilih tenor 1-4 bulan dengan angsuran = pinjaman ÷ tenor. Tombol gadai hilang selama ada gadai yang belum lunas.",
   },
   {
     question: "Apa itu SHU (Sisa Hasil Usaha)?",
     answer:
-      "SHU adalah bagi hasil keuntungan koperasi yang dibagikan kepada anggota aktif setiap tahun. Besarnya proporsional berdasarkan total simpanan dan volume transaksi emas masing-masing anggota selama setahun. SHU merupakan hak eksklusif member koperasi.",
+      "SHU adalah bagi hasil keuntungan koperasi yang dibagikan kepada anggota aktif setiap tahun. Besarnya proporsional berdasarkan total simpanan dan volume transaksi emas masing-masing anggota selama setahun. SHU merupakan hak eksklusif anggota koperasi.",
   },
   {
-    question: "Apakah buyback dan gadai bisa dilakukan non-member?",
+    question: "Apakah buyback dan gadai bisa dilakukan non-anggota?",
     answer:
-      "Tidak. Buyback dengan harga terbaik dan fitur gadai simpanan hanya tersedia untuk member aktif yang telah memenuhi kewajiban simpanan pokok Rp 5.000.000 dan simpanan wajib Rp 200.000/bulan. Non-member hanya dapat membeli emas dengan harga umum.",
+      "Tidak. Buyback dengan harga terbaik dan fitur gadai simpanan hanya tersedia untuk anggota aktif yang telah memenuhi kewajiban simpanan pokok Rp 5.000.000 dan simpanan wajib Rp 200.000/bulan. Non-anggota hanya dapat membeli emas dengan harga umum.",
   },
 ];
 

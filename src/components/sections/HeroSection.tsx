@@ -82,7 +82,7 @@ export default function HeroSection() {
           style={{ fontSize:"clamp(1rem,2vw,1.2rem)", color:"rgba(255,255,255,0.85)", maxWidth:640, margin:"0 auto 2.5rem", lineHeight:1.7 }}
         >
           Platform koperasi emas terpercaya untuk 150.000+ anggota Indonesia.
-          Tabung, cicil, buyback, gadai simpanan, dan dapatkan SHU tahunan — mulai dari 0.01 gram.
+          Tabung, cicil, buyback, gadai simpanan, dan dapatkan SHU tahunan.
         </motion.p>
 
         {/* CTAs */}

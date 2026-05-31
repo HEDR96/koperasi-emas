@@ -7,8 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, LogOut, ChevronLeft, ChevronRight, X,
   BarChart2, Users, ShieldCheck, Coins, CheckSquare, FileText,
-  ClipboardList, Bell, Settings, Upload, MessageSquare, PlusCircle,
-  Send, History,
+  Bell, Settings, Upload, MessageSquare, PlusCircle,
+  Send, History, Star, HelpCircle, Image, Landmark, CreditCard,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -19,9 +19,14 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Statistik",  href:"/dashboard/master/statistik", icon:BarChart2 },
     ]},
     { group:"Manajemen", items:[
-      { label:"Kelola Admin",  href:"/dashboard/master/admin",  icon:ShieldCheck },
-      { label:"Kelola Member", href:"/dashboard/master/member", icon:Users },
-      { label:"Harga Emas",   href:"/dashboard/master/harga",   icon:Coins },
+      { label:"Kelola Admin",    href:"/dashboard/master/admin",  icon:ShieldCheck },
+      { label:"Kelola Anggota",  href:"/dashboard/master/member", icon:Users },
+      { label:"Harga Emas",      href:"/dashboard/master/harga",  icon:Coins },
+    ]},
+    { group:"Konten Landing", items:[
+      { label:"Testimoni",  href:"/dashboard/master/testimoni", icon:Star },
+      { label:"FAQ",        href:"/dashboard/master/faq",       icon:HelpCircle },
+      { label:"Foto Gedung",href:"/dashboard/master/konten",    icon:Image },
     ]},
     { group:"Laporan", items:[
       { label:"Approval", href:"/dashboard/master/approval", icon:CheckSquare },
@@ -39,7 +44,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
     { group:"Operasional", items:[
       { label:"Transaksi & Approval", href:"/dashboard/admin/transaksi", icon:CheckSquare },
       { label:"Input Deposit",        href:"/dashboard/admin/deposit",   icon:PlusCircle },
-      { label:"Kelola Member",        href:"/dashboard/admin/member",    icon:Users },
+      { label:"Kelola Anggota",       href:"/dashboard/admin/member",    icon:Users },
     ]},
     { group:"Konten", items:[
       { label:"Upload Promo", href:"/dashboard/admin/promo", icon:Upload },
@@ -49,6 +54,11 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
   member: [
     { group:"Utama", items:[
       { label:"Dashboard",  href:"/dashboard/member",          icon:LayoutDashboard },
+    ]},
+    { group:"Keuangan", items:[
+      { label:"Simpanan",    href:"/dashboard/member/simpanan", icon:Landmark },
+      { label:"Gadai",       href:"/dashboard/member/gadai",    icon:Landmark },
+      { label:"Cicilan",     href:"/dashboard/member/cicilan",  icon:CreditCard },
     ]},
     { group:"Transaksi", items:[
       { label:"Ajukan Transaksi", href:"/dashboard/member/request", icon:Send },
