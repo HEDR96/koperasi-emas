@@ -298,6 +298,8 @@ export default function MemberManagementPage() {
               {(() => {
                 const simDone = detail.simpanan.filter((s:any)=>s.status==="completed");
                 const totalSim = simDone.reduce((a:number,s:any)=>a+(s.amount||0),0);
+                const activeGadai = detail.gadai.find((g:any)=>["pengajuan","disetujui","aktif"].includes(g.status));
+                const gram = buybackHarga > 0 ? totalSim / buybackHarga : 0;
                 return (
                   <>
                     <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4 }}>
@@ -305,10 +307,23 @@ export default function MemberManagementPage() {
                       <span style={{ color:"#a78bfa", fontWeight:700, fontSize:".88rem" }}>{fmt(totalSim)}</span>
                     </div>
                     {buybackHarga > 0 && totalSim > 0 && (
-                      <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".76rem", margin:"0 0 12px", textAlign:"right" }}>
-                        Setara <strong style={{ color:"#D4AF37" }}>{(totalSim / buybackHarga).toFixed(4)} gram</strong>
+                      <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".76rem", margin:"0 0 10px", textAlign:"right" }}>
+                        Setara <strong style={{ color:"#D4AF37" }}>{gram.toFixed(4)} gram</strong>
                         <span style={{ color:"rgba(255,255,255,0.3)" }}> · buyback {fmt(buybackHarga)}/gr</span>
                       </p>
+                    )}
+                    {totalSim > 0 && (
+                      activeGadai ? (
+                        <div style={{ background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:10, padding:"10px 14px", marginBottom:14 }}>
+                          <p style={{ color:"#f87171", fontSize:".8rem", fontWeight:600, margin:0 }}>⚠ Ada gadai aktif — belum bisa gadai baru</p>
+                          <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".75rem", margin:"3px 0 0" }}>Pinjaman {fmt(activeGadai.dana_cair)} · sisa {fmt(activeGadai.sisa_tagihan)} · {activeGadai.tenor} bln</p>
+                        </div>
+                      ) : (
+                        <div style={{ background:"rgba(52,211,153,0.06)", border:"1px solid rgba(52,211,153,0.2)", borderRadius:10, padding:"10px 14px", marginBottom:14 }}>
+                          <p style={{ color:"#34d399", fontSize:".8rem", fontWeight:600, margin:0 }}>Dapat digadai hingga {fmt(totalSim)}</p>
+                          <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".75rem", margin:"3px 0 0" }}>≈ {gram.toFixed(4)} gram · tenor 1-4 bulan</p>
+                        </div>
+                      )
                     )}
                     {detailLoading ? (
                       <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".85rem", marginBottom:18 }}>Memuat...</p>
