@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Landmark, RefreshCw, Check, X, CheckCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Landmark, RefreshCw, Check, X, CheckCircle, Clock, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -22,12 +22,18 @@ const STATUS: Record<string,{label:string;color:string}> = {
 
 const FILTERS = ["semua","pengajuan","aktif","lunas"] as const;
 
+const paidCountOf = (g: any) => (g.angsuran_per_bulan > 0 ? Math.min(g.tenor, Math.round((g.dana_cair - g.sisa_tagihan) / g.angsuran_per_bulan)) : 0);
+
 export default function AdminGadaiPage() {
   const { user } = useAuthStore();
+  const isMaster = user?.role === "master";
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState<string | null>(null);
   const [filter, setFilter] = useState<typeof FILTERS[number]>("semua");
+  const [detail, setDetail] = useState<any | null>(null);
+  const [pmts, setPmts] = useState<any[]>([]);
+  const [pmtLoading, setPmtLoading] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -56,6 +62,39 @@ export default function AdminGadaiPage() {
     };
     if (msg[status]) await notify(row.user_id, "Update Gadai", msg[status]);
     await load(); setActing(null);
+  }
+
+  async function openDetail(g: any) {
+    setDetail(g); setPmtLoading(true); setPmts([]);
+    const { data } = await (supabase.from("gadai_pembayaran") as any)
+      .select("id, angsuran_ke, amount, paid_at").eq("gadai_id", g.id).order("paid_at",{ascending:true});
+    setPmts(data || []); setPmtLoading(false);
+  }
+
+  async function recordGadaiPayment(g: any) {
+    const paid = paidCountOf(g);
+    if (g.sisa_tagihan <= 0 || paid >= g.tenor) return;
+    setActing(g.id);
+    const ke = paid + 1;
+    const newSisa = Math.max(0, g.sisa_tagihan - g.angsuran_per_bulan);
+    const done = newSisa <= 0;
+    await (supabase.from("gadai_pembayaran") as any).insert({
+      gadai_id: g.id, user_id: g.user_id, angsuran_ke: ke, amount: g.angsuran_per_bulan, recorded_by: user?.id,
+    });
+    await (supabase.from("gadai") as any).update({
+      sisa_tagihan: newSisa, status: done ? "lunas" : "aktif",
+      ...(done ? { tanggal_lunas: new Date().toISOString() } : {}),
+    }).eq("id", g.id);
+    await notify(g.user_id, done ? "Gadai Lunas 🎉" : "Pembayaran Gadai", done ? `Gadai ${fmt(g.dana_cair)} telah LUNAS.` : `Angsuran ke-${ke} ${fmt(g.angsuran_per_bulan)} tercatat.`);
+    const updated = { ...g, sisa_tagihan: newSisa, status: done ? "lunas" : "aktif" };
+    setDetail(updated); await openDetail(updated); await load(); setActing(null);
+  }
+
+  async function removeGadai(g: any) {
+    if (!window.confirm(`Hapus gadai ${fmt(g.dana_cair)} milik ${g.profiles?.name||"anggota"}?`)) return;
+    setActing(g.id);
+    await (supabase.from("gadai") as any).delete().eq("id", g.id);
+    setDetail(null); await load(); setActing(null);
   }
 
   const filtered = filter === "semua" ? rows
@@ -118,10 +157,10 @@ export default function AdminGadaiPage() {
                         </button>
                       </>
                     )}
-                    {["disetujui","aktif"].includes(g.status) && (
-                      <button onClick={()=>setStatus(g,"lunas")} disabled={acting===g.id}
-                        style={{ display:"flex", alignItems:"center", gap:4, background:"rgba(96,165,250,0.12)", border:"1px solid rgba(96,165,250,0.3)", borderRadius:8, padding:"6px 12px", color:"#60a5fa", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===g.id?.6:1 }}>
-                        <CheckCircle style={{ width:12, height:12 }} /> Tandai Lunas
+                    {["disetujui","aktif","lunas"].includes(g.status) && (
+                      <button onClick={()=>openDetail(g)}
+                        style={{ display:"flex", alignItems:"center", gap:4, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:8, padding:"6px 12px", color:"rgba(255,255,255,0.7)", cursor:"pointer", fontSize:".78rem", fontWeight:600 }}>
+                        Detail / Bayar
                       </button>
                     )}
                   </div>
@@ -130,6 +169,97 @@ export default function AdminGadaiPage() {
             })}
           </div>
         )}
+
+      {/* Detail gadai + pembayaran */}
+      <AnimatePresence>
+        {detail && (() => {
+          const paid = paidCountOf(detail);
+          const s = STATUS[detail.status] || STATUS.aktif;
+          return (
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} onClick={()=>setDetail(null)}
+            style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:300, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
+            <motion.div onClick={e=>e.stopPropagation()} initial={{ opacity:0, scale:.95 }} animate={{ opacity:1, scale:1 }} exit={{ opacity:0, scale:.95 }}
+              style={{ width:"min(520px,96vw)", background:"#0f0f0f", border:"1px solid rgba(96,165,250,0.25)", borderRadius:20, maxHeight:"90vh", overflowY:"auto" }}>
+              <div style={{ padding:"20px 22px 16px", borderBottom:"1px solid rgba(255,255,255,0.06)", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12 }}>
+                <div>
+                  <h2 style={{ color:"#fff", fontWeight:700, fontSize:"1.05rem", margin:0 }}>Gadai · {detail.profiles?.name||"—"}</h2>
+                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".8rem", margin:"2px 0 0" }}>{Number(detail.gram_setara).toFixed(4)} gr · {detail.tenor} bln · <span style={{ color:s.color }}>{s.label}</span></p>
+                </div>
+                <div style={{ display:"flex", gap:8, flexShrink:0 }}>
+                  {isMaster && (
+                    <button onClick={()=>removeGadai(detail)} disabled={acting===detail.id} title="Hapus (master)"
+                      style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.25)", borderRadius:8, width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", color:"#f87171", cursor:"pointer" }}>
+                      <Trash2 style={{ width:15, height:15 }} />
+                    </button>
+                  )}
+                  <button onClick={()=>setDetail(null)} style={{ background:"rgba(255,255,255,0.07)", border:"none", borderRadius:8, width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}><X style={{ width:15, height:15 }} /></button>
+                </div>
+              </div>
+              <div style={{ padding:"18px 22px 24px" }}>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:18 }}>
+                  {[
+                    { label:"Pinjaman", value:fmt(detail.dana_cair), color:"#fff" },
+                    { label:"Angsuran/bln", value:fmt(detail.angsuran_per_bulan), color:"#60a5fa" },
+                    { label:"Terbayar", value:`${paid}/${detail.tenor}`, color:"#34d399" },
+                    { label:"Sisa", value:fmt(detail.sisa_tagihan), color: detail.sisa_tagihan>0?"#f87171":"#34d399" },
+                  ].map(c=>(
+                    <div key={c.label} style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:12, padding:"12px 14px" }}>
+                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".72rem", margin:"0 0 4px" }}>{c.label}</p>
+                      <p style={{ color:c.color, fontWeight:700, fontSize:".95rem", margin:0 }}>{c.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {detail.sisa_tagihan > 0 ? (
+                  <button onClick={()=>recordGadaiPayment(detail)} disabled={acting===detail.id}
+                    style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px", borderRadius:11, background:"linear-gradient(135deg,#34d399,#6ee7b7)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".92rem", cursor:acting===detail.id?"not-allowed":"pointer", opacity:acting===detail.id?.7:1, marginBottom:18 }}>
+                    <Check style={{ width:16, height:16 }} /> Catat Bayar Angsuran ke-{paid+1} ({fmt(detail.angsuran_per_bulan)})
+                  </button>
+                ) : (
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px", borderRadius:11, background:"rgba(52,211,153,0.12)", border:"1px solid rgba(52,211,153,0.3)", color:"#34d399", fontWeight:700, marginBottom:18 }}>
+                    <CheckCircle style={{ width:16, height:16 }} /> Lunas
+                  </div>
+                )}
+
+                <h3 style={{ color:"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", marginBottom:10 }}>Jadwal Angsuran</h3>
+                <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:18 }}>
+                  {Array.from({ length: detail.tenor }, (_, idx) => {
+                    const ke = idx + 1; const isPaid = ke <= paid; const pay = pmts.find(p=>p.angsuran_ke===ke);
+                    return (
+                      <div key={ke} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(255,255,255,0.03)", borderRadius:9, padding:"9px 14px" }}>
+                        <span style={{ display:"flex", alignItems:"center", gap:8 }}>
+                          <span style={{ width:22, height:22, borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center", background: isPaid?"rgba(52,211,153,0.15)":"rgba(255,255,255,0.06)", color: isPaid?"#34d399":"rgba(255,255,255,0.4)", fontSize:".72rem", fontWeight:700 }}>{ke}</span>
+                          <span style={{ color:"rgba(255,255,255,0.75)", fontSize:".83rem" }}>Angsuran ke-{ke}</span>
+                        </span>
+                        <span style={{ color:"rgba(255,255,255,0.6)", fontSize:".82rem" }}>{fmt(detail.angsuran_per_bulan)}</span>
+                        {isPaid
+                          ? <span style={{ display:"flex", alignItems:"center", gap:4, color:"#34d399", fontSize:".74rem" }}><Check style={{ width:11, height:11 }} /> {pay?fmtDate(pay.paid_at):"Lunas"}</span>
+                          : <span style={{ display:"flex", alignItems:"center", gap:4, color:"rgba(255,255,255,0.35)", fontSize:".74rem" }}><Clock style={{ width:11, height:11 }} /> Belum</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <h3 style={{ color:"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", marginBottom:10 }}>Riwayat Pembayaran</h3>
+                {pmtLoading ? <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Memuat...</p>
+                  : pmts.length === 0 ? <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Belum ada pembayaran.</p>
+                  : (
+                    <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                      {pmts.map(p=>(
+                        <div key={p.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(52,211,153,0.06)", border:"1px solid rgba(52,211,153,0.15)", borderRadius:9, padding:"9px 14px" }}>
+                          <span style={{ color:"rgba(255,255,255,0.7)", fontSize:".83rem" }}>Angsuran ke-{p.angsuran_ke}</span>
+                          <span style={{ color:"#34d399", fontWeight:600, fontSize:".83rem" }}>{fmt(p.amount)}</span>
+                          <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem" }}>{fmtDate(p.paid_at)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+              </div>
+            </motion.div>
+          </motion.div>
+          );
+        })()}
+      </AnimatePresence>
     </div>
   );
 }

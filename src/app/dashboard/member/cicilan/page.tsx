@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Calculator, MessageCircle } from "lucide-react";
+import { Calculator, MessageCircle, Send, CheckCircle, Clock } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface CicilanHarga {
   id: number; gram: number; tenor: number;
@@ -16,9 +17,26 @@ const fmt = (n: number) =>
 const WA_ADMIN    = "6281297533899";
 const WA_PENGURUS = "6288214460345";
 
+const STATUS_C: Record<string,{label:string;color:string}> = {
+  pending:{label:"Menunggu Persetujuan",color:"#fbbf24"}, active:{label:"Berjalan",color:"#60a5fa"},
+  completed:{label:"Lunas",color:"#34d399"}, overdue:{label:"Terlambat",color:"#f87171"},
+};
+
 export default function CicilanPage() {
+  const { user } = useAuthStore();
   const [plans, setPlans] = useState<CicilanHarga[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mine, setMine] = useState<any[]>([]);
+  const [applyId, setApplyId] = useState<number | null>(null);
+  const [applied, setApplied] = useState(false);
+
+  async function loadMine() {
+    if (!user?.id) return;
+    const { data } = await (supabase.from("installments") as any)
+      .select("id, product_name, total_amount, monthly_amount, tenor, paid_installments, status, created_at")
+      .eq("user_id", user.id).order("created_at",{ascending:false});
+    setMine(data || []);
+  }
 
   useEffect(() => {
     (async () => {
@@ -29,7 +47,29 @@ export default function CicilanPage() {
       setPlans((data||[]).map((d:any) => ({...d, gram: Number(d.gram)})));
       setLoading(false);
     })();
-  }, []);
+    loadMine();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  async function ajukan(plan: CicilanHarga) {
+    if (!user?.id) return;
+    setApplyId(plan.id); setApplied(false);
+    const { error } = await (supabase.from("installments") as any).insert({
+      user_id: user.id, product_name: `Emas ${plan.gram} gram`, total_gram: plan.gram,
+      total_amount: plan.harga_jual, monthly_amount: plan.angsuran, tenor: plan.tenor,
+      paid_installments: 0, status: "pending",
+    });
+    if (!error) {
+      try {
+        const { data: staff } = await (supabase.from("profiles") as any).select("id").in("role",["admin","master"]);
+        if (staff?.length) await (supabase.from("notifications") as any).insert(
+          staff.map((s:any)=>({ user_id:s.id, title:"Pengajuan Cicilan Baru", body:`${user.name} mengajukan cicilan Emas ${plan.gram} gram (${plan.tenor} bln).`, type:"cicilan", is_read:false, link:"/dashboard/admin/cicilan" }))
+        );
+      } catch {}
+      setApplied(true); loadMine();
+    }
+    setApplyId(null);
+  }
 
   const grams = [...new Set(plans.map(p => p.gram))].sort((a,b)=>a-b);
 
@@ -51,8 +91,37 @@ export default function CicilanPage() {
     <div style={{ display:"flex", flexDirection:"column", gap:24, maxWidth:900 }}>
       <div>
         <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Cicilan Emas</h1>
-        <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Pilih paket cicilan sesuai kemampuan Anda</p>
+        <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Pilih paket lalu Ajukan Cicilan — admin akan menyetujui</p>
       </div>
+
+      {applied && (
+        <div style={{ background:"rgba(52,211,153,0.1)", border:"1px solid rgba(52,211,153,0.25)", borderRadius:12, padding:"12px 16px", color:"#34d399", fontSize:".88rem", display:"flex", alignItems:"center", gap:8 }}>
+          <CheckCircle style={{ width:15, height:15 }} /> Pengajuan cicilan terkirim! Menunggu persetujuan admin.
+        </div>
+      )}
+
+      {/* Cicilan Saya */}
+      {mine.length > 0 && (
+        <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, padding:"16px 18px" }}>
+          <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".78rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 12px" }}>Cicilan Saya</p>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {mine.map(m => {
+              const s = STATUS_C[m.status] || STATUS_C.active;
+              return (
+                <div key={m.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, background:"rgba(255,255,255,0.02)", borderRadius:10, padding:"10px 14px", flexWrap:"wrap" }}>
+                  <div>
+                    <p style={{ color:"#fff", fontWeight:600, fontSize:".86rem", margin:0 }}>{m.product_name}</p>
+                    <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".74rem", margin:"2px 0 0" }}>{m.paid_installments}/{m.tenor} angsuran · {fmt(m.monthly_amount)}/bln · sisa {fmt(Math.max(0,(m.tenor-m.paid_installments)*m.monthly_amount))}</p>
+                  </div>
+                  <span style={{ display:"flex", alignItems:"center", gap:4, background:`${s.color}18`, border:`1px solid ${s.color}40`, color:s.color, borderRadius:20, padding:"3px 12px", fontSize:".74rem", fontWeight:600 }}>
+                    {m.status==="pending" && <Clock style={{width:11,height:11}}/>}{s.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <p style={{ color:"rgba(255,255,255,0.3)" }}>Memuat paket cicilan...</p>
@@ -101,6 +170,10 @@ export default function CicilanPage() {
                         <span style={{ color:"#D4AF37", fontWeight:900, fontSize:"1rem" }}>{fmt(plan.angsuran)}</span>
                         <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".72rem" }}>/bulan</span>
                       </div>
+                      <button onClick={()=>ajukan(plan)} disabled={applyId===plan.id}
+                        style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6, padding:"9px", borderRadius:10, background:"linear-gradient(135deg,#D4AF37,#F5D060)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".82rem", cursor:applyId===plan.id?"not-allowed":"pointer", opacity:applyId===plan.id?.7:1 }}>
+                        <Send style={{ width:13, height:13 }} /> {applyId===plan.id ? "Mengirim..." : "Ajukan Cicilan"}
+                      </button>
                       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6 }}>
                         <a href={`https://wa.me/${WA_ADMIN}?text=${buildMsg(plan)}`} target="_blank" rel="noopener noreferrer"
                           style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:2, padding:"8px 4px", borderRadius:10, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.25)", textDecoration:"none" }}>

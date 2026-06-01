@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CreditCard, RefreshCw, Plus, X, Check, Clock, CheckCircle, Landmark, Trash2 } from "lucide-react";
+import { CreditCard, RefreshCw, Plus, X, Check, Clock, CheckCircle, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import MemberPicker from "@/components/ui/MemberPicker";
@@ -17,7 +17,7 @@ const inp: React.CSSProperties = {
   borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".9rem", outline:"none", boxSizing:"border-box",
 };
 
-const FILTERS = ["semua","berjalan","lunas"] as const;
+const FILTERS = ["semua","pending","berjalan","lunas"] as const;
 
 // Item ternormalisasi: cicilan (installments) ATAU gadai
 interface Item {
@@ -47,37 +47,17 @@ export default function AdminCicilanPage() {
       id:r.id, kind:"cicilan", user_id:r.user_id, name:r.product_name || "Cicilan Emas",
       memberName:r.profiles?.name || "—", total:r.total_amount, monthly:r.monthly_amount,
       tenor:r.tenor, paid:r.paid_installments, sisa:Math.max(0,(r.tenor-r.paid_installments)*r.monthly_amount),
-      status: r.status === "completed" ? "lunas" : (r.status === "overdue" ? "terlambat" : "berjalan"),
-      created_at:r.created_at,
-    };
-  }
-  function normGadai(r: any): Item {
-    const ang = r.angsuran_per_bulan || 0;
-    const paid = ang > 0 ? Math.min(r.tenor, Math.round((r.dana_cair - r.sisa_tagihan) / ang)) : 0;
-    return {
-      id:r.id, kind:"gadai", user_id:r.user_id, name:"Gadai Emas",
-      memberName:r.profiles?.name || "—", total:r.dana_cair, monthly:ang,
-      tenor:r.tenor, paid, sisa:r.sisa_tagihan,
-      status: (r.status === "lunas") ? "lunas" : "berjalan",
+      status: r.status === "completed" ? "lunas" : (r.status === "overdue" ? "terlambat" : r.status === "pending" ? "pending" : "berjalan"),
       created_at:r.created_at,
     };
   }
 
   async function load() {
     setLoading(true);
-    const [insRes, gadaiRes] = await Promise.all([
-      (supabase.from("installments") as any)
-        .select("id, user_id, product_name, total_amount, monthly_amount, tenor, paid_installments, status, created_at, profiles(name)")
-        .order("created_at",{ascending:false}).limit(300),
-      (supabase.from("gadai") as any)
-        .select("id, user_id, dana_cair, sisa_tagihan, tenor, angsuran_per_bulan, status, created_at, profiles:profiles!user_id(name)")
-        .in("status",["disetujui","aktif","lunas"]).order("created_at",{ascending:false}).limit(300),
-    ]);
-    const merged: Item[] = [
-      ...((insRes.data||[]).map(normCicilan)),
-      ...((gadaiRes.data||[]).map(normGadai)),
-    ].sort((a,b)=> new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    setRows(merged);
+    const { data } = await (supabase.from("installments") as any)
+      .select("id, user_id, product_name, total_amount, monthly_amount, tenor, paid_installments, status, created_at, profiles(name)")
+      .order("created_at",{ascending:false}).limit(300);
+    setRows((data||[]).map(normCicilan));
     setLoading(false);
   }
   useEffect(() => { load(); }, []);
@@ -116,31 +96,23 @@ export default function AdminCicilanPage() {
   }
 
   async function recordPayment(it: Item) {
-    if (it.paid >= it.tenor) return;
+    if (it.paid >= it.tenor || it.status === "pending") return;
     setActing(it.id);
     const ke = it.paid + 1;
     const done = ke >= it.tenor;
-    if (it.kind === "cicilan") {
-      await (supabase.from("cicilan_pembayaran") as any).insert({
-        installment_id: it.id, user_id: it.user_id, angsuran_ke: ke, amount: it.monthly, recorded_by: user?.id,
-      });
-      const due = new Date(); due.setMonth(due.getMonth() + 1);
-      await (supabase.from("installments") as any).update({
-        paid_installments: ke, status: done ? "completed" : "active",
-        next_due_date: done ? null : due.toISOString().slice(0,10),
-      }).eq("id", it.id);
-    } else {
-      const newSisa = Math.max(0, it.sisa - it.monthly);
-      await (supabase.from("gadai") as any).update({
-        sisa_tagihan: newSisa, status: newSisa <= 0 ? "lunas" : "aktif",
-        ...(newSisa <= 0 ? { tanggal_lunas: new Date().toISOString() } : {}),
-      }).eq("id", it.id);
-    }
+    await (supabase.from("cicilan_pembayaran") as any).insert({
+      installment_id: it.id, user_id: it.user_id, angsuran_ke: ke, amount: it.monthly, recorded_by: user?.id,
+    });
+    const due = new Date(); due.setMonth(due.getMonth() + 1);
+    await (supabase.from("installments") as any).update({
+      paid_installments: ke, status: done ? "completed" : "active",
+      next_due_date: done ? null : due.toISOString().slice(0,10),
+    }).eq("id", it.id);
     try {
       await (supabase.from("notifications") as any).insert({
         user_id: it.user_id, title: done ? `${it.name} Lunas 🎉` : "Pembayaran Diterima",
         body: done ? `${it.name} telah LUNAS.` : `Angsuran ke-${ke} ${fmt(it.monthly)} untuk ${it.name} tercatat.`,
-        type:"cicilan", is_read:false, link: it.kind==="gadai" ? "/dashboard/member/gadai" : "/dashboard/member/cicilan",
+        type:"cicilan", is_read:false, link:"/dashboard/member/cicilan",
       });
     } catch {}
     const updated: Item = { ...it, paid: ke, sisa: Math.max(0, it.sisa - it.monthly), status: done ? "lunas" : "berjalan" };
@@ -150,28 +122,37 @@ export default function AdminCicilanPage() {
     setActing(null);
   }
 
-  async function removeItem(it: Item) {
-    if (!window.confirm(`Hapus ${it.kind==="gadai"?"gadai":"cicilan"} "${it.name}" milik ${it.memberName}? Tidak bisa dibatalkan.`)) return;
+  // Setujui pengajuan cicilan member (pending -> active)
+  async function approveCicilan(it: Item) {
     setActing(it.id);
-    if (it.kind === "cicilan") await (supabase.from("installments") as any).delete().eq("id", it.id);
-    else                       await (supabase.from("gadai") as any).delete().eq("id", it.id);
+    const due = new Date(); due.setMonth(due.getMonth() + 1);
+    await (supabase.from("installments") as any).update({ status:"active", next_due_date: due.toISOString().slice(0,10) }).eq("id", it.id);
+    try { await (supabase.from("notifications") as any).insert({ user_id:it.user_id, title:"Cicilan Disetujui", body:`Pengajuan cicilan ${it.name} disetujui.`, type:"cicilan", is_read:false, link:"/dashboard/member/cicilan" }); } catch {}
+    setDetail({ ...it, status:"berjalan" }); await load(); setActing(null);
+  }
+
+  async function removeItem(it: Item) {
+    if (!window.confirm(`Hapus cicilan "${it.name}" milik ${it.memberName}? Tidak bisa dibatalkan.`)) return;
+    setActing(it.id);
+    await (supabase.from("installments") as any).delete().eq("id", it.id);
     setDetail(null);
     await load();
     setActing(null);
   }
 
   const filtered = filter === "semua" ? rows
+    : filter === "pending" ? rows.filter(r => r.status === "pending")
     : filter === "berjalan" ? rows.filter(r => r.status === "berjalan" || r.status === "terlambat")
     : rows.filter(r => r.status === "lunas");
 
-  const STATUS_COLOR: Record<string,string> = { berjalan:"#60a5fa", lunas:"#34d399", terlambat:"#f87171" };
-  const STATUS_LABEL: Record<string,string> = { berjalan:"Berjalan", lunas:"Lunas", terlambat:"Terlambat" };
+  const STATUS_COLOR: Record<string,string> = { pending:"#fbbf24", berjalan:"#60a5fa", lunas:"#34d399", terlambat:"#f87171" };
+  const STATUS_LABEL: Record<string,string> = { pending:"Pengajuan", berjalan:"Berjalan", lunas:"Lunas", terlambat:"Terlambat" };
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Kelola Cicilan & Gadai</h1>
+          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Kelola Cicilan</h1>
           <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Pantau angsuran anggota (cicilan emas & gadai) + catat pembayaran</p>
         </div>
         <div style={{ display:"flex", gap:10 }}>
@@ -210,7 +191,7 @@ export default function AdminCicilanPage() {
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
                     <div style={{ minWidth:180 }}>
                       <p style={{ color:"#fff", fontWeight:700, fontSize:".92rem", margin:0, display:"flex", alignItems:"center", gap:6 }}>
-                        {r.kind==="gadai" ? <Landmark style={{ width:13, height:13, color:"#60a5fa" }} /> : <CreditCard style={{ width:13, height:13, color:"#a78bfa" }} />}
+                        <CreditCard style={{ width:13, height:13, color:"#a78bfa" }} />
                         {r.memberName} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>· {r.name}</span>
                       </p>
                       <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".76rem", margin:"3px 0 0" }}>
@@ -299,7 +280,7 @@ export default function AdminCicilanPage() {
               <div style={{ padding:"20px 22px 16px", borderBottom:"1px solid rgba(255,255,255,0.06)", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12 }}>
                 <div>
                   <h2 style={{ color:"#fff", fontWeight:700, fontSize:"1.05rem", margin:0 }}>{detail.name}</h2>
-                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".8rem", margin:"2px 0 0" }}>{detail.memberName} · {detail.kind==="gadai"?"Gadai":"Cicilan"}</p>
+                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".8rem", margin:"2px 0 0" }}>{detail.memberName} · Cicilan</p>
                 </div>
                 <div style={{ display:"flex", gap:8, flexShrink:0 }}>
                   {isMaster && (
@@ -327,7 +308,12 @@ export default function AdminCicilanPage() {
                   ))}
                 </div>
 
-                {detail.status !== "lunas" ? (
+                {detail.status === "pending" ? (
+                  <button onClick={()=>approveCicilan(detail)} disabled={acting===detail.id}
+                    style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px", borderRadius:11, background:"linear-gradient(135deg,#fbbf24,#fcd34d)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".92rem", cursor:acting===detail.id?"not-allowed":"pointer", opacity:acting===detail.id?.7:1, marginBottom:18 }}>
+                    <Check style={{ width:16, height:16 }} /> Setujui Pengajuan Cicilan
+                  </button>
+                ) : detail.status !== "lunas" ? (
                   <button onClick={()=>recordPayment(detail)} disabled={acting===detail.id}
                     style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px", borderRadius:11, background:"linear-gradient(135deg,#34d399,#6ee7b7)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".92rem", cursor:acting===detail.id?"not-allowed":"pointer", opacity:acting===detail.id?.7:1, marginBottom:18 }}>
                     <Check style={{ width:16, height:16 }} /> Catat Bayar Angsuran ke-{detail.paid + 1} ({fmt(detail.monthly)})
@@ -365,24 +351,20 @@ export default function AdminCicilanPage() {
                   })}
                 </div>
 
-                {detail.kind === "cicilan" && (
-                  <>
-                    <h3 style={{ color:"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"18px 0 10px" }}>Riwayat Pembayaran</h3>
-                    {detailLoading ? <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Memuat...</p>
-                      : payments.length === 0 ? <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Belum ada pembayaran.</p>
-                      : (
-                        <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                          {payments.map(p=>(
-                            <div key={p.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(52,211,153,0.06)", border:"1px solid rgba(52,211,153,0.15)", borderRadius:9, padding:"9px 14px" }}>
-                              <span style={{ color:"rgba(255,255,255,0.7)", fontSize:".83rem" }}>Angsuran ke-{p.angsuran_ke}</span>
-                              <span style={{ color:"#34d399", fontWeight:600, fontSize:".83rem" }}>{fmt(p.amount)}</span>
-                              <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem" }}>{fmtDate(p.paid_at)}</span>
-                            </div>
-                          ))}
+                <h3 style={{ color:"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"18px 0 10px" }}>Riwayat Pembayaran</h3>
+                {detailLoading ? <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Memuat...</p>
+                  : payments.length === 0 ? <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Belum ada pembayaran.</p>
+                  : (
+                    <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                      {payments.map(p=>(
+                        <div key={p.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(52,211,153,0.06)", border:"1px solid rgba(52,211,153,0.15)", borderRadius:9, padding:"9px 14px" }}>
+                          <span style={{ color:"rgba(255,255,255,0.7)", fontSize:".83rem" }}>Angsuran ke-{p.angsuran_ke}</span>
+                          <span style={{ color:"#34d399", fontWeight:600, fontSize:".83rem" }}>{fmt(p.amount)}</span>
+                          <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem" }}>{fmtDate(p.paid_at)}</span>
                         </div>
-                      )}
-                  </>
-                )}
+                      ))}
+                    </div>
+                  )}
               </div>
             </motion.div>
           </motion.div>

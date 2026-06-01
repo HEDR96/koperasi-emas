@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { RefreshCw, Check, X, Coins, Landmark, Wallet } from "lucide-react";
+import { RefreshCw, Check, X, Coins, Landmark, Wallet, CreditCard } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -16,7 +16,7 @@ const TX_TYPE_LABEL: Record<string,string> = {
 };
 const SIM_LABEL: Record<string,string> = { pokok:"Simpanan Pokok", wajib:"Simpanan Wajib", sukarela:"Simpanan Sukarela" };
 
-type Tab = "transaksi" | "simpanan" | "gadai";
+type Tab = "transaksi" | "simpanan" | "gadai" | "cicilan";
 
 export default function ApprovalPage() {
   const { user } = useAuthStore();
@@ -24,13 +24,14 @@ export default function ApprovalPage() {
   const [txs, setTxs]       = useState<any[]>([]);
   const [sims, setSims]     = useState<any[]>([]);
   const [gadais, setGadais] = useState<any[]>([]);
+  const [cics, setCics]     = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [acting, setActing]   = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
     try {
-      const [txRes, simRes, gadaiRes] = await Promise.all([
+      const [txRes, simRes, gadaiRes, cicRes] = await Promise.all([
         (supabase.from("transactions") as any)
           .select("id, user_id, type, amount, gram, payment_method, created_at, profiles(name)")
           .eq("status","pending").order("created_at",{ascending:false}),
@@ -40,10 +41,14 @@ export default function ApprovalPage() {
         (supabase.from("gadai") as any)
           .select("id, user_id, dana_cair, sisa_tagihan, tenor, angsuran_per_bulan, gram_setara, keterangan, created_at, profiles:profiles!user_id(name)")
           .eq("status","pengajuan").order("created_at",{ascending:false}),
+        (supabase.from("installments") as any)
+          .select("id, user_id, product_name, total_amount, monthly_amount, tenor, created_at, profiles(name)")
+          .eq("status","pending").order("created_at",{ascending:false}),
       ]);
       setTxs(txRes.data || []);
       setSims(simRes.data || []);
       setGadais(gadaiRes.data || []);
+      setCics(cicRes.data || []);
     } catch {}
     setLoading(false);
   }
@@ -96,9 +101,23 @@ export default function ApprovalPage() {
     await load(); setActing(null);
   }
 
+  // ── Cicilan ──
+  async function actCicilan(row: any, approve: boolean) {
+    setActing(row.id);
+    const due = new Date(); due.setMonth(due.getMonth() + 1);
+    await (supabase.from("installments") as any)
+      .update(approve ? { status:"active", next_due_date: due.toISOString().slice(0,10) } : { status:"ditolak" })
+      .eq("id", row.id);
+    await notify(row.user_id, approve ? "Cicilan Disetujui" : "Cicilan Ditolak",
+      `Pengajuan cicilan ${row.product_name} ${fmt(row.total_amount)} telah ${approve?"disetujui":"ditolak"}.`,
+      "/dashboard/member/cicilan");
+    await load(); setActing(null);
+  }
+
   const TABS: { id: Tab; label: string; count: number; icon: any; color: string }[] = [
     { id:"transaksi", label:"Transaksi", count:txs.length,    icon:Coins,    color:"#D4AF37" },
     { id:"simpanan",  label:"Simpanan",  count:sims.length,   icon:Wallet,   color:"#a78bfa" },
+    { id:"cicilan",   label:"Cicilan",   count:cics.length,   icon:CreditCard, color:"#f59e0b" },
     { id:"gadai",     label:"Gadai",     count:gadais.length, icon:Landmark, color:"#60a5fa" },
   ];
 
@@ -198,6 +217,27 @@ export default function ApprovalPage() {
                   <div style={{ display:"flex", alignItems:"center", gap:16 }}>
                     <span style={{ color:"#a78bfa", fontWeight:800, fontSize:"1rem" }}>{fmt(row.amount)}</span>
                     <ActionBtns id={row.id} onApprove={()=>actSim(row,true)} onReject={()=>actSim(row,false)} />
+                  </div>
+                </>, row.id))
+          )}
+
+          {/* CICILAN */}
+          {tab === "cicilan" && (cics.length === 0
+            ? <p style={{ color:"rgba(255,255,255,0.3)", padding:"32px", textAlign:"center" }}>Tidak ada pengajuan cicilan.</p>
+            : cics.map(row => card(
+                <>
+                  <div>
+                    <p style={{ color:"#fff", fontWeight:700, fontSize:".9rem", margin:0 }}>
+                      {(row.profiles as any)?.name || "—"}
+                      <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}> · {row.product_name}</span>
+                    </p>
+                    <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", margin:"3px 0 0" }}>
+                      {row.tenor} bln · angsuran {fmt(row.monthly_amount)} · {fmtDate(row.created_at)}
+                    </p>
+                  </div>
+                  <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+                    <span style={{ color:"#f59e0b", fontWeight:800, fontSize:"1rem" }}>{fmt(row.total_amount)}</span>
+                    <ActionBtns id={row.id} onApprove={()=>actCicilan(row,true)} onReject={()=>actCicilan(row,false)} />
                   </div>
                 </>, row.id))
           )}

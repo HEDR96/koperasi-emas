@@ -159,7 +159,7 @@ export default function HargaEmasPage() {
             {hargaEmas.length === 0 ? <p style={{ padding:"20px", color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Belum ada data</p> : (
               <table style={{ width:"100%", borderCollapse:"collapse" }}>
                 <thead><tr style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                  {["Berat", "Harga Terkini", "Terakhir Update"].map(h=>(
+                  {["Berat", "Harga Terkini", "Terakhir Update", ...(isMaster?[""]:[])].map(h=>(
                     <th key={h} style={{ padding:"10px 18px", textAlign:"left", color:"rgba(255,255,255,0.3)", fontSize:".72rem", fontWeight:600, textTransform:"uppercase" }}>{h}</th>
                   ))}
                 </tr></thead>
@@ -171,6 +171,14 @@ export default function HargaEmasPage() {
                       <td style={{ padding:"12px 18px", color:"rgba(255,255,255,0.35)", fontSize:".8rem" }}>
                         {new Date(r.created_at).toLocaleString("id-ID", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" })}
                       </td>
+                      {isMaster && (
+                        <td style={{ padding:"12px 18px" }}>
+                          <button onClick={()=>{ setNewGram(String(r.gram)); setNewHarga(String(r.harga)); }}
+                            style={{ background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:7, padding:"5px 12px", color:"#D4AF37", cursor:"pointer", fontSize:".76rem", fontWeight:600 }}>
+                            Edit
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -281,7 +289,7 @@ export default function HargaEmasPage() {
             {hargaBuyback.length === 0 ? <p style={{ padding:"20px", color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Belum ada data</p> : (
               <table style={{ width:"100%", borderCollapse:"collapse" }}>
                 <thead><tr style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                  {["Berat", "Harga Buyback", "Terakhir Update"].map(h=>(
+                  {["Berat", "Harga Buyback", "Terakhir Update", ...(isMaster?[""]:[])].map(h=>(
                     <th key={h} style={{ padding:"10px 18px", textAlign:"left", color:"rgba(255,255,255,0.3)", fontSize:".72rem", fontWeight:600, textTransform:"uppercase" }}>{h}</th>
                   ))}
                 </tr></thead>
@@ -293,6 +301,14 @@ export default function HargaEmasPage() {
                       <td style={{ padding:"12px 18px", color:"rgba(255,255,255,0.35)", fontSize:".8rem" }}>
                         {new Date(r.created_at).toLocaleString("id-ID", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" })}
                       </td>
+                      {isMaster && (
+                        <td style={{ padding:"12px 18px" }}>
+                          <button onClick={()=>{ setBbGram(String(r.gram)); setBbHarga(String(r.harga)); }}
+                            style={{ background:"rgba(52,211,153,0.1)", border:"1px solid rgba(52,211,153,0.25)", borderRadius:7, padding:"5px 12px", color:"#34d399", cursor:"pointer", fontSize:".76rem", fontWeight:600 }}>
+                            Edit
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
