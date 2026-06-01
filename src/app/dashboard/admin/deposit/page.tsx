@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle, Search } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import Select from "@/components/ui/Select";
+import MemberPicker from "@/components/ui/MemberPicker";
 
 interface MemberOption {
   id: string;
@@ -38,39 +39,11 @@ function fmt(n: number) {
 
 export default function AdminDepositPage() {
   const { user }               = useAuthStore();
-  const [members, setMembers]  = useState<MemberOption[]>([]);
-  const [memberSearch, setMemberSearch] = useState("");
-  const [showDropdown, setShowDropdown] = useState(false);
   const [selectedMember, setSelectedMember] = useState<MemberOption | null>(null);
   const [form, setForm]        = useState(DEFAULT_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess]  = useState("");
   const [error, setError]      = useState("");
-
-  useEffect(() => {
-    (async () => {
-      const { data } = await (supabase.from("profiles") as any)
-        .select("id,name,phone")
-        .eq("role","member")
-        .eq("status","active")
-        .order("name");
-      setMembers(data ?? []);
-    })();
-  }, []);
-
-  const filteredMembers = memberSearch
-    ? members.filter(m =>
-        m.name.toLowerCase().includes(memberSearch.toLowerCase()) ||
-        (m.phone||"").includes(memberSearch)
-      )
-    : members.slice(0,8);
-
-  function selectMember(m: MemberOption) {
-    setSelectedMember(m);
-    setForm(f => ({ ...f, memberId: m.id }));
-    setMemberSearch(m.name);
-    setShowDropdown(false);
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -129,7 +102,6 @@ export default function AdminDepositPage() {
 
       setSuccess(`Transaksi berhasil diinput! ID: ${txData?.id?.slice(0,8)}...`);
       setForm(DEFAULT_FORM);
-      setMemberSearch("");
       setSelectedMember(null);
     } catch (e: any) {
       setError(e.message || "Terjadi kesalahan.");
@@ -165,35 +137,9 @@ export default function AdminDepositPage() {
         <form onSubmit={handleSubmit} style={{ display:"flex", flexDirection:"column", gap:18 }}>
 
           {/* Member select */}
-          <div style={{ position:"relative" }}>
+          <div>
             <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Pilih Member *</label>
-            <div style={{ position:"relative" }}>
-              <Search style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", width:14, height:14, color:"rgba(255,255,255,0.3)" }} />
-              <input
-                value={memberSearch}
-                onChange={e=>{ setMemberSearch(e.target.value); setShowDropdown(true); setSelectedMember(null); setForm(f=>({...f,memberId:""})); }}
-                onFocus={()=>setShowDropdown(true)}
-                placeholder="Cari nama atau nomor HP..."
-                style={{ ...inputStyle, paddingLeft:36 }}
-              />
-            </div>
-            {showDropdown && filteredMembers.length > 0 && (
-              <div style={{ position:"absolute", top:"100%", left:0, right:0, background:"#1a1a1a", border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, zIndex:50, maxHeight:220, overflowY:"auto", marginTop:4, boxShadow:"0 8px 32px rgba(0,0,0,0.5)" }}>
-                {filteredMembers.map(m => (
-                  <div key={m.id} onClick={()=>selectMember(m)}
-                    style={{ padding:"11px 16px", cursor:"pointer", borderBottom:"1px solid rgba(255,255,255,0.05)", display:"flex", justifyContent:"space-between", alignItems:"center" }}
-                    onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background="rgba(212,175,55,0.08)"}
-                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background="transparent"}
-                  >
-                    <span style={{ color:"#fff", fontSize:".88rem", fontWeight:600 }}>{m.name}</span>
-                    <span style={{ color:"rgba(255,255,255,0.35)", fontSize:".78rem" }}>{m.phone||"—"}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {showDropdown && (
-              <div style={{ position:"fixed", inset:0, zIndex:49 }} onClick={()=>setShowDropdown(false)} />
-            )}
+            <MemberPicker value={form.memberId} onChange={m=>{ setSelectedMember(m); setForm(f=>({...f,memberId:m?.id||""})); }} />
           </div>
 
           {/* Type */}

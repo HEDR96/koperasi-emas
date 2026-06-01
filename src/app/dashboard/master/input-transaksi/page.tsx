@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { PlusCircle, RefreshCw, Save, Search } from "lucide-react";
+import { PlusCircle, RefreshCw, Save } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import Select from "@/components/ui/Select";
-
-interface Member { id: string; name: string; phone: string | null; }
+import MemberPicker from "@/components/ui/MemberPicker";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -40,21 +39,11 @@ const EMPTY = {
 
 export default function InputTransaksiPage() {
   const { user } = useAuthStore();
-  const [members, setMembers]   = useState<Member[]>([]);
-  const [search, setSearch]     = useState("");
   const [form, setForm]         = useState(EMPTY);
   const [saving, setSaving]     = useState(false);
   const [saved, setSaved]       = useState(false);
   const [error, setError]       = useState("");
   const [recent, setRecent]     = useState<any[]>([]);
-
-  async function loadMembers() {
-    const { data } = await (supabase.from("profiles") as any)
-      .select("id, name, phone")
-      .eq("role", "member")
-      .order("name");
-    setMembers(data || []);
-  }
 
   async function loadRecent() {
     const { data } = await (supabase.from("transactions") as any)
@@ -64,14 +53,7 @@ export default function InputTransaksiPage() {
     setRecent(data || []);
   }
 
-  useEffect(() => { loadMembers(); loadRecent(); }, []);
-
-  const filteredMembers = members.filter(m =>
-    m.name.toLowerCase().includes(search.toLowerCase()) ||
-    (m.phone || "").includes(search)
-  );
-
-  const selectedMember = members.find(m => m.id === form.user_id);
+  useEffect(() => { loadRecent(); }, []);
 
   async function handleSave() {
     if (!form.user_id || !form.amount) { setError("Pilih anggota dan isi jumlah."); return; }
@@ -96,7 +78,6 @@ export default function InputTransaksiPage() {
         setSaved(true);
         setTimeout(() => setSaved(false), 2500);
         setForm(EMPTY);
-        setSearch("");
         loadRecent();
       }
     } catch { setError("Terjadi kesalahan."); }
@@ -121,7 +102,7 @@ export default function InputTransaksiPage() {
             Catat transaksi historis atau transaksi yang belum terinput
           </p>
         </div>
-        <button onClick={() => { loadMembers(); loadRecent(); }}
+        <button onClick={() => { loadRecent(); }}
           style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:13, height:13 }} /> Refresh
         </button>
@@ -143,30 +124,7 @@ export default function InputTransaksiPage() {
           {/* Pilih anggota */}
           <div>
             <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Anggota *</label>
-            <div style={{ position:"relative", marginBottom:8 }}>
-              <Search style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", width:14, height:14, color:"rgba(255,255,255,0.3)" }} />
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari nama atau nomor HP..."
-                style={{ ...inp, paddingLeft:34 }} />
-            </div>
-            {search && filteredMembers.length > 0 && (
-              <div style={{ background:"rgba(10,10,10,0.95)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, maxHeight:160, overflowY:"auto" }}>
-                {filteredMembers.slice(0,6).map(m => (
-                  <button key={m.id} onClick={() => { setForm(p=>({...p,user_id:m.id})); setSearch(""); }}
-                    style={{ width:"100%", display:"flex", flexDirection:"column", padding:"10px 14px", background:"transparent", border:"none", borderBottom:"1px solid rgba(255,255,255,0.05)", color:"#fff", cursor:"pointer", textAlign:"left" }}
-                    onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background="rgba(212,175,55,0.08)"}
-                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background="transparent"}>
-                    <span style={{ fontWeight:600, fontSize:".85rem" }}>{m.name}</span>
-                    <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem" }}>{m.phone || "-"}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            {selectedMember && (
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:9, padding:"8px 12px" }}>
-                <span style={{ color:"#D4AF37", fontWeight:600, fontSize:".85rem" }}>✓ {selectedMember.name}</span>
-                <button onClick={() => setForm(p=>({...p,user_id:""}))} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.3)", cursor:"pointer", fontSize:".75rem" }}>×</button>
-              </div>
-            )}
+            <MemberPicker value={form.user_id} onChange={m=>setForm(p=>({...p,user_id:m?.id||""}))} />
           </div>
 
           {/* Tipe & Status */}

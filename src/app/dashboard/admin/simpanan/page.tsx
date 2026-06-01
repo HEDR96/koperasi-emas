@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Wallet, RefreshCw, Save, Search, CheckCircle } from "lucide-react";
+import { Wallet, RefreshCw, Save, CheckCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import Select from "@/components/ui/Select";
-
-interface Member { id: string; name: string; phone: string | null; }
+import MemberPicker from "@/components/ui/MemberPicker";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -29,8 +28,6 @@ const STATUS_COLOR: Record<string,string> = { pending:"#fbbf24", completed:"#34d
 
 export default function AdminSimpananPage() {
   const { user } = useAuthStore();
-  const [members, setMembers] = useState<Member[]>([]);
-  const [search, setSearch]   = useState("");
   const [form, setForm]       = useState({ user_id:"", type:"wajib", amount:"", description:"" });
   const [saving, setSaving]   = useState(false);
   const [saved, setSaved]     = useState(false);
@@ -38,10 +35,6 @@ export default function AdminSimpananPage() {
   const [recent, setRecent]   = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function loadMembers() {
-    const { data } = await (supabase.from("profiles") as any).select("id, name, phone").eq("role","member").order("name");
-    setMembers(data || []);
-  }
   async function loadRecent() {
     setLoading(true);
     const { data } = await (supabase.from("simpanan") as any)
@@ -50,11 +43,7 @@ export default function AdminSimpananPage() {
     setRecent(data || []);
     setLoading(false);
   }
-  useEffect(() => { loadMembers(); loadRecent(); }, []);
-
-  const filtered = members.filter(m =>
-    m.name.toLowerCase().includes(search.toLowerCase()) || (m.phone||"").includes(search));
-  const selected = members.find(m => m.id === form.user_id);
+  useEffect(() => { loadRecent(); }, []);
 
   async function save() {
     if (!form.user_id || !form.amount) { setError("Pilih anggota dan isi nominal."); return; }
@@ -78,7 +67,7 @@ export default function AdminSimpananPage() {
             type:"simpanan", is_read:false, link:"/dashboard/member/simpanan",
           });
         } catch {}
-        setForm({ user_id:"", type:"wajib", amount:"", description:"" }); setSearch("");
+        setForm({ user_id:"", type:"wajib", amount:"", description:"" });
         loadRecent();
       }
     } catch { setError("Terjadi kesalahan."); }
@@ -92,7 +81,7 @@ export default function AdminSimpananPage() {
           <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Input Simpanan Anggota</h1>
           <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Catat setoran simpanan pokok / wajib / sukarela anggota</p>
         </div>
-        <button onClick={()=>{loadMembers();loadRecent();}} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
+        <button onClick={loadRecent} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:13, height:13 }} /> Refresh
         </button>
       </div>
@@ -111,27 +100,7 @@ export default function AdminSimpananPage() {
           {/* Member */}
           <div>
             <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Anggota *</label>
-            <div style={{ position:"relative", marginBottom:8 }}>
-              <Search style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", width:14, height:14, color:"rgba(255,255,255,0.3)" }} />
-              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Cari nama / HP..." style={{ ...inp, paddingLeft:34 }} />
-            </div>
-            {search && filtered.length > 0 && !selected && (
-              <div style={{ background:"rgba(10,10,10,0.95)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, maxHeight:160, overflowY:"auto" }}>
-                {filtered.slice(0,6).map(m => (
-                  <button key={m.id} onClick={()=>{ setForm(p=>({...p,user_id:m.id})); setSearch(m.name); }}
-                    style={{ width:"100%", display:"flex", flexDirection:"column", padding:"10px 14px", background:"transparent", border:"none", borderBottom:"1px solid rgba(255,255,255,0.05)", color:"#fff", cursor:"pointer", textAlign:"left" }}>
-                    <span style={{ fontWeight:600, fontSize:".85rem" }}>{m.name}</span>
-                    <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem" }}>{m.phone || "-"}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            {selected && (
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(167,139,250,0.1)", border:"1px solid rgba(167,139,250,0.25)", borderRadius:9, padding:"8px 12px" }}>
-                <span style={{ color:"#a78bfa", fontWeight:600, fontSize:".85rem" }}>✓ {selected.name}</span>
-                <button onClick={()=>{setForm(p=>({...p,user_id:""}));setSearch("");}} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.3)", cursor:"pointer" }}>×</button>
-              </div>
-            )}
+            <MemberPicker value={form.user_id} onChange={m=>setForm(p=>({...p,user_id:m?.id||""}))} />
           </div>
 
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
