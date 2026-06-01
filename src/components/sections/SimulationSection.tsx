@@ -216,10 +216,7 @@ export default function SimulationSection() {
                       <span className="text-white font-semibold">Angsuran / Bulan</span>
                       <span className="text-2xl font-black text-gold-gradient">{formatCurrency(selectedPlan.angsuran)}</span>
                     </div>
-                    <div className="mt-2 p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm text-center font-medium">
-                      Tanpa bunga untuk anggota aktif ✓
-                    </div>
-                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginTop:8 }}>
                       <a href={`https://wa.me/${WA_ADMIN}?text=${buildMsg(selectedPlan)}`} target="_blank" rel="noopener noreferrer"
                         style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none" }}>
                         <MessageCircle className="w-4 h-4" style={{ color:"#25d366" }} />
