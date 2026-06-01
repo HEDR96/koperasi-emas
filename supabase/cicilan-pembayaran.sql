@@ -31,8 +31,30 @@ DROP POLICY IF EXISTS "installments_update_admin" ON public.installments;
 CREATE POLICY "installments_update_admin" ON public.installments FOR UPDATE
   USING (public.get_my_role() IN ('admin','master'));
 
--- Kebijakan: TIDAK ada yang boleh menghapus cicilan (admin/master pun tidak).
--- Pastikan policy delete dicabut bila pernah dibuat.
+-- Kebijakan: HANYA MASTER yang boleh menghapus (admin tidak).
 DROP POLICY IF EXISTS "installments_delete_admin" ON public.installments;
+DROP POLICY IF EXISTS "installments_delete_master" ON public.installments;
+CREATE POLICY "installments_delete_master" ON public.installments FOR DELETE
+  USING (public.get_my_role() = 'master');
 
-SELECT 'Tabel cicilan_pembayaran + policy siap!' AS result;
+DROP POLICY IF EXISTS "cp_delete_master" ON public.cicilan_pembayaran;
+CREATE POLICY "cp_delete_master" ON public.cicilan_pembayaran FOR DELETE
+  USING (public.get_my_role() = 'master');
+
+-- Gadai: member lihat/ajukan miliknya, admin/master kelola, HAPUS hanya master
+DROP POLICY IF EXISTS "member_own_gadai" ON public.gadai;
+DROP POLICY IF EXISTS "admin_all_gadai" ON public.gadai;
+DROP POLICY IF EXISTS "gadai_select" ON public.gadai;
+CREATE POLICY "gadai_select" ON public.gadai FOR SELECT
+  USING (auth.uid() = user_id OR public.get_my_role() IN ('admin','master'));
+DROP POLICY IF EXISTS "gadai_insert" ON public.gadai;
+CREATE POLICY "gadai_insert" ON public.gadai FOR INSERT
+  WITH CHECK (auth.uid() = user_id OR public.get_my_role() IN ('admin','master'));
+DROP POLICY IF EXISTS "gadai_update" ON public.gadai;
+CREATE POLICY "gadai_update" ON public.gadai FOR UPDATE
+  USING (public.get_my_role() IN ('admin','master'));
+DROP POLICY IF EXISTS "gadai_delete_master" ON public.gadai;
+CREATE POLICY "gadai_delete_master" ON public.gadai FOR DELETE
+  USING (public.get_my_role() = 'master');
+
+SELECT 'Policy hapus (master-only) siap!' AS result;

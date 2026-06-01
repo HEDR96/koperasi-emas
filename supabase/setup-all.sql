@@ -402,12 +402,21 @@ DROP POLICY IF EXISTS "simpanan_update_admin" ON public.simpanan;
 CREATE POLICY "simpanan_update_admin" ON public.simpanan FOR UPDATE
   USING (public.get_my_role() IN ('admin','master'));
 
--- gadai
+-- gadai (member lihat/ajukan miliknya; admin/master kelola; HAPUS hanya master)
 DROP POLICY IF EXISTS "member_own_gadai" ON public.gadai;
-CREATE POLICY "member_own_gadai" ON public.gadai FOR ALL USING (auth.uid() = user_id);
 DROP POLICY IF EXISTS "admin_all_gadai" ON public.gadai;
-CREATE POLICY "admin_all_gadai" ON public.gadai FOR ALL
+DROP POLICY IF EXISTS "gadai_select" ON public.gadai;
+CREATE POLICY "gadai_select" ON public.gadai FOR SELECT
+  USING (auth.uid() = user_id OR public.get_my_role() IN ('admin','master'));
+DROP POLICY IF EXISTS "gadai_insert" ON public.gadai;
+CREATE POLICY "gadai_insert" ON public.gadai FOR INSERT
+  WITH CHECK (auth.uid() = user_id OR public.get_my_role() IN ('admin','master'));
+DROP POLICY IF EXISTS "gadai_update" ON public.gadai;
+CREATE POLICY "gadai_update" ON public.gadai FOR UPDATE
   USING (public.get_my_role() IN ('admin','master'));
+DROP POLICY IF EXISTS "gadai_delete_master" ON public.gadai;
+CREATE POLICY "gadai_delete_master" ON public.gadai FOR DELETE
+  USING (public.get_my_role() = 'master');
 
 -- shu
 DROP POLICY IF EXISTS "member_own_shu" ON public.shu;
@@ -531,7 +540,13 @@ CREATE POLICY "cp_write" ON public.cicilan_pembayaran FOR ALL
 DROP POLICY IF EXISTS "installments_update_admin" ON public.installments;
 CREATE POLICY "installments_update_admin" ON public.installments FOR UPDATE
   USING (public.get_my_role() IN ('admin','master'));
--- Kebijakan: tidak ada delete cicilan (cabut jika pernah ada)
+-- Hapus cicilan & riwayat: HANYA master
 DROP POLICY IF EXISTS "installments_delete_admin" ON public.installments;
+DROP POLICY IF EXISTS "installments_delete_master" ON public.installments;
+CREATE POLICY "installments_delete_master" ON public.installments FOR DELETE
+  USING (public.get_my_role() = 'master');
+DROP POLICY IF EXISTS "cp_delete_master" ON public.cicilan_pembayaran;
+CREATE POLICY "cp_delete_master" ON public.cicilan_pembayaran FOR DELETE
+  USING (public.get_my_role() = 'master');
 
 SELECT 'Setup selesai!' AS result;

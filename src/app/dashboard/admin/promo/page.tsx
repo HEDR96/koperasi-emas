@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Megaphone, RefreshCw, Plus, Eye, EyeOff } from "lucide-react";
+import { Megaphone, RefreshCw, Plus, Eye, EyeOff, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const fmtDate = (s: string | null) => s ? new Date(s).toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"}) : "—";
 
@@ -15,6 +16,8 @@ const inp: React.CSSProperties = {
 const EMPTY = { title:"", description:"", image_url:"", discount_percent:"0", start_date:"", end_date:"" };
 
 export default function AdminPromoPage() {
+  const { user } = useAuthStore();
+  const isMaster = user?.role === "master";
   const [promos, setPromos] = useState<any[]>([]);
   const [form, setForm] = useState(EMPTY);
   const [loading, setLoading] = useState(true);
@@ -48,6 +51,11 @@ export default function AdminPromoPage() {
 
   async function toggle(p: any) {
     await (supabase.from("promos") as any).update({ is_active: !p.is_active }).eq("id", p.id);
+    load();
+  }
+  async function remove(id: string) {
+    if (!window.confirm("Hapus promo ini?")) return;
+    await (supabase.from("promos") as any).delete().eq("id", id);
     load();
   }
 
@@ -104,6 +112,12 @@ export default function AdminPromoPage() {
                       style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:5, background: p.is_active?"rgba(52,211,153,0.1)":"rgba(255,255,255,0.05)", border:`1px solid ${p.is_active?"rgba(52,211,153,0.25)":"rgba(255,255,255,0.1)"}`, borderRadius:8, padding:"7px", color:p.is_active?"#34d399":"rgba(255,255,255,0.5)", cursor:"pointer", fontSize:".78rem", fontWeight:600 }}>
                       {p.is_active ? <><Eye style={{width:12,height:12}}/> Aktif</> : <><EyeOff style={{width:12,height:12}}/> Nonaktif</>}
                     </button>
+                    {isMaster && (
+                      <button onClick={()=>remove(p.id)} title="Hapus (master)"
+                        style={{ background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:8, padding:"7px 10px", color:"#f87171", cursor:"pointer" }}>
+                        <Trash2 style={{ width:13, height:13 }} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </motion.div>

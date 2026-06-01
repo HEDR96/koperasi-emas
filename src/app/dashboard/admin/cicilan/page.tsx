@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CreditCard, RefreshCw, Plus, X, Check, Clock, CheckCircle, Landmark } from "lucide-react";
+import { CreditCard, RefreshCw, Plus, X, Check, Clock, CheckCircle, Landmark, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import MemberPicker from "@/components/ui/MemberPicker";
@@ -27,6 +27,7 @@ interface Item {
 
 export default function AdminCicilanPage() {
   const { user } = useAuthStore();
+  const isMaster = user?.role === "master";
   const [rows, setRows] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<typeof FILTERS[number]>("semua");
@@ -145,6 +146,16 @@ export default function AdminCicilanPage() {
     const updated: Item = { ...it, paid: ke, sisa: Math.max(0, it.sisa - it.monthly), status: done ? "lunas" : "berjalan" };
     setDetail(updated);
     await openDetail(updated);
+    await load();
+    setActing(null);
+  }
+
+  async function removeItem(it: Item) {
+    if (!window.confirm(`Hapus ${it.kind==="gadai"?"gadai":"cicilan"} "${it.name}" milik ${it.memberName}? Tidak bisa dibatalkan.`)) return;
+    setActing(it.id);
+    if (it.kind === "cicilan") await (supabase.from("installments") as any).delete().eq("id", it.id);
+    else                       await (supabase.from("gadai") as any).delete().eq("id", it.id);
+    setDetail(null);
     await load();
     setActing(null);
   }
@@ -290,7 +301,15 @@ export default function AdminCicilanPage() {
                   <h2 style={{ color:"#fff", fontWeight:700, fontSize:"1.05rem", margin:0 }}>{detail.name}</h2>
                   <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".8rem", margin:"2px 0 0" }}>{detail.memberName} · {detail.kind==="gadai"?"Gadai":"Cicilan"}</p>
                 </div>
-                <button onClick={()=>setDetail(null)} style={{ background:"rgba(255,255,255,0.07)", border:"none", borderRadius:8, width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.5)", cursor:"pointer", flexShrink:0 }}><X style={{ width:15, height:15 }} /></button>
+                <div style={{ display:"flex", gap:8, flexShrink:0 }}>
+                  {isMaster && (
+                    <button onClick={()=>removeItem(detail)} disabled={acting===detail.id} title="Hapus (master)"
+                      style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.25)", borderRadius:8, width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", color:"#f87171", cursor:"pointer", opacity:acting===detail.id?.6:1 }}>
+                      <Trash2 style={{ width:15, height:15 }} />
+                    </button>
+                  )}
+                  <button onClick={()=>setDetail(null)} style={{ background:"rgba(255,255,255,0.07)", border:"none", borderRadius:8, width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}><X style={{ width:15, height:15 }} /></button>
+                </div>
               </div>
 
               <div style={{ padding:"18px 22px 24px" }}>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Coins, Save, RefreshCw, Plus } from "lucide-react";
+import { Coins, Save, RefreshCw, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -22,6 +22,7 @@ interface CicilanRow { id: number; gram: number; tenor: number; harga_jual: numb
 
 export default function HargaEmasPage() {
   const { user } = useAuthStore();
+  const isMaster = user?.role === "master";
   const [tab, setTab] = useState<Tab>("emas");
 
   // ─── Harga Emas per Berat ───
@@ -96,6 +97,11 @@ export default function HargaEmasPage() {
     setSavingCicilan(false);
   }
 
+  async function deleteCicilan(id: number) {
+    if (!window.confirm("Hapus paket cicilan ini?")) return;
+    await (supabase.from("cicilan_harga") as any).delete().eq("id", id);
+    load();
+  }
 
   // ─── Save Buyback ───
   async function saveBuyback() {
@@ -208,7 +214,7 @@ export default function HargaEmasPage() {
               <div style={{ overflowX:"auto" }}>
                 <table style={{ width:"100%", borderCollapse:"collapse" }}>
                   <thead><tr style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                    {["Gram", "Tenor", "Harga Jual", "UM %", "Angsuran/bln"].map(h=>(
+                    {["Gram", "Tenor", "Harga Jual", "UM %", "Angsuran/bln", ...(isMaster?[""]:[])].map(h=>(
                       <th key={h} style={{ padding:"10px 16px", textAlign:"left", color:"rgba(255,255,255,0.3)", fontSize:".72rem", fontWeight:600, textTransform:"uppercase" }}>{h}</th>
                     ))}
                   </tr></thead>
@@ -220,6 +226,14 @@ export default function HargaEmasPage() {
                         <td style={{ padding:"11px 16px", color:"#a78bfa", fontWeight:700 }}>{fmt(r.harga_jual)}</td>
                         <td style={{ padding:"11px 16px", color:"rgba(255,255,255,0.5)" }}>{r.uang_muka_persen}%</td>
                         <td style={{ padding:"11px 16px", color:"#D4AF37", fontWeight:900 }}>{fmt(r.angsuran)}</td>
+                        {isMaster && (
+                          <td style={{ padding:"11px 16px" }}>
+                            <button onClick={() => deleteCicilan(r.id)} title="Hapus (master)"
+                              style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:7, padding:"5px 8px", color:"#f87171", cursor:"pointer" }}>
+                              <Trash2 style={{ width:13, height:13 }} />
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
