@@ -21,6 +21,7 @@ interface MemberDetail extends MemberRow {
   savings: any[];
   installments: any[];
   simpanan: any[];
+  gadai: any[];
 }
 
 const DEFAULT_FORM = { name:"", nik:"", email:"", password:"", phone:"" };
@@ -76,16 +77,17 @@ export default function MemberManagementPage() {
   }, [search, members]);
 
   async function openDetail(m: MemberRow) {
-    setDetail({ ...m, transactions:[], savings:[], installments:[], simpanan:[] });
+    setDetail({ ...m, transactions:[], savings:[], installments:[], simpanan:[], gadai:[] });
     setDetailLoading(true);
     try {
-      const [txRes, savRes, insRes, simRes] = await Promise.all([
+      const [txRes, savRes, insRes, simRes, gadaiRes] = await Promise.all([
         (supabase.from("transactions") as any).select("*").eq("user_id",m.id).order("created_at",{ascending:false}).limit(5),
         (supabase.from("savings") as any).select("*").eq("user_id",m.id),
-        (supabase.from("installments") as any).select("*").eq("user_id",m.id),
+        (supabase.from("installments") as any).select("*").eq("user_id",m.id).order("created_at",{ascending:false}),
         (supabase.from("simpanan") as any).select("id, type, amount, status, created_at").eq("user_id",m.id).order("created_at",{ascending:false}),
+        (supabase.from("gadai") as any).select("id, dana_cair, sisa_tagihan, status, tenor, angsuran_per_bulan, created_at").eq("user_id",m.id).order("created_at",{ascending:false}),
       ]);
-      setDetail(d => d ? ({ ...d, transactions:txRes.data||[], savings:savRes.data||[], installments:insRes.data||[], simpanan:simRes.data||[] }) : d);
+      setDetail(d => d ? ({ ...d, transactions:txRes.data||[], savings:savRes.data||[], installments:insRes.data||[], simpanan:simRes.data||[], gadai:gadaiRes.data||[] }) : d);
     } catch {}
     setDetailLoading(false);
   }
@@ -346,8 +348,25 @@ export default function MemberManagementPage() {
                     {detail.installments.map((ins:any)=>(
                       <div key={ins.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(255,255,255,0.03)", borderRadius:9, padding:"9px 14px" }}>
                         <span style={{ color:"rgba(255,255,255,0.7)", fontSize:".83rem" }}>{ins.product_name}</span>
-                        <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>{ins.paid_installments}/{ins.tenor} bln</span>
+                        <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>
+                          {ins.paid_installments}/{ins.tenor} angsuran · sisa {fmt(Math.max(0,(ins.tenor-ins.paid_installments)*ins.monthly_amount))}
+                        </span>
                         <span style={{ color:STATUS_COLOR[ins.status]||"#fff", fontSize:".75rem" }}>{ins.status}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+              {/* Gadai */}
+              {detail.gadai.length>0 && (
+                <>
+                  <h3 style={{ color:"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"18px 0 10px" }}>Gadai</h3>
+                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                    {detail.gadai.map((g:any)=>(
+                      <div key={g.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(255,255,255,0.03)", borderRadius:9, padding:"9px 14px" }}>
+                        <span style={{ color:"rgba(255,255,255,0.7)", fontSize:".83rem" }}>Pinjaman {fmt(g.dana_cair)}</span>
+                        <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>sisa {fmt(g.sisa_tagihan)} · {g.tenor} bln</span>
+                        <span style={{ color:"#60a5fa", fontSize:".75rem", textTransform:"capitalize" }}>{g.status}</span>
                       </div>
                     ))}
                   </div>

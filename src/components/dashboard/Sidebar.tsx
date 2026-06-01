@@ -34,6 +34,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Approval",           href:"/dashboard/master/approval",         icon:CheckSquare },
       { label:"Input Transaksi",    href:"/dashboard/master/input-transaksi",  icon:PlusCircle },
       { label:"Input Simpanan",     href:"/dashboard/master/simpanan",         icon:Wallet },
+      { label:"Kelola Cicilan",     href:"/dashboard/master/cicilan",          icon:CreditCard },
     ]},
     { group:"Sistem", items:[
       { label:"Log Aktivitas", href:"/dashboard/master/audit",      icon:Activity },
@@ -59,6 +60,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
     ]},
     { group:"Keuangan", items:[
       { label:"Input Simpanan", href:"/dashboard/admin/simpanan", icon:Wallet },
+      { label:"Kelola Cicilan", href:"/dashboard/admin/cicilan",  icon:CreditCard },
       { label:"Kelola Gadai",   href:"/dashboard/admin/gadai",    icon:Landmark },
     ]},
     { group:"Konten", items:[
