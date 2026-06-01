@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Lock, ArrowRight, Shield } from "lucide-react";
@@ -96,8 +95,7 @@ export default function LoginPage() {
       </form>
 
       <p style={{ textAlign: "center", color: "rgba(255,255,255,0.35)", fontSize: ".83rem", marginTop: 20 }}>
-        Belum punya akun?{" "}
-        <Link href="/auth/register" style={{ color: "#D4AF37", fontWeight: 600, textDecoration: "none" }}>Daftar Member</Link>
+        Belum jadi anggota? Hubungi admin koperasi untuk pendaftaran.
       </p>
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 14, color: "rgba(255,255,255,0.2)", fontSize: ".72rem" }}>

@@ -53,12 +53,10 @@ export default function Footer() {
             <h3 style={{ color:"#fff", fontWeight:700, fontSize:".85rem", marginBottom:16 }}>Layanan</h3>
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
               {[
-                { label:"Tabungan Emas",   href:"/#simulasi"      },
-                { label:"Cicilan Emas",    href:"/#simulasi"      },
-                { label:"Buyback Emas",    href:"/#simulasi"      },
-                { label:"Investasi Emas",  href:"/#simulasi"      },
-                { label:"Referral Program",href:"/auth/register"  },
-                { label:"E-Wallet",        href:"/auth/login"     },
+                { label:"Harga Emas",   href:"/#harga-emas" },
+                { label:"Simulasi",     href:"/#simulasi"   },
+                { label:"Cicilan Emas", href:"/#simulasi"   },
+                { label:"Buyback Emas", href:"/#simulasi"   },
               ].map(item => (
                 <Link key={item.label} href={item.href} style={{ color:"rgba(255,255,255,0.65)", fontSize:".82rem", textDecoration:"none", transition:"color .2s" }}
                   onMouseEnter={e => (e.target as HTMLElement).style.color="#D4AF37"}
