@@ -49,6 +49,9 @@ export default function MemberManagementPage() {
   const [detail, setDetail]         = useState<MemberDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [buybackHarga, setBuybackHarga] = useState(0);
+  // Form aksi di profil
+  const [gForm, setGForm] = useState({ open:false, pinjaman:"", tenor:1, saving:false, err:"" });
+  const [cForm, setCForm] = useState({ open:false, product:"", total:"", tenor:"6", monthly:"", saving:false, err:"" });
 
   useEffect(() => {
     (async () => {
@@ -110,6 +113,45 @@ export default function MemberManagementPage() {
   async function updateStatus(id: string, status: string) {
     await (supabase.from("profiles") as any).update({ status }).eq("id", id);
     load();
+  }
+
+  // ── Aksi: Ajukan Gadai dari profil (admin atas nama anggota) ──
+  async function submitGadai(m: MemberDetail, totalSim: number) {
+    const jumlah = Number(gForm.pinjaman);
+    if (!jumlah || jumlah <= 0) { setGForm(f=>({...f,err:"Isi jumlah pinjaman."})); return; }
+    if (jumlah > totalSim)      { setGForm(f=>({...f,err:`Maksimal ${fmt(totalSim)}`})); return; }
+    setGForm(f=>({...f,saving:true,err:""}));
+    const angsuran = Math.ceil(jumlah / gForm.tenor);
+    const gram = buybackHarga > 0 ? jumlah / buybackHarga : 0;
+    const { error } = await (supabase.from("gadai") as any).insert({
+      user_id: m.id, nilai_jaminan: jumlah, harga_buyback: Math.round(buybackHarga),
+      gram_setara: gram, dana_cair: jumlah, sisa_tagihan: jumlah, tenor: gForm.tenor,
+      angsuran_per_bulan: angsuran, status: "aktif", tanggal_cair: new Date().toISOString(),
+      keterangan: "Gadai dibuat admin dari profil",
+    });
+    if (error) { setGForm(f=>({...f,saving:false,err:error.message})); return; }
+    try { await (supabase.from("notifications") as any).insert({ user_id:m.id, title:"Gadai Disetujui", body:`Gadai ${fmt(jumlah)} (tenor ${gForm.tenor} bln, angsuran ${fmt(angsuran)}) telah aktif.`, type:"gadai", is_read:false, link:"/dashboard/member/gadai" }); } catch {}
+    setGForm({ open:false, pinjaman:"", tenor:1, saving:false, err:"" });
+    await openDetail(m); load();
+  }
+
+  // ── Aksi: Buat Cicilan dari profil ──
+  async function submitCicilan(m: MemberDetail) {
+    if (!cForm.product || !cForm.total) { setCForm(f=>({...f,err:"Produk & total wajib."})); return; }
+    setCForm(f=>({...f,saving:true,err:""}));
+    const tenor = Number(cForm.tenor) || 1;
+    const total = Number(cForm.total);
+    const monthly = Number(cForm.monthly) || Math.ceil(total / tenor);
+    const due = new Date(); due.setMonth(due.getMonth()+1);
+    const { error } = await (supabase.from("installments") as any).insert({
+      user_id: m.id, product_name: cForm.product, total_gram: 0, total_amount: total,
+      monthly_amount: monthly, tenor, paid_installments: 0, status: "active",
+      next_due_date: due.toISOString().slice(0,10),
+    });
+    if (error) { setCForm(f=>({...f,saving:false,err:error.message})); return; }
+    try { await (supabase.from("notifications") as any).insert({ user_id:m.id, title:"Cicilan Baru", body:`Cicilan ${cForm.product} ${fmt(total)} (${tenor}x ${fmt(monthly)}) dibuat.`, type:"cicilan", is_read:false, link:"/dashboard/member/cicilan" }); } catch {}
+    setCForm({ open:false, product:"", total:"", tenor:"6", monthly:"", saving:false, err:"" });
+    await openDetail(m); load();
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -319,9 +361,46 @@ export default function MemberManagementPage() {
                           <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".75rem", margin:"3px 0 0" }}>Pinjaman {fmt(activeGadai.dana_cair)} · sisa {fmt(activeGadai.sisa_tagihan)} · {activeGadai.tenor} bln</p>
                         </div>
                       ) : (
-                        <div style={{ background:"rgba(52,211,153,0.06)", border:"1px solid rgba(52,211,153,0.2)", borderRadius:10, padding:"10px 14px", marginBottom:14 }}>
-                          <p style={{ color:"#34d399", fontSize:".8rem", fontWeight:600, margin:0 }}>Dapat digadai hingga {fmt(totalSim)}</p>
-                          <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".75rem", margin:"3px 0 0" }}>≈ {gram.toFixed(4)} gram · tenor 1-4 bulan</p>
+                        <div style={{ background:"rgba(52,211,153,0.06)", border:"1px solid rgba(52,211,153,0.2)", borderRadius:10, padding:"10px 14px", marginBottom:10 }}>
+                          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, flexWrap:"wrap" }}>
+                            <div>
+                              <p style={{ color:"#34d399", fontSize:".8rem", fontWeight:600, margin:0 }}>Dapat digadai hingga {fmt(totalSim)}</p>
+                              <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".75rem", margin:"3px 0 0" }}>≈ {gram.toFixed(4)} gram · tenor 1-4 bulan</p>
+                            </div>
+                            {!gForm.open && (
+                              <button onClick={()=>setGForm({ open:true, pinjaman:"", tenor:1, saving:false, err:"" })}
+                                style={{ background:"rgba(96,165,250,0.15)", border:"1px solid rgba(96,165,250,0.35)", borderRadius:8, padding:"7px 14px", color:"#60a5fa", cursor:"pointer", fontSize:".8rem", fontWeight:600 }}>
+                                Ajukan Gadai
+                              </button>
+                            )}
+                          </div>
+                          {gForm.open && (
+                            <div style={{ marginTop:12, display:"flex", flexDirection:"column", gap:10 }}>
+                              {gForm.err && <p style={{ color:"#f87171", fontSize:".78rem", margin:0 }}>{gForm.err}</p>}
+                              <div>
+                                <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".75rem", display:"block", marginBottom:5 }}>Jumlah Pinjaman (maks {fmt(totalSim)})</label>
+                                <input type="number" min={1} max={totalSim} value={gForm.pinjaman} onChange={e=>setGForm(f=>({...f,pinjaman:e.target.value}))} style={inputStyle} placeholder="0" />
+                              </div>
+                              <div>
+                                <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".75rem", display:"block", marginBottom:5 }}>Tenor (bulan)</label>
+                                <div style={{ display:"flex", gap:6 }}>
+                                  {[1,2,3,4].map(t=>(
+                                    <button key={t} onClick={()=>setGForm(f=>({...f,tenor:t}))}
+                                      style={{ flex:1, padding:"8px", borderRadius:8, fontWeight:700, fontSize:".85rem", cursor:"pointer", border: gForm.tenor===t?"1px solid #60a5fa":"1px solid rgba(255,255,255,0.1)", background: gForm.tenor===t?"rgba(96,165,250,0.15)":"rgba(255,255,255,0.04)", color: gForm.tenor===t?"#60a5fa":"rgba(255,255,255,0.5)" }}>{t}</button>
+                                  ))}
+                                </div>
+                              </div>
+                              {gForm.pinjaman && Number(gForm.pinjaman) > 0 && (
+                                <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem", margin:0 }}>
+                                  Angsuran/bln: <strong style={{ color:"#60a5fa" }}>{fmt(Math.ceil(Number(gForm.pinjaman)/gForm.tenor))}</strong> <span style={{ color:"rgba(255,255,255,0.3)" }}>(pinjaman ÷ tenor)</span>
+                                </p>
+                              )}
+                              <div style={{ display:"flex", gap:8 }}>
+                                <button onClick={()=>setGForm(f=>({...f,open:false}))} style={{ flex:1, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, padding:"9px", color:"rgba(255,255,255,0.6)", cursor:"pointer", fontSize:".82rem" }}>Batal</button>
+                                <button onClick={()=>submitGadai(detail, totalSim)} disabled={gForm.saving} style={{ flex:1, background:"linear-gradient(135deg,#60a5fa,#93c5fd)", border:"none", borderRadius:8, padding:"9px", color:"#0a0a0a", fontWeight:700, cursor:gForm.saving?"not-allowed":"pointer", fontSize:".82rem", opacity:gForm.saving?.7:1 }}>{gForm.saving?"Memproses...":"Buat Gadai"}</button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )
                     )}
@@ -376,22 +455,48 @@ export default function MemberManagementPage() {
                   </div>
                 </>
               )}
-              {/* Installments */}
-              {detail.installments.length>0 && (
-                <>
-                  <h3 style={{ color:"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", marginBottom:10 }}>Cicilan</h3>
-                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                    {detail.installments.map((ins:any)=>(
-                      <div key={ins.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(255,255,255,0.03)", borderRadius:9, padding:"9px 14px" }}>
-                        <span style={{ color:"rgba(255,255,255,0.7)", fontSize:".83rem" }}>{ins.product_name}</span>
-                        <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>
-                          {ins.paid_installments}/{ins.tenor} angsuran · sisa {fmt(Math.max(0,(ins.tenor-ins.paid_installments)*ins.monthly_amount))}
-                        </span>
-                        <span style={{ color:STATUS_COLOR[ins.status]||"#fff", fontSize:".75rem" }}>{ins.status}</span>
-                      </div>
-                    ))}
+              {/* Cicilan */}
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", margin:"18px 0 10px" }}>
+                <h3 style={{ color:"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>Cicilan</h3>
+                {!cForm.open && (
+                  <button onClick={()=>setCForm({ open:true, product:"", total:"", tenor:"6", monthly:"", saving:false, err:"" })}
+                    style={{ background:"rgba(167,139,250,0.12)", border:"1px solid rgba(167,139,250,0.3)", borderRadius:8, padding:"5px 12px", color:"#a78bfa", cursor:"pointer", fontSize:".76rem", fontWeight:600 }}>
+                    + Buat Cicilan
+                  </button>
+                )}
+              </div>
+              {cForm.open && (
+                <div style={{ background:"rgba(167,139,250,0.05)", border:"1px solid rgba(167,139,250,0.2)", borderRadius:10, padding:14, marginBottom:12, display:"flex", flexDirection:"column", gap:10 }}>
+                  {cForm.err && <p style={{ color:"#f87171", fontSize:".78rem", margin:0 }}>{cForm.err}</p>}
+                  <input value={cForm.product} onChange={e=>setCForm(f=>({...f,product:e.target.value}))} style={inputStyle} placeholder="Nama produk / emas (mis. Emas 5 gram)" />
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
+                    <input type="number" min={0} value={cForm.total} onChange={e=>setCForm(f=>({...f,total:e.target.value}))} style={inputStyle} placeholder="Total Rp" />
+                    <input type="number" min={1} value={cForm.tenor} onChange={e=>setCForm(f=>({...f,tenor:e.target.value}))} style={inputStyle} placeholder="Tenor" />
+                    <input type="number" min={0} value={cForm.monthly} onChange={e=>setCForm(f=>({...f,monthly:e.target.value}))} style={inputStyle} placeholder="Angsuran (auto)" />
                   </div>
-                </>
+                  {cForm.total && cForm.tenor && !cForm.monthly && (
+                    <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".74rem", margin:0 }}>Angsuran otomatis: {fmt(Math.ceil(Number(cForm.total)/Number(cForm.tenor)))}/bln</p>
+                  )}
+                  <div style={{ display:"flex", gap:8 }}>
+                    <button onClick={()=>setCForm(f=>({...f,open:false}))} style={{ flex:1, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, padding:"9px", color:"rgba(255,255,255,0.6)", cursor:"pointer", fontSize:".82rem" }}>Batal</button>
+                    <button onClick={()=>submitCicilan(detail)} disabled={cForm.saving} style={{ flex:1, background:"linear-gradient(135deg,#a78bfa,#c4b5fd)", border:"none", borderRadius:8, padding:"9px", color:"#0a0a0a", fontWeight:700, cursor:cForm.saving?"not-allowed":"pointer", fontSize:".82rem", opacity:cForm.saving?.7:1 }}>{cForm.saving?"Menyimpan...":"Buat Cicilan"}</button>
+                  </div>
+                </div>
+              )}
+              {detail.installments.length===0 ? (
+                <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".83rem", marginBottom:8 }}>Belum ada cicilan.</p>
+              ) : (
+                <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                  {detail.installments.map((ins:any)=>(
+                    <div key={ins.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(255,255,255,0.03)", borderRadius:9, padding:"9px 14px" }}>
+                      <span style={{ color:"rgba(255,255,255,0.7)", fontSize:".83rem" }}>{ins.product_name}</span>
+                      <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>
+                        {ins.paid_installments}/{ins.tenor} angsuran · sisa {fmt(Math.max(0,(ins.tenor-ins.paid_installments)*ins.monthly_amount))}
+                      </span>
+                      <span style={{ color:STATUS_COLOR[ins.status]||"#fff", fontSize:".75rem" }}>{ins.status}</span>
+                    </div>
+                  ))}
+                </div>
               )}
               {/* Gadai */}
               {detail.gadai.length>0 && (
