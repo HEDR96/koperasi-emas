@@ -17,11 +17,9 @@ const inp: React.CSSProperties = {
 };
 
 const TYPE_OPTS = [
-  { value:"buy",           label:"Beli Emas" },
-  { value:"buyback",       label:"Buyback Emas" },
-  { value:"cicilan",       label:"Cicilan Emas" },
-  { value:"transfer",      label:"Transfer Saldo" },
-  { value:"referral_bonus",label:"Bonus Referral" },
+  { value:"buy",     label:"Beli Emas" },
+  { value:"buyback", label:"Buyback Emas" },
+  { value:"cicilan", label:"Cicilan Emas" },
 ];
 
 const STATUS_OPTS = [
@@ -33,7 +31,7 @@ const STATUS_OPTS = [
 
 const EMPTY = {
   user_id:"", type:"buy", gram:"", amount:"", price_per_gram:"",
-  payment_method:"", notes:"", status:"completed",
+  payment_method:"", notes:"", status:"completed", tenor:"6",
   created_at: new Date().toISOString().slice(0,16),
 };
 
@@ -55,10 +53,34 @@ export default function InputTransaksiPage() {
 
   useEffect(() => { loadRecent(); }, []);
 
+  const cicilanTenor   = Number(form.tenor) || 1;
+  const cicilanAngsuran = form.amount ? Math.ceil(Number(form.amount) / cicilanTenor) : 0;
+
   async function handleSave() {
     if (!form.user_id || !form.amount) { setError("Pilih anggota dan isi jumlah."); return; }
     setSaving(true); setError("");
     try {
+      if (form.type === "cicilan") {
+        // Buat cicilan (installment) yang bisa dilacak di Kelola Cicilan
+        const total = Number(form.amount);
+        const due = new Date(form.created_at); due.setMonth(due.getMonth() + 1);
+        const { error: err } = await (supabase.from("installments") as any).insert({
+          user_id:        form.user_id,
+          product_name:   form.notes || "Cicilan Emas",
+          total_gram:     form.gram ? Number(form.gram) : 0,
+          total_amount:   total,
+          monthly_amount: cicilanAngsuran,
+          tenor:          cicilanTenor,
+          paid_installments: 0,
+          status:         "active",
+          next_due_date:  due.toISOString().slice(0,10),
+        });
+        if (err) { setError(err.message); setSaving(false); return; }
+        try { await (supabase.from("notifications") as any).insert({ user_id:form.user_id, title:"Cicilan Baru", body:`Cicilan ${form.notes||"Emas"} ${new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(total)} (${cicilanTenor}x) dibuat.`, type:"cicilan", is_read:false, link:"/dashboard/member/cicilan" }); } catch {}
+        setSaved(true); setTimeout(() => setSaved(false), 2500); setForm(EMPTY); loadRecent();
+        setSaving(false); return;
+      }
+
       const payload: any = {
         user_id:        form.user_id,
         type:           form.type,
@@ -176,9 +198,36 @@ export default function InputTransaksiPage() {
               style={{ ...inp, resize:"vertical", fontFamily:"inherit" }} placeholder="Keterangan tambahan..." />
           </div>
 
+          {/* Tenor & angsuran — khusus Cicilan Emas */}
+          {form.type === "cicilan" && (
+            <div style={{ background:"rgba(167,139,250,0.05)", border:"1px solid rgba(167,139,250,0.2)", borderRadius:12, padding:16, display:"flex", flexDirection:"column", gap:12 }}>
+              <div>
+                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tenor (bulan)</label>
+                <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                  {[3,6,9,12,18,24].map(t => (
+                    <button key={t} type="button" onClick={()=>setForm(p=>({...p,tenor:String(t)}))}
+                      style={{ flex:"1 0 auto", minWidth:48, padding:"8px", borderRadius:8, fontWeight:700, fontSize:".85rem", cursor:"pointer",
+                        border: cicilanTenor===t ? "1px solid #a78bfa" : "1px solid rgba(255,255,255,0.1)",
+                        background: cicilanTenor===t ? "rgba(167,139,250,0.15)" : "rgba(255,255,255,0.04)",
+                        color: cicilanTenor===t ? "#a78bfa" : "rgba(255,255,255,0.5)" }}>{t}</button>
+                  ))}
+                </div>
+              </div>
+              {form.amount && Number(form.amount) > 0 && (
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", paddingTop:8, borderTop:"1px solid rgba(255,255,255,0.07)" }}>
+                  <span style={{ color:"rgba(255,255,255,0.6)", fontSize:".85rem", fontWeight:600 }}>Angsuran/bulan</span>
+                  <span style={{ color:"#a78bfa", fontSize:"1.1rem", fontWeight:900 }}>{fmt(cicilanAngsuran)}</span>
+                </div>
+              )}
+              <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:0 }}>
+                Total ÷ tenor = {form.amount?fmt(Number(form.amount)):"Rp 0"} ÷ {cicilanTenor} = {fmt(cicilanAngsuran)}/bln · akan masuk ke Kelola Cicilan.
+              </p>
+            </div>
+          )}
+
           <button onClick={handleSave} disabled={saving || !form.user_id || !form.amount}
             style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px", borderRadius:11, background: saved ? "rgba(52,211,153,0.2)" : "linear-gradient(135deg,#D4AF37,#F5D060)", border: saved ? "1px solid #34d399" : "none", color: saved ? "#34d399" : "#0a0a0a", fontWeight:700, fontSize:".95rem", cursor: saving || !form.user_id || !form.amount ? "not-allowed" : "pointer", opacity: saving ? .7 : 1, transition:"all .3s" }}>
-            {saving ? <><RefreshCw style={{ width:15, height:15, animation:"spin 1s linear infinite" }} /> Menyimpan...</> : saved ? "✓ Transaksi Tersimpan" : <><Save style={{ width:15, height:15 }} /> Simpan Transaksi</>}
+            {saving ? <><RefreshCw style={{ width:15, height:15, animation:"spin 1s linear infinite" }} /> Menyimpan...</> : saved ? "✓ Tersimpan" : <><Save style={{ width:15, height:15 }} /> {form.type==="cicilan" ? "Buat Cicilan" : "Simpan Transaksi"}</>}
           </button>
         </motion.div>
 
