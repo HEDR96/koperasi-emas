@@ -94,11 +94,7 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <p style={{ textAlign: "center", color: "rgba(255,255,255,0.35)", fontSize: ".83rem", marginTop: 20 }}>
-        Belum jadi anggota? Hubungi admin koperasi untuk pendaftaran.
-      </p>
-
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 14, color: "rgba(255,255,255,0.2)", fontSize: ".72rem" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 20, color: "rgba(255,255,255,0.2)", fontSize: ".72rem" }}>
         <Shield style={{ width: 12, height: 12 }} />
         Dilindungi enkripsi SSL 256-bit
       </div>
