@@ -32,7 +32,7 @@ export default function AdminGadaiPage() {
   async function load() {
     setLoading(true);
     const { data } = await (supabase.from("gadai") as any)
-      .select("id, user_id, dana_cair, sisa_tagihan, nilai_jaminan, gram_setara, tenor, angsuran_per_bulan, status, created_at, profiles(name)")
+      .select("id, user_id, dana_cair, sisa_tagihan, nilai_jaminan, gram_setara, tenor, angsuran_per_bulan, status, created_at, profiles:profiles!user_id(name)")
       .order("created_at",{ascending:false}).limit(200);
     setRows(data || []);
     setLoading(false);

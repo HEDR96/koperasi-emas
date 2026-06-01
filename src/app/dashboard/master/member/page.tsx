@@ -20,6 +20,7 @@ interface MemberDetail extends MemberRow {
   transactions: any[];
   savings: any[];
   installments: any[];
+  simpanan: any[];
 }
 
 const DEFAULT_FORM = { name:"", nik:"", email:"", password:"", phone:"" };
@@ -75,15 +76,16 @@ export default function MemberManagementPage() {
   }, [search, members]);
 
   async function openDetail(m: MemberRow) {
-    setDetail({ ...m, transactions:[], savings:[], installments:[] });
+    setDetail({ ...m, transactions:[], savings:[], installments:[], simpanan:[] });
     setDetailLoading(true);
     try {
-      const [txRes, savRes, insRes] = await Promise.all([
+      const [txRes, savRes, insRes, simRes] = await Promise.all([
         (supabase.from("transactions") as any).select("*").eq("user_id",m.id).order("created_at",{ascending:false}).limit(5),
         (supabase.from("savings") as any).select("*").eq("user_id",m.id),
         (supabase.from("installments") as any).select("*").eq("user_id",m.id),
+        (supabase.from("simpanan") as any).select("id, type, amount, status, created_at").eq("user_id",m.id).order("created_at",{ascending:false}),
       ]);
-      setDetail(d => d ? ({ ...d, transactions:txRes.data||[], savings:savRes.data||[], installments:insRes.data||[] }) : d);
+      setDetail(d => d ? ({ ...d, transactions:txRes.data||[], savings:savRes.data||[], installments:insRes.data||[], simpanan:simRes.data||[] }) : d);
     } catch {}
     setDetailLoading(false);
   }
@@ -276,6 +278,35 @@ export default function MemberManagementPage() {
                     </div>
                   ))}
                 </div>
+              {/* Simpanan */}
+              {(() => {
+                const simDone = detail.simpanan.filter((s:any)=>s.status==="completed");
+                const totalSim = simDone.reduce((a:number,s:any)=>a+(s.amount||0),0);
+                return (
+                  <>
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+                      <h3 style={{ color:"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>Simpanan</h3>
+                      <span style={{ color:"#a78bfa", fontWeight:700, fontSize:".88rem" }}>{fmt(totalSim)}</span>
+                    </div>
+                    {detailLoading ? (
+                      <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".85rem", marginBottom:18 }}>Memuat...</p>
+                    ) : detail.simpanan.length===0 ? (
+                      <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".85rem", marginBottom:18 }}>Belum ada simpanan.</p>
+                    ) : (
+                      <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:18 }}>
+                        {detail.simpanan.map((s:any)=>(
+                          <div key={s.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(255,255,255,0.03)", borderRadius:9, padding:"9px 14px" }}>
+                            <span style={{ color:"rgba(255,255,255,0.7)", fontSize:".83rem", textTransform:"capitalize" }}>{s.type}</span>
+                            <span style={{ color:"#a78bfa", fontWeight:600, fontSize:".83rem" }}>{fmt(s.amount)}</span>
+                            <span style={{ color:STATUS_COLOR[s.status]||"#fff", fontSize:".72rem" }}>{s.status}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+
               {/* Recent Transactions */}
               <h3 style={{ color:"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", marginBottom:10 }}>5 Transaksi Terakhir</h3>
               {detailLoading ? (

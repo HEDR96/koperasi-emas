@@ -29,10 +29,10 @@ export default function AdminPembayaranPage() {
     try {
       const [p, h] = await Promise.all([
         (supabase.from("payments") as any)
-          .select("id, user_id, amount, payment_method, proof_url, status, notes, created_at, profiles(name)")
+          .select("id, user_id, amount, payment_method, proof_url, status, notes, created_at, profiles:profiles!user_id(name)")
           .eq("status","pending").order("created_at",{ascending:false}),
         (supabase.from("payments") as any)
-          .select("id, amount, payment_method, status, created_at, profiles(name)")
+          .select("id, amount, payment_method, status, created_at, profiles:profiles!user_id(name)")
           .in("status",["verified","rejected"]).order("created_at",{ascending:false}).limit(100),
       ]);
       setPending(p.data || []);

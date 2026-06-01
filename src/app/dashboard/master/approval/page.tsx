@@ -35,10 +35,10 @@ export default function ApprovalPage() {
           .select("id, user_id, type, amount, gram, payment_method, created_at, profiles(name)")
           .eq("status","pending").order("created_at",{ascending:false}),
         (supabase.from("simpanan") as any)
-          .select("id, user_id, type, amount, description, created_at, profiles(name)")
+          .select("id, user_id, type, amount, description, created_at, profiles:profiles!user_id(name)")
           .eq("status","pending").order("created_at",{ascending:false}),
         (supabase.from("gadai") as any)
-          .select("id, user_id, dana_cair, sisa_tagihan, tenor, angsuran_per_bulan, gram_setara, keterangan, created_at, profiles(name)")
+          .select("id, user_id, dana_cair, sisa_tagihan, tenor, angsuran_per_bulan, gram_setara, keterangan, created_at, profiles:profiles!user_id(name)")
           .eq("status","pengajuan").order("created_at",{ascending:false}),
       ]);
       setTxs(txRes.data || []);

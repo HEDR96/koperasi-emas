@@ -45,7 +45,7 @@ export default function AdminSimpananPage() {
   async function loadRecent() {
     setLoading(true);
     const { data } = await (supabase.from("simpanan") as any)
-      .select("id, type, amount, status, created_at, profiles(name)")
+      .select("id, type, amount, status, created_at, profiles:profiles!user_id(name)")
       .order("created_at",{ascending:false}).limit(15);
     setRecent(data || []);
     setLoading(false);

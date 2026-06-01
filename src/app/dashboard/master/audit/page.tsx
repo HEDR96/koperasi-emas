@@ -33,8 +33,8 @@ export default function MasterAuditPage() {
     try {
       const [txRes, gadaiRes, simRes, memRes] = await Promise.all([
         (supabase.from("transactions") as any).select("id, type, amount, status, updated_at, created_at, profiles(name)").order("created_at",{ascending:false}).limit(40),
-        (supabase.from("gadai") as any).select("id, dana_cair, status, updated_at, created_at, profiles(name)").order("updated_at",{ascending:false}).limit(30),
-        (supabase.from("simpanan") as any).select("id, type, amount, status, created_at, profiles(name)").order("created_at",{ascending:false}).limit(30),
+        (supabase.from("gadai") as any).select("id, dana_cair, status, updated_at, created_at, profiles:profiles!user_id(name)").order("updated_at",{ascending:false}).limit(30),
+        (supabase.from("simpanan") as any).select("id, type, amount, status, created_at, profiles:profiles!user_id(name)").order("created_at",{ascending:false}).limit(30),
         (supabase.from("profiles") as any).select("id, name, status, created_at").eq("role","member").order("created_at",{ascending:false}).limit(20),
       ]);
 
