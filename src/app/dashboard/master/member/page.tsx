@@ -48,6 +48,21 @@ export default function MemberManagementPage() {
   const [success, setSuccess]       = useState("");
   const [detail, setDetail]         = useState<MemberDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [buybackHarga, setBuybackHarga] = useState(0);
+
+  useEffect(() => {
+    (async () => {
+      const { data: bb } = await (supabase.from("harga_emas_berat") as any)
+        .select("gram, harga").eq("kategori","buyback").order("created_at",{ascending:false}).limit(10);
+      let hb = 0;
+      if (bb?.length) { const one = bb.find((r:any)=>Number(r.gram)===1)||bb[0]; hb = Number(one.harga)/Number(one.gram); }
+      else {
+        const { data: gp } = await (supabase.from("gold_prices") as any).select("buyback_member").order("created_at",{ascending:false}).limit(1).single();
+        if (gp) hb = Number(gp.buyback_member);
+      }
+      setBuybackHarga(hb);
+    })();
+  }, []);
 
   async function load() {
     setLoading(true);
@@ -285,10 +300,16 @@ export default function MemberManagementPage() {
                 const totalSim = simDone.reduce((a:number,s:any)=>a+(s.amount||0),0);
                 return (
                   <>
-                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4 }}>
                       <h3 style={{ color:"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>Simpanan</h3>
                       <span style={{ color:"#a78bfa", fontWeight:700, fontSize:".88rem" }}>{fmt(totalSim)}</span>
                     </div>
+                    {buybackHarga > 0 && totalSim > 0 && (
+                      <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".76rem", margin:"0 0 12px", textAlign:"right" }}>
+                        Setara <strong style={{ color:"#D4AF37" }}>{(totalSim / buybackHarga).toFixed(4)} gram</strong>
+                        <span style={{ color:"rgba(255,255,255,0.3)" }}> · buyback {fmt(buybackHarga)}/gr</span>
+                      </p>
+                    )}
                     {detailLoading ? (
                       <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".85rem", marginBottom:18 }}>Memuat...</p>
                     ) : detail.simpanan.length===0 ? (
