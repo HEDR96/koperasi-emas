@@ -50,7 +50,7 @@ export default function MemberManagementPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [buybackHarga, setBuybackHarga] = useState(0);
   // Form aksi di profil
-  const [gForm, setGForm] = useState({ open:false, pinjaman:"", tenor:1, saving:false, err:"" });
+  const [gForm, setGForm] = useState({ open:false, gram:"", tenor:1, saving:false, err:"" });
   const [cForm, setCForm] = useState({ open:false, product:"", total:"", tenor:"6", monthly:"", saving:false, err:"" });
 
   useEffect(() => {
@@ -115,23 +115,26 @@ export default function MemberManagementPage() {
     load();
   }
 
-  // ── Aksi: Ajukan Gadai dari profil (admin atas nama anggota) ──
+  // ── Aksi: Ajukan Gadai EMAS dari profil (admin atas nama anggota) ──
+  // Yang digadai = gram emas (hasil konversi simpanan). Dana = gram × harga buyback.
   async function submitGadai(m: MemberDetail, totalSim: number) {
-    const jumlah = Number(gForm.pinjaman);
-    if (!jumlah || jumlah <= 0) { setGForm(f=>({...f,err:"Isi jumlah pinjaman."})); return; }
-    if (jumlah > totalSim)      { setGForm(f=>({...f,err:`Maksimal ${fmt(totalSim)}`})); return; }
+    const gramNum = Number(gForm.gram);
+    const totalGram = buybackHarga > 0 ? totalSim / buybackHarga : 0;
+    if (!gramNum || gramNum <= 0)        { setGForm(f=>({...f,err:"Isi jumlah gram yang digadai."})); return; }
+    if (gramNum > totalGram + 1e-6)      { setGForm(f=>({...f,err:`Maksimal ${totalGram.toFixed(4)} gram`})); return; }
+    if (buybackHarga <= 0)               { setGForm(f=>({...f,err:"Harga buyback belum tersedia."})); return; }
     setGForm(f=>({...f,saving:true,err:""}));
-    const angsuran = Math.ceil(jumlah / gForm.tenor);
-    const gram = buybackHarga > 0 ? jumlah / buybackHarga : 0;
+    const dana = Math.round(gramNum * buybackHarga);
+    const angsuran = Math.ceil(dana / gForm.tenor);
     const { error } = await (supabase.from("gadai") as any).insert({
-      user_id: m.id, nilai_jaminan: jumlah, harga_buyback: Math.round(buybackHarga),
-      gram_setara: gram, dana_cair: jumlah, sisa_tagihan: jumlah, tenor: gForm.tenor,
+      user_id: m.id, nilai_jaminan: dana, harga_buyback: Math.round(buybackHarga),
+      gram_setara: gramNum, dana_cair: dana, sisa_tagihan: dana, tenor: gForm.tenor,
       angsuran_per_bulan: angsuran, status: "aktif", tanggal_cair: new Date().toISOString(),
-      keterangan: "Gadai dibuat admin dari profil",
+      keterangan: `Gadai ${gramNum} gram emas (admin dari profil)`,
     });
     if (error) { setGForm(f=>({...f,saving:false,err:error.message})); return; }
-    try { await (supabase.from("notifications") as any).insert({ user_id:m.id, title:"Gadai Disetujui", body:`Gadai ${fmt(jumlah)} (tenor ${gForm.tenor} bln, angsuran ${fmt(angsuran)}) telah aktif.`, type:"gadai", is_read:false, link:"/dashboard/member/gadai" }); } catch {}
-    setGForm({ open:false, pinjaman:"", tenor:1, saving:false, err:"" });
+    try { await (supabase.from("notifications") as any).insert({ user_id:m.id, title:"Gadai Emas Disetujui", body:`Gadai ${gramNum} gram (cair ${fmt(dana)}, tenor ${gForm.tenor} bln, angsuran ${fmt(angsuran)}) telah aktif.`, type:"gadai", is_read:false, link:"/dashboard/member/gadai" }); } catch {}
+    setGForm({ open:false, gram:"", tenor:1, saving:false, err:"" });
     await openDetail(m); load();
   }
 
@@ -368,18 +371,25 @@ export default function MemberManagementPage() {
                               <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".75rem", margin:"3px 0 0" }}>≈ {gram.toFixed(4)} gram · tenor 1-4 bulan</p>
                             </div>
                             {!gForm.open && (
-                              <button onClick={()=>setGForm({ open:true, pinjaman:"", tenor:1, saving:false, err:"" })}
+                              <button onClick={()=>setGForm({ open:true, gram:"", tenor:1, saving:false, err:"" })}
                                 style={{ background:"rgba(96,165,250,0.15)", border:"1px solid rgba(96,165,250,0.35)", borderRadius:8, padding:"7px 14px", color:"#60a5fa", cursor:"pointer", fontSize:".8rem", fontWeight:600 }}>
                                 Ajukan Gadai
                               </button>
                             )}
                           </div>
-                          {gForm.open && (
+                          {gForm.open && (() => {
+                            const gNum = Number(gForm.gram) || 0;
+                            const dana = Math.round(gNum * buybackHarga);
+                            const angs = gForm.tenor > 0 ? Math.ceil(dana / gForm.tenor) : 0;
+                            return (
                             <div style={{ marginTop:12, display:"flex", flexDirection:"column", gap:10 }}>
                               {gForm.err && <p style={{ color:"#f87171", fontSize:".78rem", margin:0 }}>{gForm.err}</p>}
                               <div>
-                                <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".75rem", display:"block", marginBottom:5 }}>Jumlah Pinjaman (maks {fmt(totalSim)})</label>
-                                <input type="number" min={1} max={totalSim} value={gForm.pinjaman} onChange={e=>setGForm(f=>({...f,pinjaman:e.target.value}))} style={inputStyle} placeholder="0" />
+                                <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".75rem", display:"flex", justifyContent:"space-between", marginBottom:5 }}>
+                                  <span>Gram emas digadai (maks {gram.toFixed(4)} gr)</span>
+                                  <button onClick={()=>setGForm(f=>({...f,gram:gram.toFixed(4)}))} style={{ background:"none", border:"none", color:"#D4AF37", cursor:"pointer", fontSize:".74rem" }}>Maks</button>
+                                </label>
+                                <input type="number" min={0} step={0.0001} max={gram} value={gForm.gram} onChange={e=>setGForm(f=>({...f,gram:e.target.value}))} style={inputStyle} placeholder="0.0000" />
                               </div>
                               <div>
                                 <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".75rem", display:"block", marginBottom:5 }}>Tenor (bulan)</label>
@@ -390,17 +400,25 @@ export default function MemberManagementPage() {
                                   ))}
                                 </div>
                               </div>
-                              {gForm.pinjaman && Number(gForm.pinjaman) > 0 && (
-                                <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem", margin:0 }}>
-                                  Angsuran/bln: <strong style={{ color:"#60a5fa" }}>{fmt(Math.ceil(Number(gForm.pinjaman)/gForm.tenor))}</strong> <span style={{ color:"rgba(255,255,255,0.3)" }}>(pinjaman ÷ tenor)</span>
-                                </p>
+                              {gNum > 0 && (
+                                <div style={{ background:"rgba(96,165,250,0.07)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:9, padding:"10px 12px", fontSize:".8rem" }}>
+                                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                                    <span style={{ color:"rgba(255,255,255,0.5)" }}>Dana cair ({gNum} gr × {fmt(buybackHarga)})</span>
+                                    <strong style={{ color:"#fff" }}>{fmt(dana)}</strong>
+                                  </div>
+                                  <div style={{ display:"flex", justifyContent:"space-between" }}>
+                                    <span style={{ color:"rgba(255,255,255,0.5)" }}>Angsuran/bln (dana ÷ {gForm.tenor})</span>
+                                    <strong style={{ color:"#60a5fa" }}>{fmt(angs)}</strong>
+                                  </div>
+                                </div>
                               )}
                               <div style={{ display:"flex", gap:8 }}>
                                 <button onClick={()=>setGForm(f=>({...f,open:false}))} style={{ flex:1, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, padding:"9px", color:"rgba(255,255,255,0.6)", cursor:"pointer", fontSize:".82rem" }}>Batal</button>
                                 <button onClick={()=>submitGadai(detail, totalSim)} disabled={gForm.saving} style={{ flex:1, background:"linear-gradient(135deg,#60a5fa,#93c5fd)", border:"none", borderRadius:8, padding:"9px", color:"#0a0a0a", fontWeight:700, cursor:gForm.saving?"not-allowed":"pointer", fontSize:".82rem", opacity:gForm.saving?.7:1 }}>{gForm.saving?"Memproses...":"Buat Gadai"}</button>
                               </div>
                             </div>
-                          )}
+                            );
+                          })()}
                         </div>
                       )
                     )}
