@@ -151,7 +151,7 @@ export default function StatistikPage() {
               <Tooltip
                 contentStyle={{ background:"#0f0f0f", border:"1px solid rgba(212,175,55,0.2)", borderRadius:10 }}
                 labelStyle={{ color:"#fff" }} itemStyle={{ color:"rgba(255,255,255,0.7)" }}
-                formatter={(value: any, name: string) => name === "Volume Transaksi" ? [fmt(Number(value)), name] : [value, name]}
+                formatter={(value: any, name: any) => name === "Volume Transaksi" ? [fmt(Number(value)), name] : [value, name]}
               />
               <Legend wrapperStyle={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem" }} />
               <Area yAxisId="left" type="monotone" dataKey="volume" name="Volume Transaksi" stroke="#D4AF37" strokeWidth={2} fill="url(#colorVol)" />
