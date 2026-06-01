@@ -9,6 +9,7 @@ import {
   BarChart2, Users, ShieldCheck, Coins, CheckSquare,
   Bell, Settings, Upload, MessageSquare, PlusCircle,
   Send, History, Star, HelpCircle, Image, Landmark, CreditCard, UserCircle,
+  Wallet, UserCheck, Newspaper, FileText, Receipt, Activity, Megaphone,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -24,6 +25,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Harga Emas",      href:"/dashboard/master/harga",  icon:Coins },
     ]},
     { group:"Konten Landing", items:[
+      { label:"Promo",      href:"/dashboard/master/promo",     icon:Megaphone },
       { label:"Testimoni",  href:"/dashboard/master/testimoni", icon:Star },
       { label:"FAQ",        href:"/dashboard/master/faq",       icon:HelpCircle },
       { label:"Foto Gedung",href:"/dashboard/master/konten",    icon:Image },
@@ -31,26 +33,38 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
     { group:"Transaksi", items:[
       { label:"Approval",           href:"/dashboard/master/approval",         icon:CheckSquare },
       { label:"Input Transaksi",    href:"/dashboard/master/input-transaksi",  icon:PlusCircle },
+      { label:"Input Simpanan",     href:"/dashboard/master/simpanan",         icon:Wallet },
     ]},
     { group:"Sistem", items:[
-      { label:"Notifikasi", href:"/dashboard/master/notifikasi", icon:Bell },
-      { label:"Pengaturan", href:"/dashboard/master/settings",   icon:Settings },
-      { label:"Profil Saya",href:"/dashboard/profil",            icon:UserCircle },
+      { label:"Log Aktivitas", href:"/dashboard/master/audit",      icon:Activity },
+      { label:"Notifikasi",    href:"/dashboard/master/notifikasi", icon:Bell },
+      { label:"Pengaturan",    href:"/dashboard/master/settings",   icon:Settings },
+      { label:"Profil Saya",   href:"/dashboard/profil",            icon:UserCircle },
     ]},
   ],
   admin: [
     { group:"Utama", items:[
       { label:"Dashboard", href:"/dashboard/admin", icon:LayoutDashboard },
     ]},
-    { group:"Operasional", items:[
-      { label:"Transaksi & Approval", href:"/dashboard/admin/transaksi", icon:CheckSquare },
-      { label:"Input Deposit",        href:"/dashboard/admin/deposit",   icon:PlusCircle },
-      { label:"Kelola Anggota",       href:"/dashboard/admin/member",    icon:Users },
+    { group:"Transaksi", items:[
+      { label:"Transaksi & Approval", href:"/dashboard/admin/transaksi",       icon:CheckSquare },
+      { label:"Input Transaksi",      href:"/dashboard/admin/input-transaksi", icon:PlusCircle },
+      { label:"Input Deposit",        href:"/dashboard/admin/deposit",         icon:PlusCircle },
+      { label:"Verifikasi Bayar",     href:"/dashboard/admin/pembayaran",      icon:Receipt },
+      { label:"Invoice",              href:"/dashboard/admin/invoice",         icon:FileText },
+    ]},
+    { group:"Anggota", items:[
+      { label:"Kelola Anggota",    href:"/dashboard/admin/member",    icon:Users },
+      { label:"Verifikasi Anggota",href:"/dashboard/admin/verifikasi",icon:UserCheck },
+    ]},
+    { group:"Keuangan", items:[
+      { label:"Input Simpanan", href:"/dashboard/admin/simpanan", icon:Wallet },
+      { label:"Kelola Gadai",   href:"/dashboard/admin/gadai",    icon:Landmark },
     ]},
     { group:"Konten", items:[
-      { label:"Upload Promo",    href:"/dashboard/admin/promo",            icon:Upload },
-      { label:"Chat",            href:"/dashboard/admin/chat",             icon:MessageSquare },
-      { label:"Input Transaksi", href:"/dashboard/admin/input-transaksi",  icon:PlusCircle },
+      { label:"Upload Promo", href:"/dashboard/admin/promo",  icon:Upload },
+      { label:"Berita",       href:"/dashboard/admin/berita", icon:Newspaper },
+      { label:"Chat",         href:"/dashboard/admin/chat",   icon:MessageSquare },
     ]},
     { group:"Akun", items:[
       { label:"Profil Saya", href:"/dashboard/profil", icon:UserCircle },

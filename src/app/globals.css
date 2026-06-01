@@ -262,3 +262,11 @@ input[type=checkbox] { accent-color: #D4AF37; }
 @media (max-width: 768px) {
   .map-grid { grid-template-columns: 1fr !important; }
 }
+
+/* ─── Select dropdown (hindari list putih default browser) ─── */
+select { color: #fff; }
+select option,
+select optgroup {
+  background-color: #1a1a1a !important;
+  color: #fff !important;
+}
