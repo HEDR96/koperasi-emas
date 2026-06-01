@@ -264,9 +264,10 @@ input[type=checkbox] { accent-color: #D4AF37; }
 }
 
 /* ─── Select dropdown ─── */
-/* Kotak select (tertutup): teks putih di atas latar gelap (lihat inline style). */
-/* Popup native Windows tetap putih, jadi paksa teks option HITAM agar terbaca
-   tanpa perlu hover. */
+/* color-scheme:light memaksa popup <select> native (Windows/Chrome) memakai
+   tema terang bawaan = teks HITAM di latar PUTIH (terbaca tanpa hover).
+   Kotak select tertutup tetap gelap karena pakai inline style sendiri. */
+select { color-scheme: light; }
 select option,
 select optgroup {
   background-color: #ffffff;
