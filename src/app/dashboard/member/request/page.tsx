@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, Clock, CheckCircle, XCircle, RefreshCw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+import Select from "@/components/ui/Select";
 
 const TX_TYPES = [
   { value: "buy",      label: "Beli Emas",       desc: "Beli emas dengan pembayaran ke koperasi",    color: "#D4AF37" },
@@ -211,12 +212,7 @@ export default function MemberRequestPage() {
           {form.type !== "buyback" && (
             <div>
               <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 6 }}>Metode Pembayaran</label>
-              <select value={form.paymentMethod} onChange={e => setForm(f => ({ ...f, paymentMethod: e.target.value }))}
-                style={{ ...inputStyle, cursor: "pointer" }}>
-                {PAYMENT_METHODS.map(m => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
-              </select>
+              <Select value={form.paymentMethod} onChange={v => setForm(f => ({ ...f, paymentMethod: v }))} options={PAYMENT_METHODS.map(m=>({value:m,label:m}))} />
             </div>
           )}
 

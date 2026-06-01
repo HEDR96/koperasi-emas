@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Upload, RefreshCw, CheckCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+import Select from "@/components/ui/Select";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -102,12 +103,9 @@ export default function MemberUploadPage() {
           {loading ? <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Memuat...</p>
             : pendingTx.length === 0 ? <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".85rem" }}>Tidak ada transaksi pending. Ajukan transaksi dulu di menu Ajukan Transaksi.</p>
             : (
-              <select value={form.transaction_id} onChange={e=>{ const tx=pendingTx.find(t=>t.id===e.target.value); setForm(p=>({...p, transaction_id:e.target.value, amount:tx?String(tx.amount):""})); }} style={{ ...inp, cursor:"pointer" }}>
-                <option value="">— Pilih transaksi —</option>
-                {pendingTx.map(t=>(
-                  <option key={t.id} value={t.id}>{TYPE_LABEL[t.type]||t.type} · {fmt(t.amount)} · {fmtDate(t.created_at)}</option>
-                ))}
-              </select>
+              <Select value={form.transaction_id} placeholder="— Pilih transaksi —"
+                onChange={v=>{ const tx=pendingTx.find(t=>t.id===v); setForm(p=>({...p, transaction_id:v, amount:tx?String(tx.amount):""})); }}
+                options={pendingTx.map(t=>({ value:t.id, label:`${TYPE_LABEL[t.type]||t.type} · ${fmt(t.amount)} · ${fmtDate(t.created_at)}` }))} />
             )}
         </div>
 
@@ -118,9 +116,7 @@ export default function MemberUploadPage() {
           </div>
           <div>
             <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Metode</label>
-            <select value={form.payment_method} onChange={e=>setForm(p=>({...p,payment_method:e.target.value}))} style={{ ...inp, cursor:"pointer" }}>
-              {PAYMENT_METHODS.map(m=><option key={m} value={m}>{m}</option>)}
-            </select>
+            <Select value={form.payment_method} onChange={v=>setForm(p=>({...p,payment_method:v}))} options={PAYMENT_METHODS.map(m=>({value:m,label:m}))} />
           </div>
         </div>
 

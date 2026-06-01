@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { CheckCircle, Search } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+import Select from "@/components/ui/Select";
 
 interface MemberOption {
   id: string;
@@ -198,12 +199,7 @@ export default function AdminDepositPage() {
           {/* Type */}
           <div>
             <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Jenis Transaksi *</label>
-            <select value={form.type} onChange={e=>setForm(f=>({...f,type:e.target.value}))}
-              style={{ ...inputStyle, cursor:"pointer" }}>
-              {TX_TYPES.map(t=>(
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
-            </select>
+            <Select value={form.type} onChange={v=>setForm(f=>({...f,type:v}))} options={TX_TYPES} />
           </div>
 
           {/* Gram */}
@@ -234,12 +230,7 @@ export default function AdminDepositPage() {
           {/* Payment Method */}
           <div>
             <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Metode Pembayaran</label>
-            <select value={form.paymentMethod} onChange={e=>setForm(f=>({...f,paymentMethod:e.target.value}))}
-              style={{ ...inputStyle, cursor:"pointer" }}>
-              {PAYMENT_METHODS.map(m=>(
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
+            <Select value={form.paymentMethod} onChange={v=>setForm(f=>({...f,paymentMethod:v}))} options={PAYMENT_METHODS.map(m=>({value:m,label:m}))} />
           </div>
 
           {/* Notes */}

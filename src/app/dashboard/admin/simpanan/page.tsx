@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Wallet, RefreshCw, Save, Search, CheckCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+import Select from "@/components/ui/Select";
 
 interface Member { id: string; name: string; phone: string | null; }
 
@@ -136,9 +137,7 @@ export default function AdminSimpananPage() {
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
               <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Jenis</label>
-              <select value={form.type} onChange={e=>setForm(p=>({...p,type:e.target.value}))} style={{ ...inp, cursor:"pointer" }}>
-                {TYPE_OPTS.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
+              <Select value={form.type} onChange={v=>setForm(p=>({...p,type:v}))} options={TYPE_OPTS} />
             </div>
             <div>
               <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Nominal (Rp) *</label>

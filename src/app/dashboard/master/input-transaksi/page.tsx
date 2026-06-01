@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { PlusCircle, RefreshCw, Save, Search } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+import Select from "@/components/ui/Select";
 
 interface Member { id: string; name: string; phone: string | null; }
 
@@ -172,15 +173,11 @@ export default function InputTransaksiPage() {
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
               <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tipe Transaksi *</label>
-              <select value={form.type} onChange={e=>setForm(p=>({...p,type:e.target.value}))} style={{ ...inp, cursor:"pointer" }}>
-                {TYPE_OPTS.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
+              <Select value={form.type} onChange={v=>setForm(p=>({...p,type:v}))} options={TYPE_OPTS} />
             </div>
             <div>
               <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Status</label>
-              <select value={form.status} onChange={e=>setForm(p=>({...p,status:e.target.value}))} style={{ ...inp, cursor:"pointer" }}>
-                {STATUS_OPTS.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
+              <Select value={form.status} onChange={v=>setForm(p=>({...p,status:v}))} options={STATUS_OPTS} />
             </div>
           </div>
 
