@@ -201,7 +201,7 @@ export default function AdminDepositPage() {
             <select value={form.type} onChange={e=>setForm(f=>({...f,type:e.target.value}))}
               style={{ ...inputStyle, cursor:"pointer" }}>
               {TX_TYPES.map(t=>(
-                <option key={t.value} value={t.value} style={{ background:"#1a1a1a" }}>{t.label}</option>
+                <option key={t.value} value={t.value}>{t.label}</option>
               ))}
             </select>
           </div>
@@ -237,7 +237,7 @@ export default function AdminDepositPage() {
             <select value={form.paymentMethod} onChange={e=>setForm(f=>({...f,paymentMethod:e.target.value}))}
               style={{ ...inputStyle, cursor:"pointer" }}>
               {PAYMENT_METHODS.map(m=>(
-                <option key={m} value={m} style={{ background:"#1a1a1a" }}>{m}</option>
+                <option key={m} value={m}>{m}</option>
               ))}
             </select>
           </div>

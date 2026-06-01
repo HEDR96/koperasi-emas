@@ -214,7 +214,7 @@ export default function MemberRequestPage() {
               <select value={form.paymentMethod} onChange={e => setForm(f => ({ ...f, paymentMethod: e.target.value }))}
                 style={{ ...inputStyle, cursor: "pointer" }}>
                 {PAYMENT_METHODS.map(m => (
-                  <option key={m} value={m} style={{ background: "#1a1a1a" }}>{m}</option>
+                  <option key={m} value={m}>{m}</option>
                 ))}
               </select>
             </div>

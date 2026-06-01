@@ -105,7 +105,7 @@ export default function MemberUploadPage() {
               <select value={form.transaction_id} onChange={e=>{ const tx=pendingTx.find(t=>t.id===e.target.value); setForm(p=>({...p, transaction_id:e.target.value, amount:tx?String(tx.amount):""})); }} style={{ ...inp, cursor:"pointer" }}>
                 <option value="">— Pilih transaksi —</option>
                 {pendingTx.map(t=>(
-                  <option key={t.id} value={t.id} style={{ background:"#1a1a1a" }}>{TYPE_LABEL[t.type]||t.type} · {fmt(t.amount)} · {fmtDate(t.created_at)}</option>
+                  <option key={t.id} value={t.id}>{TYPE_LABEL[t.type]||t.type} · {fmt(t.amount)} · {fmtDate(t.created_at)}</option>
                 ))}
               </select>
             )}
@@ -119,7 +119,7 @@ export default function MemberUploadPage() {
           <div>
             <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Metode</label>
             <select value={form.payment_method} onChange={e=>setForm(p=>({...p,payment_method:e.target.value}))} style={{ ...inp, cursor:"pointer" }}>
-              {PAYMENT_METHODS.map(m=><option key={m} value={m} style={{background:"#1a1a1a"}}>{m}</option>)}
+              {PAYMENT_METHODS.map(m=><option key={m} value={m}>{m}</option>)}
             </select>
           </div>
         </div>

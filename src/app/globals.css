@@ -23,7 +23,7 @@
 
 /* ─── Base ─── */
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; color-scheme: dark; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 body {
   background-color: #0a0a0a;
   color: #f0f0f0;
@@ -263,14 +263,12 @@ input[type=checkbox] { accent-color: #D4AF37; }
   .map-grid { grid-template-columns: 1fr !important; }
 }
 
-/* ─── Select dropdown (hindari list putih default browser) ─── */
-/* color-scheme:dark memaksa popup <select> native (Windows/Chrome) pakai tema gelap */
-select {
-  color: #fff;
-  color-scheme: dark;
-}
+/* ─── Select dropdown ─── */
+/* Kotak select (tertutup): teks putih di atas latar gelap (lihat inline style). */
+/* Popup native Windows tetap putih, jadi paksa teks option HITAM agar terbaca
+   tanpa perlu hover. */
 select option,
 select optgroup {
-  background-color: #1a1a1a !important;
-  color: #fff !important;
+  background-color: #ffffff;
+  color: #000000;
 }
