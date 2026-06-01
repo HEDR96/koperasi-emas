@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, LogOut, ChevronLeft, ChevronRight, X,
-  BarChart2, Users, ShieldCheck, Coins, CheckSquare, FileText,
+  BarChart2, Users, ShieldCheck, Coins, CheckSquare,
   Bell, Settings, Upload, MessageSquare, PlusCircle,
   Send, History, Star, HelpCircle, Image, Landmark, CreditCard, UserCircle,
 } from "lucide-react";
@@ -31,7 +31,6 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
     { group:"Transaksi", items:[
       { label:"Approval",           href:"/dashboard/master/approval",         icon:CheckSquare },
       { label:"Input Transaksi",    href:"/dashboard/master/input-transaksi",  icon:PlusCircle },
-      { label:"Laporan",            href:"/dashboard/master/laporan",          icon:FileText },
     ]},
     { group:"Sistem", items:[
       { label:"Notifikasi", href:"/dashboard/master/notifikasi", icon:Bell },
@@ -63,6 +62,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
     ]},
     { group:"Keuangan", items:[
       { label:"Simpanan",    href:"/dashboard/member/simpanan", icon:Landmark },
+      { label:"Buyback Emas",href:"/dashboard/member/buyback",  icon:Coins },
       { label:"Gadai",       href:"/dashboard/member/gadai",    icon:Landmark },
       { label:"Cicilan",     href:"/dashboard/member/cicilan",  icon:CreditCard },
     ]},

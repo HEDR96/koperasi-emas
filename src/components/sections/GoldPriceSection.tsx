@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, RefreshCw, TrendingUp } from "lucide-react";
+import Link from "next/link";
+import { Clock, RefreshCw, TrendingUp, ShoppingBag, ArrowRight, ShieldCheck } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { formatCurrency } from "@/lib/utils";
 
 interface HargaBerat {
   id: number;
@@ -78,7 +78,7 @@ export default function GoldPriceSection() {
           <div style={{ textAlign:"center", color:"rgba(255,255,255,0.3)", padding:"40px 0" }}>Harga belum tersedia. Hubungi admin.</div>
         ) : (
           <motion.div initial={{ opacity:0, y:16 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }}
-            style={{ background:"rgba(12,12,12,0.8)", border:"1px solid rgba(212,175,55,0.18)", borderRadius:20, overflow:"hidden", backdropFilter:"blur(12px)", marginBottom:32 }}>
+            style={{ background:"rgba(12,12,12,0.8)", border:"1px solid rgba(212,175,55,0.18)", borderRadius:20, overflow:"hidden", backdropFilter:"blur(12px)", marginBottom:28 }}>
             <div style={{ padding:"16px 24px", borderBottom:"1px solid rgba(212,175,55,0.1)", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:10 }}>
               <h3 style={{ color:"#fff", fontWeight:700, fontSize:"1rem", margin:0 }}>Daftar Harga Beli Emas</h3>
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
@@ -119,6 +119,39 @@ export default function GoldPriceSection() {
           </motion.div>
         )}
 
+        {/* Info + CTA — mengisi area & menjelaskan alur untuk non-anggota */}
+        {!loading && (
+          <motion.div initial={{ opacity:0, y:16 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} transition={{ delay:.1 }}
+            style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))", gap:16, alignItems:"stretch" }}>
+
+            {[
+              { icon: ShieldCheck, title:"Harga Resmi Koperasi", desc:"Harga beli emas per berat diperbarui oleh admin koperasi setiap hari." },
+              { icon: TrendingUp,  title:"Bisa Dicicil & Buyback", desc:"Anggota bisa cicil emas tanpa bunga dan jual kembali (buyback) sesuai harga berlaku." },
+            ].map((f) => (
+              <div key={f.title} style={{ background:"rgba(12,12,12,0.6)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:18, padding:"22px 22px", display:"flex", flexDirection:"column", gap:8 }}>
+                <span style={{ width:40, height:40, borderRadius:12, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", display:"inline-flex", alignItems:"center", justifyContent:"center", color:"#D4AF37" }}>
+                  <f.icon style={{ width:20, height:20 }} />
+                </span>
+                <h4 style={{ color:"#fff", fontWeight:700, fontSize:".98rem", margin:0 }}>{f.title}</h4>
+                <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".85rem", lineHeight:1.6, margin:0 }}>{f.desc}</p>
+              </div>
+            ))}
+
+            <div style={{ background:"linear-gradient(135deg, rgba(212,175,55,0.12), rgba(212,175,55,0.04))", border:"1px solid rgba(212,175,55,0.28)", borderRadius:18, padding:"22px 22px", display:"flex", flexDirection:"column", gap:10, justifyContent:"center" }}>
+              <span className="badge-gold" style={{ alignSelf:"flex-start", display:"inline-flex", alignItems:"center", gap:6, padding:"4px 12px", borderRadius:20, fontSize:".72rem", fontWeight:600 }}>
+                <ShoppingBag style={{ width:13, height:13 }} /> Mulai Sekarang
+              </span>
+              <h4 style={{ color:"#fff", fontWeight:800, fontSize:"1.05rem", margin:0, lineHeight:1.3 }}>Jadi anggota & mulai investasi emas</h4>
+              <p style={{ color:"rgba(255,255,255,0.6)", fontSize:".84rem", lineHeight:1.6, margin:0 }}>Daftar untuk menabung, cicil, gadai, dan buyback emas Anda.</p>
+              <Link href="/auth/register" style={{ marginTop:4 }}>
+                <button className="btn-gold" style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"11px 22px", borderRadius:12, fontSize:".9rem", fontWeight:700, border:"none", cursor:"pointer" }}>
+                  Daftar Anggota <ArrowRight style={{ width:16, height:16 }} />
+                </button>
+              </Link>
+            </div>
+
+          </motion.div>
+        )}
 
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

@@ -1,2 +1,1 @@
-import ComingSoon from "@/components/dashboard/ComingSoon";
-export default function Page() { return <ComingSoon title="Manajemen Promo" />; }
+export { default } from "@/app/dashboard/admin/promo/page";

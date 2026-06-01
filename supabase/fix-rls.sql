@@ -68,3 +68,44 @@ CREATE POLICY "profiles_select" ON public.profiles FOR SELECT
 --
 -- These are all fine as-is. No changes needed for them.
 -- ─────────────────────────────────────────────
+
+-- ─────────────────────────────────────────────
+-- STEP 4: Allow admin/master to UPDATE member profiles
+-- (suspend/activate, edit data). Tanpa ini, halaman
+-- "Kelola Anggota" tidak bisa mengubah status anggota
+-- karena hanya ada policy profiles_update_own.
+-- ─────────────────────────────────────────────
+DROP POLICY IF EXISTS "profiles_update_admin" ON public.profiles;
+
+CREATE POLICY "profiles_update_admin" ON public.profiles FOR UPDATE
+  USING (public.get_my_role() IN ('admin', 'master'));
+
+-- ─────────────────────────────────────────────
+-- STEP 5: Allow admin/master to INSERT transaksi & simpanan
+-- atas nama member. Policy lama hanya mengizinkan user_id = auth.uid(),
+-- sehingga halaman Input Transaksi / Input Deposit / Input Simpanan
+-- (yang dijalankan admin) akan gagal insert untuk member.
+--
+-- CATATAN: dibungkus pengecekan tabel agar AMAN dijalankan walau
+-- migrasi tabel (mis. simpanan.sql) belum dijalankan — tidak error.
+-- ─────────────────────────────────────────────
+DO $$
+BEGIN
+  IF to_regclass('public.transactions') IS NOT NULL THEN
+    DROP POLICY IF EXISTS "transactions_insert_admin" ON public.transactions;
+    CREATE POLICY "transactions_insert_admin" ON public.transactions FOR INSERT
+      WITH CHECK (
+        user_id = auth.uid()
+        OR public.get_my_role() IN ('admin', 'master')
+      );
+  END IF;
+
+  IF to_regclass('public.simpanan') IS NOT NULL THEN
+    DROP POLICY IF EXISTS "simpanan_insert_admin" ON public.simpanan;
+    CREATE POLICY "simpanan_insert_admin" ON public.simpanan FOR INSERT
+      WITH CHECK (
+        user_id = auth.uid()
+        OR public.get_my_role() IN ('admin', 'master')
+      );
+  END IF;
+END $$;
