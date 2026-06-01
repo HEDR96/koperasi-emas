@@ -35,6 +35,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Input Transaksi",    href:"/dashboard/master/input-transaksi",  icon:PlusCircle },
       { label:"Input Simpanan",     href:"/dashboard/master/simpanan",         icon:Wallet },
       { label:"Kelola Cicilan",     href:"/dashboard/master/cicilan",          icon:CreditCard },
+      { label:"Riwayat",            href:"/dashboard/master/riwayat",          icon:History },
     ]},
     { group:"Sistem", items:[
       { label:"Log Aktivitas", href:"/dashboard/master/audit",      icon:Activity },
@@ -52,6 +53,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Input Transaksi",      href:"/dashboard/admin/input-transaksi", icon:PlusCircle },
       { label:"Input Deposit",        href:"/dashboard/admin/deposit",         icon:PlusCircle },
       { label:"Verifikasi Bayar",     href:"/dashboard/admin/pembayaran",      icon:Receipt },
+      { label:"Riwayat",              href:"/dashboard/admin/riwayat",         icon:History },
       { label:"Invoice",              href:"/dashboard/admin/invoice",         icon:FileText },
     ]},
     { group:"Anggota", items:[

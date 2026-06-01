@@ -35,6 +35,8 @@ const TITLES: Record<string, string> = {
   "/dashboard/admin/gadai": "Kelola Gadai",
   "/dashboard/admin/cicilan": "Kelola Cicilan",
   "/dashboard/master/cicilan": "Kelola Cicilan",
+  "/dashboard/admin/riwayat": "Riwayat",
+  "/dashboard/master/riwayat": "Riwayat",
   "/dashboard/master/simpanan": "Input Simpanan Anggota",
   "/dashboard/member": "Dashboard Saya",
   "/dashboard/member/saldo": "Saldo & Emas",
