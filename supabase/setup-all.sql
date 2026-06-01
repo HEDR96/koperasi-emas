@@ -531,8 +531,7 @@ CREATE POLICY "cp_write" ON public.cicilan_pembayaran FOR ALL
 DROP POLICY IF EXISTS "installments_update_admin" ON public.installments;
 CREATE POLICY "installments_update_admin" ON public.installments FOR UPDATE
   USING (public.get_my_role() IN ('admin','master'));
+-- Kebijakan: tidak ada delete cicilan (cabut jika pernah ada)
 DROP POLICY IF EXISTS "installments_delete_admin" ON public.installments;
-CREATE POLICY "installments_delete_admin" ON public.installments FOR DELETE
-  USING (public.get_my_role() IN ('admin','master'));
 
 SELECT 'Setup selesai!' AS result;

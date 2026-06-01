@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Newspaper, RefreshCw, Plus, Trash2, Eye, EyeOff } from "lucide-react";
+import { Newspaper, RefreshCw, Plus, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -44,10 +44,6 @@ export default function AdminBeritaPage() {
   }
   async function togglePublish(n: any) {
     await (supabase.from("news") as any).update({ is_published: !n.is_published }).eq("id", n.id);
-    load();
-  }
-  async function remove(id: string) {
-    await (supabase.from("news") as any).delete().eq("id", id);
     load();
   }
 
@@ -98,10 +94,6 @@ export default function AdminBeritaPage() {
                   <button onClick={()=>togglePublish(n)}
                     style={{ display:"flex", alignItems:"center", gap:5, background: n.is_published?"rgba(52,211,153,0.1)":"rgba(255,255,255,0.05)", border:`1px solid ${n.is_published?"rgba(52,211,153,0.25)":"rgba(255,255,255,0.1)"}`, borderRadius:8, padding:"6px 12px", color:n.is_published?"#34d399":"rgba(255,255,255,0.5)", cursor:"pointer", fontSize:".78rem", fontWeight:600 }}>
                     {n.is_published ? <><Eye style={{width:12,height:12}}/> Tayang</> : <><EyeOff style={{width:12,height:12}}/> Draft</>}
-                  </button>
-                  <button onClick={()=>remove(n.id)}
-                    style={{ background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:8, padding:"6px 10px", color:"#f87171", cursor:"pointer" }}>
-                    <Trash2 style={{ width:13, height:13 }} />
                   </button>
                 </div>
               </motion.div>

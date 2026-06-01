@@ -31,9 +31,8 @@ DROP POLICY IF EXISTS "installments_update_admin" ON public.installments;
 CREATE POLICY "installments_update_admin" ON public.installments FOR UPDATE
   USING (public.get_my_role() IN ('admin','master'));
 
--- Izin admin/master HAPUS cicilan (jika salah input)
+-- Kebijakan: TIDAK ada yang boleh menghapus cicilan (admin/master pun tidak).
+-- Pastikan policy delete dicabut bila pernah dibuat.
 DROP POLICY IF EXISTS "installments_delete_admin" ON public.installments;
-CREATE POLICY "installments_delete_admin" ON public.installments FOR DELETE
-  USING (public.get_my_role() IN ('admin','master'));
 
 SELECT 'Tabel cicilan_pembayaran + policy siap!' AS result;

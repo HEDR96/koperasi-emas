@@ -67,7 +67,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [isAuthenticated, router]);
 
+  // Role guard: member hanya boleh di area /dashboard/member & /dashboard/profil
+  useEffect(() => {
+    if (!user) return;
+    if (user.role === "member" &&
+        (pathname.startsWith("/dashboard/admin") || pathname.startsWith("/dashboard/master"))) {
+      router.replace("/dashboard/member");
+    }
+  }, [user, pathname, router]);
+
   if (!isAuthenticated || !user) return null;
+  // Cegah flash konten admin/master untuk member
+  if (user.role === "member" &&
+      (pathname.startsWith("/dashboard/admin") || pathname.startsWith("/dashboard/master"))) {
+    return null;
+  }
 
   const title = TITLES[pathname] || "Dashboard";
 
