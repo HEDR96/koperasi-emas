@@ -16,6 +16,11 @@ export const metadata: Metadata = {
   description:
     "Platform koperasi emas terpercaya. Tabungan emas, cicilan 0%, buyback instan, dan investasi emas untuk 150.000+ anggota Indonesia.",
   keywords: ["koperasi emas", "investasi emas", "tabungan emas", "cicilan emas", "buyback emas"],
+  icons: {
+    icon: "/logo.jpg",
+    shortcut: "/logo.jpg",
+    apple: "/logo.jpg",
+  },
   openGraph: {
     type: "website",
     locale: "id_ID",

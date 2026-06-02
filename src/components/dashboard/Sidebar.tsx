@@ -112,8 +112,8 @@ function SidebarInner({ collapsed, onToggle, onClose }: { collapsed: boolean; on
               onError={e => { (e.currentTarget as HTMLImageElement).style.display="none"; }}
             />
             <div>
-              <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:".9rem", lineHeight:1 }}>KE</div>
-              <div style={{ fontSize:".65rem", color:"rgba(255,255,255,0.3)", textTransform:"capitalize" }}>{role} Panel</div>
+              <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:".82rem", lineHeight:1, letterSpacing:".02em" }}>KOPERASI EMAS</div>
+              <div style={{ fontSize:".65rem", color:"rgba(255,255,255,0.3)", textTransform:"capitalize", marginTop:3 }}>{role} Panel</div>
             </div>
           </div>
         )}
