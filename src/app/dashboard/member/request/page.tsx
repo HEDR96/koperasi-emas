@@ -6,6 +6,7 @@ import { Send, Clock, CheckCircle, XCircle, RefreshCw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import Select from "@/components/ui/Select";
+import RupiahInput from "@/components/ui/RupiahInput";
 
 const TX_TYPES = [
   { value: "buy",      label: "Beli Emas",       desc: "Beli emas dengan pembayaran ke koperasi",    color: "#D4AF37" },
@@ -195,14 +196,9 @@ export default function MemberRequestPage() {
             <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 6 }}>
               Total Rupiah *
             </label>
-            <div style={{ position: "relative" }}>
-              <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.3)", fontSize: ".85rem" }}>Rp</span>
-              <input type="number" min="0"
-                value={form.amount}
-                onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
-                placeholder="0"
-                style={{ ...inputStyle, paddingLeft: 34 }} />
-            </div>
+            <RupiahInput value={form.amount}
+              onValueChange={v => setForm(f => ({ ...f, amount: v }))}
+              style={inputStyle} />
             {form.amount && Number(form.amount) > 0 && (
               <p style={{ color: "rgba(255,255,255,0.3)", fontSize: ".78rem", marginTop: 5 }}>{fmt(Number(form.amount))}</p>
             )}

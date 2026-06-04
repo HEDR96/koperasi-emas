@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import Select from "@/components/ui/Select";
 import MemberPicker from "@/components/ui/MemberPicker";
+import RupiahInput from "@/components/ui/RupiahInput";
 import { getStaffMap, fmtTgl, fmtTglJam } from "@/lib/staff";
 
 const fmt = (n: number) =>
@@ -116,7 +117,7 @@ export default function AdminSimpananPage() {
             </div>
             <div>
               <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Nominal (Rp) *</label>
-              <input type="number" min={0} value={form.amount} onChange={e=>setForm(p=>({...p,amount:e.target.value}))} style={inp} placeholder="0" />
+              <RupiahInput value={form.amount} onValueChange={v=>setForm(p=>({...p,amount:v}))} style={inp} />
             </div>
           </div>
 

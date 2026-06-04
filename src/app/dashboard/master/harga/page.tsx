@@ -6,6 +6,7 @@ import { Save, RefreshCw, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import { getMarkup, saveMarkup, type Markup } from "@/lib/harga";
+import RupiahInput from "@/components/ui/RupiahInput";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -279,7 +280,7 @@ export default function HargaEmasPage() {
               </div>
               <div>
                 <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Harga (Rp)</label>
-                <input type="number" min={0} value={newHarga} onChange={e=>setNewHarga(e.target.value)} style={inp} placeholder="1698000" />
+                <RupiahInput value={newHarga} onValueChange={setNewHarga} style={inp} placeholder="1.698.000" />
               </div>
             </div>
             <button onClick={saveHargaEmas} disabled={savingEmas||!newGram||!newHarga}
@@ -346,7 +347,7 @@ export default function HargaEmasPage() {
               </div>
               <div>
                 <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Harga Jual</label>
-                <input type="number" min={0} value={cForm.harga_jual} onChange={e=>setCForm(p=>({...p,harga_jual:e.target.value}))} style={inpSm} placeholder="1698000" />
+                <RupiahInput value={cForm.harga_jual} onValueChange={v=>setCForm(p=>({...p,harga_jual:v}))} style={inpSm} placeholder="1.698.000" />
               </div>
               <div>
                 <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Uang Muka %</label>
@@ -359,8 +360,8 @@ export default function HargaEmasPage() {
               {TENOR_OPTIONS.map(t=>(
                 <div key={t}>
                   <label style={{ color:"rgba(255,255,255,0.55)", fontSize:".76rem", display:"block", marginBottom:6, fontWeight:600 }}>{t} bulan</label>
-                  <input type="number" min={0} value={cForm.angsuran[t] ?? ""}
-                    onChange={e=>setCForm(p=>({...p, angsuran:{ ...p.angsuran, [t]: e.target.value }}))}
+                  <RupiahInput value={cForm.angsuran[t] ?? ""}
+                    onValueChange={v=>setCForm(p=>({...p, angsuran:{ ...p.angsuran, [t]: v }}))}
                     style={inpSm} placeholder="angsuran/bln" />
                 </div>
               ))}
@@ -422,7 +423,7 @@ export default function HargaEmasPage() {
               </div>
               <div>
                 <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Harga Buyback (Rp)</label>
-                <input type="number" min={0} value={bbHarga} onChange={e=>setBbHarga(e.target.value)} style={inp} placeholder="1658000" />
+                <RupiahInput value={bbHarga} onValueChange={setBbHarga} style={inp} placeholder="1.658.000" />
               </div>
             </div>
             <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:"0 0 12px" }}>Harga buyback hanya untuk 1 gram (acuan per gram).</p>

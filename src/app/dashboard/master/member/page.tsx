@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, RefreshCw, UserPlus, Eye } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+import RupiahInput from "@/components/ui/RupiahInput";
 
 interface MemberRow {
   id: string;
@@ -491,9 +492,9 @@ export default function MemberManagementPage() {
                   {cForm.err && <p style={{ color:"#f87171", fontSize:".78rem", margin:0 }}>{cForm.err}</p>}
                   <input value={cForm.product} onChange={e=>setCForm(f=>({...f,product:e.target.value}))} style={inputStyle} placeholder="Nama produk / emas (mis. Emas 5 gram)" />
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
-                    <input type="number" min={0} value={cForm.total} onChange={e=>setCForm(f=>({...f,total:e.target.value}))} style={inputStyle} placeholder="Total Rp" />
+                    <RupiahInput value={cForm.total} onValueChange={v=>setCForm(f=>({...f,total:v}))} style={inputStyle} placeholder="Total Rp" />
                     <input type="number" min={1} value={cForm.tenor} onChange={e=>setCForm(f=>({...f,tenor:e.target.value}))} style={inputStyle} placeholder="Tenor" />
-                    <input type="number" min={0} value={cForm.monthly} onChange={e=>setCForm(f=>({...f,monthly:e.target.value}))} style={inputStyle} placeholder="Angsuran (auto)" />
+                    <RupiahInput value={cForm.monthly} onValueChange={v=>setCForm(f=>({...f,monthly:v}))} style={inputStyle} placeholder="Angsuran (auto)" />
                   </div>
                   {cForm.total && cForm.tenor && !cForm.monthly && (
                     <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".74rem", margin:0 }}>Angsuran otomatis: {fmt(Math.ceil(Number(cForm.total)/Number(cForm.tenor)))}/bln</p>

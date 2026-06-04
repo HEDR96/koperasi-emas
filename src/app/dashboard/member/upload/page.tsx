@@ -6,6 +6,7 @@ import { Upload, RefreshCw, CheckCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import Select from "@/components/ui/Select";
+import RupiahInput from "@/components/ui/RupiahInput";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -112,7 +113,7 @@ export default function MemberUploadPage() {
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
           <div>
             <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Nominal (Rp)</label>
-            <input type="number" min={0} value={form.amount} onChange={e=>setForm(p=>({...p,amount:e.target.value}))} style={inp} placeholder="0" />
+            <RupiahInput value={form.amount} onValueChange={v=>setForm(p=>({...p,amount:v}))} style={inp} />
           </div>
           <div>
             <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Metode</label>

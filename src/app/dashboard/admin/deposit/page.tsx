@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import Select from "@/components/ui/Select";
 import MemberPicker from "@/components/ui/MemberPicker";
+import RupiahInput from "@/components/ui/RupiahInput";
 
 interface MemberOption {
   id: string;
@@ -162,8 +163,8 @@ export default function AdminDepositPage() {
           {/* Amount */}
           <div>
             <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Total Rupiah *</label>
-            <input type="number" min="0" value={form.amount}
-              onChange={e=>setForm(f=>({...f,amount:e.target.value}))}
+            <RupiahInput value={form.amount}
+              onValueChange={v=>setForm(f=>({...f,amount:v}))}
               placeholder="Contoh: 1500000"
               style={inputStyle} />
             {form.amount && Number(form.amount) > 0 && (

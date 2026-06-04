@@ -6,6 +6,7 @@ import { CreditCard, RefreshCw, Plus, X, Check, Clock, CheckCircle, Trash2 } fro
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import MemberPicker from "@/components/ui/MemberPicker";
+import RupiahInput from "@/components/ui/RupiahInput";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -240,7 +241,7 @@ export default function AdminCicilanPage() {
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                   <div>
                     <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Total Harga (Rp) *</label>
-                    <input type="number" min={0} value={form.total_amount} onChange={e=>setForm(p=>({...p,total_amount:e.target.value}))} style={inp} placeholder="8490000" />
+                    <RupiahInput value={form.total_amount} onValueChange={v=>setForm(p=>({...p,total_amount:v}))} style={inp} placeholder="8.490.000" />
                   </div>
                   <div>
                     <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Tenor (bulan) *</label>
@@ -250,7 +251,7 @@ export default function AdminCicilanPage() {
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                   <div>
                     <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Angsuran/bln</label>
-                    <input type="number" min={0} value={form.monthly_amount} onChange={e=>setForm(p=>({...p,monthly_amount:e.target.value}))} style={inp} placeholder={autoMonthly ? String(autoMonthly) : "otomatis"} />
+                    <RupiahInput value={form.monthly_amount} onValueChange={v=>setForm(p=>({...p,monthly_amount:v}))} style={inp} placeholder={autoMonthly ? String(autoMonthly) : "otomatis"} />
                   </div>
                   <div>
                     <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Berat (gram)</label>
