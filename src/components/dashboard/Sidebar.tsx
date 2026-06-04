@@ -47,6 +47,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
   admin: [
     { group:"Utama", items:[
       { label:"Dashboard", href:"/dashboard/admin", icon:LayoutDashboard },
+      { label:"Harga Emas", href:"/dashboard/admin/harga", icon:Coins },
     ]},
     { group:"Transaksi", items:[
       { label:"Transaksi & Approval", href:"/dashboard/admin/transaksi",       icon:CheckSquare },
@@ -77,6 +78,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
   member: [
     { group:"Utama", items:[
       { label:"Dashboard",  href:"/dashboard/member",          icon:LayoutDashboard },
+      { label:"Harga Emas", href:"/dashboard/member/harga",    icon:Coins },
     ]},
     { group:"Keuangan", items:[
       { label:"Simpanan",    href:"/dashboard/member/simpanan", icon:Landmark },

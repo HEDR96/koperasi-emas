@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Coins, Save, RefreshCw, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+import { getMarkup, saveMarkup, withMarkup, type MarkupPerGram } from "@/lib/harga";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -32,15 +33,20 @@ export default function HargaEmasPage() {
   const [savingEmas, setSavingEmas]   = useState(false);
   const [savedEmas, setSavedEmas]     = useState(false);
 
+  // ─── Markup (Rp per gram) ───
+  const [markup, setMarkup]           = useState<MarkupPerGram>({ anggota:0, nonAnggota:0 });
+  const [markupForm, setMarkupForm]   = useState({ anggota:"", nonAnggota:"" });
+  const [savingMarkup, setSavingMarkup] = useState(false);
+  const [savedMarkup, setSavedMarkup] = useState(false);
+
   // ─── Cicilan ───
   const [cicilan, setCicilan]         = useState<CicilanRow[]>([]);
   const [cForm, setCForm]             = useState({ gram:"", tenor:"12", harga_jual:"", angsuran:"", uang_muka_persen:"10" });
   const [savingCicilan, setSavingCicilan] = useState(false);
   const [savedCicilan, setSavedCicilan]   = useState(false);
 
-  // ─── Buyback ───
+  // ─── Buyback (hanya 1 gram) ───
   const [hargaBuyback, setHargaBuyback]   = useState<HargaBerat[]>([]);
-  const [bbGram, setBbGram]               = useState("");
   const [bbHarga, setBbHarga]             = useState("");
   const [savingBb, setSavingBb]           = useState(false);
   const [savedBb, setSavedBb]             = useState(false);
@@ -50,11 +56,14 @@ export default function HargaEmasPage() {
   async function load() {
     setLoading(true);
     try {
-      const [{ data: e }, { data: c }, { data: b }] = await Promise.all([
+      const [{ data: e }, { data: c }, { data: b }, mk] = await Promise.all([
         (supabase.from("harga_emas_berat") as any).select("*").eq("kategori","emas").order("gram").order("created_at", { ascending:false }).limit(100),
         (supabase.from("cicilan_harga") as any).select("*").order("gram").order("tenor").limit(200),
         (supabase.from("harga_emas_berat") as any).select("*").eq("kategori","buyback").order("gram").order("created_at", { ascending:false }).limit(100),
+        getMarkup(),
       ]);
+      setMarkup(mk);
+      setMarkupForm({ anggota: String(mk.anggota || ""), nonAnggota: String(mk.nonAnggota || "") });
       // Latest per gram for display
       const latestPerGram = (rows: any[]) => {
         const seen = new Set<number>();
@@ -82,6 +91,18 @@ export default function HargaEmasPage() {
     setSavingEmas(false);
   }
 
+  // ─── Save Markup ───
+  async function saveMarkupHandler() {
+    setSavingMarkup(true);
+    const next = { anggota: Number(markupForm.anggota) || 0, nonAnggota: Number(markupForm.nonAnggota) || 0 };
+    const { error } = await saveMarkup(next);
+    if (!error) {
+      setMarkup(next);
+      setSavedMarkup(true); setTimeout(() => setSavedMarkup(false), 2000);
+    }
+    setSavingMarkup(false);
+  }
+
   // ─── Save Cicilan ───
   async function saveCicilan() {
     if (!cForm.gram || !cForm.tenor || !cForm.harga_jual || !cForm.angsuran) return;
@@ -103,12 +124,12 @@ export default function HargaEmasPage() {
     load();
   }
 
-  // ─── Save Buyback ───
+  // ─── Save Buyback (selalu 1 gram) ───
   async function saveBuyback() {
-    if (!bbGram || !bbHarga) return;
+    if (!bbHarga) return;
     setSavingBb(true);
-    await (supabase.from("harga_emas_berat") as any).insert({ gram: Number(bbGram), harga: Number(bbHarga), kategori:"buyback", updated_by: user?.id });
-    setBbGram(""); setBbHarga("");
+    await (supabase.from("harga_emas_berat") as any).insert({ gram: 1, harga: Number(bbHarga), kategori:"buyback", updated_by: user?.id });
+    setBbHarga("");
     setSavedBb(true); setTimeout(() => setSavedBb(false), 2000);
     load();
     setSavingBb(false);
@@ -157,18 +178,21 @@ export default function HargaEmasPage() {
               <p style={{ color:"#D4AF37", fontWeight:700, fontSize:".85rem", margin:0 }}>Harga Beli Aktif (per berat)</p>
             </div>
             {hargaEmas.length === 0 ? <p style={{ padding:"20px", color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Belum ada data</p> : (
+              <div style={{ overflowX:"auto" }}>
               <table style={{ width:"100%", borderCollapse:"collapse" }}>
                 <thead><tr style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                  {["Berat", "Harga Terkini", "Terakhir Update", ...(isMaster?[""]:[])].map(h=>(
-                    <th key={h} style={{ padding:"10px 18px", textAlign:"left", color:"rgba(255,255,255,0.3)", fontSize:".72rem", fontWeight:600, textTransform:"uppercase" }}>{h}</th>
+                  {["Berat", "Harga Dasar", "Harga Anggota", "Harga Non-Anggota", "Terakhir Update", ...(isMaster?[""]:[])].map(h=>(
+                    <th key={h} style={{ padding:"10px 18px", textAlign:"left", color:"rgba(255,255,255,0.3)", fontSize:".72rem", fontWeight:600, textTransform:"uppercase", whiteSpace:"nowrap" }}>{h}</th>
                   ))}
                 </tr></thead>
                 <tbody>
                   {hargaEmas.map((r,i)=>(
                     <tr key={r.gram} style={{ borderBottom: i<hargaEmas.length-1?"1px solid rgba(255,255,255,0.04)":"none" }}>
-                      <td style={{ padding:"12px 18px", color:"#fff", fontWeight:700 }}>{r.gram} gram</td>
-                      <td style={{ padding:"12px 18px", color:"#D4AF37", fontWeight:900 }}>{fmt(r.harga)}</td>
-                      <td style={{ padding:"12px 18px", color:"rgba(255,255,255,0.35)", fontSize:".8rem" }}>
+                      <td style={{ padding:"12px 18px", color:"#fff", fontWeight:700, whiteSpace:"nowrap" }}>{r.gram} gram</td>
+                      <td style={{ padding:"12px 18px", color:"rgba(255,255,255,0.55)", fontWeight:700, whiteSpace:"nowrap" }}>{fmt(r.harga)}</td>
+                      <td style={{ padding:"12px 18px", color:"#34d399", fontWeight:900, whiteSpace:"nowrap" }}>{fmt(withMarkup(r.harga, r.gram, markup.anggota))}</td>
+                      <td style={{ padding:"12px 18px", color:"#D4AF37", fontWeight:900, whiteSpace:"nowrap" }}>{fmt(withMarkup(r.harga, r.gram, markup.nonAnggota))}</td>
+                      <td style={{ padding:"12px 18px", color:"rgba(255,255,255,0.35)", fontSize:".8rem", whiteSpace:"nowrap" }}>
                         {new Date(r.created_at).toLocaleString("id-ID", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" })}
                       </td>
                       {isMaster && (
@@ -183,8 +207,35 @@ export default function HargaEmasPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
+
+          {/* Markup per gram */}
+          {isMaster && (
+          <div style={{ background:"rgba(52,211,153,0.04)", border:"1px solid rgba(52,211,153,0.2)", borderRadius:16, padding:20 }}>
+            <p style={{ color:"#34d399", fontWeight:700, fontSize:".85rem", marginBottom:4, display:"flex", alignItems:"center", gap:6 }}>
+              <Coins style={{ width:14, height:14 }} /> Markup Harga Emas (Rp / gram)
+            </p>
+            <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".75rem", margin:"0 0 14px" }}>
+              Harga yang dilihat anggota = harga dasar + (markup anggota × berat). Harga di landing (publik) = harga dasar + (markup non-anggota × berat). Harga dasar & markup tidak ditampilkan ke anggota maupun publik.
+            </p>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:14 }}>
+              <div>
+                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Markup Anggota (Rp/gram)</label>
+                <input type="number" min={0} value={markupForm.anggota} onChange={e=>setMarkupForm(p=>({...p,anggota:e.target.value}))} style={inp} placeholder="0" />
+              </div>
+              <div>
+                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Markup Non-Anggota (Rp/gram)</label>
+                <input type="number" min={0} value={markupForm.nonAnggota} onChange={e=>setMarkupForm(p=>({...p,nonAnggota:e.target.value}))} style={inp} placeholder="0" />
+              </div>
+            </div>
+            <button onClick={saveMarkupHandler} disabled={savingMarkup}
+              style={{ display:"flex", alignItems:"center", gap:8, padding:"11px 20px", borderRadius:10, background: savedMarkup?"rgba(52,211,153,0.2)":"linear-gradient(135deg,#34d399,#6ee7b7)", border: savedMarkup?"1px solid #34d399":"none", color: savedMarkup?"#34d399":"#0a0a0a", fontWeight:700, fontSize:".88rem", cursor:"pointer", transition:"all .3s" }}>
+              {savingMarkup ? <><RefreshCw style={{ width:14, height:14 }} /> Menyimpan...</> : savedMarkup ? "✓ Markup Tersimpan" : <><Save style={{ width:14, height:14 }} /> Simpan Markup</>}
+            </button>
+          </div>
+          )}
 
           {/* Add new */}
           <div style={{ background:"rgba(212,175,55,0.04)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:16, padding:20 }}>
@@ -258,16 +309,26 @@ export default function HargaEmasPage() {
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))", gap:12, marginBottom:14 }}>
               {[
                 { label:"Berat (gram)", key:"gram",             ph:"1",        type:"number" },
-                { label:"Tenor (bulan)",key:"tenor",            ph:"12",       type:"number" },
+                { label:"Tenor (bulan)",key:"tenor",            ph:"12",       type:"select" },
                 { label:"Harga Jual",   key:"harga_jual",       ph:"1698000",  type:"number" },
                 { label:"Angsuran/bln", key:"angsuran",         ph:"150000",   type:"number" },
                 { label:"Uang Muka %",  key:"uang_muka_persen", ph:"10",       type:"number" },
               ].map(f=>(
                 <div key={f.key}>
                   <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>{f.label}</label>
-                  <input type={f.type} min={0} value={(cForm as any)[f.key]}
-                    onChange={e=>setCForm(p=>({...p,[f.key]:e.target.value}))}
-                    style={inpSm} placeholder={f.ph} />
+                  {f.type === "select" ? (
+                    <select value={(cForm as any)[f.key]}
+                      onChange={e=>setCForm(p=>({...p,[f.key]:e.target.value}))}
+                      style={{ ...inpSm, appearance:"auto", cursor:"pointer" }}>
+                      {[12,24,36,48,60].map(t=>(
+                        <option key={t} value={t} style={{ background:"#1a1a1a", color:"#fff" }}>{t} bulan</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input type={f.type} min={0} value={(cForm as any)[f.key]}
+                      onChange={e=>setCForm(p=>({...p,[f.key]:e.target.value}))}
+                      style={inpSm} placeholder={f.ph} />
+                  )}
                 </div>
               ))}
             </div>
@@ -303,7 +364,7 @@ export default function HargaEmasPage() {
                       </td>
                       {isMaster && (
                         <td style={{ padding:"12px 18px" }}>
-                          <button onClick={()=>{ setBbGram(String(r.gram)); setBbHarga(String(r.harga)); }}
+                          <button onClick={()=>{ setBbHarga(String(r.harga)); }}
                             style={{ background:"rgba(52,211,153,0.1)", border:"1px solid rgba(52,211,153,0.25)", borderRadius:7, padding:"5px 12px", color:"#34d399", cursor:"pointer", fontSize:".76rem", fontWeight:600 }}>
                             Edit
                           </button>
@@ -323,14 +384,15 @@ export default function HargaEmasPage() {
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:14 }}>
               <div>
                 <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Berat (gram)</label>
-                <input type="number" min={0} step={0.5} value={bbGram} onChange={e=>setBbGram(e.target.value)} style={inp} placeholder="1" />
+                <input type="text" value="1 gram" readOnly disabled style={{ ...inp, opacity:.6, cursor:"not-allowed" }} />
               </div>
               <div>
                 <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Harga Buyback (Rp)</label>
                 <input type="number" min={0} value={bbHarga} onChange={e=>setBbHarga(e.target.value)} style={inp} placeholder="1658000" />
               </div>
             </div>
-            <button onClick={saveBuyback} disabled={savingBb||!bbGram||!bbHarga}
+            <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:"0 0 12px" }}>Harga buyback hanya untuk 1 gram (acuan per gram).</p>
+            <button onClick={saveBuyback} disabled={savingBb||!bbHarga}
               style={{ display:"flex", alignItems:"center", gap:8, padding:"11px 20px", borderRadius:10, background: savedBb?"rgba(52,211,153,0.2)":"linear-gradient(135deg,#34d399,#6ee7b7)", border: savedBb?"1px solid #34d399":"none", color: savedBb?"#34d399":"#0a0a0a", fontWeight:700, fontSize:".88rem", cursor:"pointer", transition:"all .3s" }}>
               {savingBb ? <><RefreshCw style={{ width:14, height:14 }} /> Menyimpan...</> : savedBb ? "✓ Tersimpan" : <><Save style={{ width:14, height:14 }} /> Simpan Harga Buyback</>}
             </button>

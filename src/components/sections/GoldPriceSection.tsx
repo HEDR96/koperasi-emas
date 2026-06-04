@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Clock, RefreshCw, TrendingUp } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { getMarkup, withMarkup } from "@/lib/harga";
 
 interface HargaBerat {
   id: number;
@@ -23,18 +24,22 @@ export default function GoldPriceSection() {
   async function load() {
     setLoading(true);
     try {
-      const { data: all } = await (supabase.from("harga_emas_berat") as any)
-        .select("id, gram, harga, created_at")
-        .eq("kategori", "emas")
-        .order("created_at", { ascending: false })
-        .limit(200);
+      const [{ data: all }, markup] = await Promise.all([
+        (supabase.from("harga_emas_berat") as any)
+          .select("id, gram, harga, created_at")
+          .eq("kategori", "emas")
+          .order("created_at", { ascending: false })
+          .limit(200),
+        getMarkup(),
+      ]);
 
       if (all?.length) {
         const seen = new Set<number>();
         const latest: HargaBerat[] = [];
         for (const row of all) {
           const g = Number(row.gram);
-          if (!seen.has(g)) { seen.add(g); latest.push({ ...row, gram: g }); }
+          // Harga publik (non-anggota) = harga dasar + markup non-anggota per gram.
+          if (!seen.has(g)) { seen.add(g); latest.push({ ...row, gram: g, harga: withMarkup(row.harga, g, markup.nonAnggota) }); }
         }
         latest.sort((a, b) => a.gram - b.gram);
         setPrices(latest);
@@ -63,8 +68,8 @@ export default function GoldPriceSection() {
             Harga Emas <span className="text-gold-gradient">Hari Ini</span>
           </h2>
           {lastUpdate && (
-            <span suppressHydrationWarning style={{ color:"rgba(255,255,255,0.55)", display:"inline-flex", alignItems:"center", gap:6, fontSize:".82rem" }}>
-              <Clock style={{ width:14, height:14 }} />
+            <span suppressHydrationWarning style={{ color:"#fff", fontWeight:700, display:"inline-flex", alignItems:"center", gap:8, fontSize:"clamp(1.3rem,3vw,2.2rem)", lineHeight:1.2 }}>
+              <Clock style={{ width:"1em", height:"1em" }} />
               Update: {new Date(lastUpdate).toLocaleString("id-ID", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" })}
             </span>
           )}
@@ -81,7 +86,7 @@ export default function GoldPriceSection() {
             <div style={{ padding:"16px 24px", borderBottom:"1px solid rgba(212,175,55,0.1)", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:10 }}>
               <h3 style={{ color:"#fff", fontWeight:700, fontSize:"1rem", margin:0 }}>Daftar Harga Beli Emas</h3>
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem" }}>per berat · harga anggota koperasi</span>
+                <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem" }}>per berat · harga koperasi emas</span>
                 <button onClick={load} style={{ display:"flex", alignItems:"center", gap:5, padding:"4px 10px", borderRadius:8, fontSize:".75rem", cursor:"pointer", background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.2)", color:"#D4AF37" }}>
                   <RefreshCw style={{ width:11, height:11, animation: loading ? "spin 1s linear infinite" : "none" }} /> Refresh
                 </button>

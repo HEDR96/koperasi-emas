@@ -540,13 +540,12 @@ export default function MemberManagementPage() {
       {/* Register Form Modal */}
       <AnimatePresence>
         {showForm && (
-          <>
-            <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
-              onClick={()=>setShowForm(false)}
-              style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:300 }} />
-            <motion.div
-              initial={{ opacity:0, scale:.95, y:20 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95 }}
-              style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:"min(460px,94vw)", background:"#111", border:"1px solid rgba(52,211,153,0.2)", borderRadius:20, padding:28, zIndex:301, maxHeight:"90vh", overflowY:"auto" }}
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+            onClick={()=>setShowForm(false)}
+            style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:300, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
+            <motion.div onClick={e=>e.stopPropagation()}
+              initial={{ opacity:0, scale:.95 }} animate={{ opacity:1, scale:1 }} exit={{ opacity:0, scale:.95 }}
+              style={{ width:"min(460px,94vw)", background:"#111", border:"1px solid rgba(52,211,153,0.2)", borderRadius:20, padding:28, maxHeight:"90vh", overflowY:"auto" }}
             >
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:22 }}>
                 <h2 style={{ color:"#fff", fontWeight:700, fontSize:"1.1rem", margin:0 }}>Daftar Member Baru</h2>
@@ -577,7 +576,7 @@ export default function MemberManagementPage() {
                 </button>
               </form>
             </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
