@@ -40,9 +40,12 @@ export default function HargaEmasPage() {
   const [savingMarkup, setSavingMarkup] = useState(false);
   const [savedMarkup, setSavedMarkup] = useState(false);
 
-  // ─── Cicilan ───
+  // ─── Cicilan (angsuran per tenor diisi sekaligus) ───
+  const TENOR_OPTIONS = [12, 24, 36, 48, 60];
   const [cicilan, setCicilan]         = useState<CicilanRow[]>([]);
-  const [cForm, setCForm]             = useState({ gram:"", tenor:"12", harga_jual:"", angsuran:"", uang_muka_persen:"10" });
+  const [cForm, setCForm]             = useState<{ gram:string; harga_jual:string; uang_muka_persen:string; angsuran: Record<number,string> }>(
+    { gram:"", harga_jual:"", uang_muka_persen:"10", angsuran:{} }
+  );
   const [savingCicilan, setSavingCicilan] = useState(false);
   const [savedCicilan, setSavedCicilan]   = useState(false);
 
@@ -116,16 +119,21 @@ export default function HargaEmasPage() {
   const setMarkupCell = (kind: "anggota"|"nonAnggota", gram: number, val: string) =>
     setMarkupForm(p => ({ ...p, [kind]: { ...p[kind], [String(gram)]: val } }));
 
-  // ─── Save Cicilan ───
+  // ─── Save Cicilan: tambah semua tenor yang diisi sekaligus ───
   async function saveCicilan() {
-    if (!cForm.gram || !cForm.tenor || !cForm.harga_jual || !cForm.angsuran) return;
+    if (!cForm.gram || !cForm.harga_jual) return;
+    // Bangun satu baris per tenor yang angsurannya diisi.
+    const rows = TENOR_OPTIONS
+      .filter(t => Number(cForm.angsuran[t]) > 0)
+      .map(t => ({
+        gram: Number(cForm.gram), tenor: t,
+        harga_jual: Number(cForm.harga_jual), angsuran: Number(cForm.angsuran[t]),
+        uang_muka_persen: Number(cForm.uang_muka_persen) || 0, updated_by: user?.id,
+      }));
+    if (rows.length === 0) return;
     setSavingCicilan(true);
-    await (supabase.from("cicilan_harga") as any).insert({
-      gram: Number(cForm.gram), tenor: Number(cForm.tenor),
-      harga_jual: Number(cForm.harga_jual), angsuran: Number(cForm.angsuran),
-      uang_muka_persen: Number(cForm.uang_muka_persen), updated_by: user?.id,
-    });
-    setCForm({ gram:"", tenor:"12", harga_jual:"", angsuran:"", uang_muka_persen:"10" });
+    await (supabase.from("cicilan_harga") as any).insert(rows);
+    setCForm({ gram:"", harga_jual:"", uang_muka_persen:"10", angsuran:{} });
     setSavedCicilan(true); setTimeout(() => setSavedCicilan(false), 2000);
     load();
     setSavingCicilan(false);
@@ -309,38 +317,42 @@ export default function HargaEmasPage() {
             )}
           </div>
 
-          {/* Add new */}
+          {/* Add new — isi angsuran untuk semua tenor sekaligus */}
           <div style={{ background:"rgba(167,139,250,0.04)", border:"1px solid rgba(167,139,250,0.2)", borderRadius:16, padding:20 }}>
-            <p style={{ color:"#a78bfa", fontWeight:700, fontSize:".85rem", marginBottom:14, display:"flex", alignItems:"center", gap:6 }}>
+            <p style={{ color:"#a78bfa", fontWeight:700, fontSize:".85rem", marginBottom:4, display:"flex", alignItems:"center", gap:6 }}>
               <Plus style={{ width:14, height:14 }} /> Tambah Paket Cicilan
             </p>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))", gap:12, marginBottom:14 }}>
-              {[
-                { label:"Berat (gram)", key:"gram",             ph:"1",        type:"number" },
-                { label:"Tenor (bulan)",key:"tenor",            ph:"12",       type:"select" },
-                { label:"Harga Jual",   key:"harga_jual",       ph:"1698000",  type:"number" },
-                { label:"Angsuran/bln", key:"angsuran",         ph:"150000",   type:"number" },
-                { label:"Uang Muka %",  key:"uang_muka_persen", ph:"10",       type:"number" },
-              ].map(f=>(
-                <div key={f.key}>
-                  <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>{f.label}</label>
-                  {f.type === "select" ? (
-                    <select value={(cForm as any)[f.key]}
-                      onChange={e=>setCForm(p=>({...p,[f.key]:e.target.value}))}
-                      style={{ ...inpSm, appearance:"auto", cursor:"pointer" }}>
-                      {[12,24,36,48,60].map(t=>(
-                        <option key={t} value={t} style={{ background:"#1a1a1a", color:"#fff" }}>{t} bulan</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input type={f.type} min={0} value={(cForm as any)[f.key]}
-                      onChange={e=>setCForm(p=>({...p,[f.key]:e.target.value}))}
-                      style={inpSm} placeholder={f.ph} />
-                  )}
+            <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".74rem", margin:"0 0 14px" }}>
+              Isi berat, harga jual & uang muka, lalu masukkan angsuran/bln untuk tenor yang diinginkan. Baris tenor yang diisi akan tersimpan sekaligus dalam satu klik.
+            </p>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))", gap:12, marginBottom:16 }}>
+              <div>
+                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Berat (gram)</label>
+                <input type="number" min={0} step={0.5} value={cForm.gram} onChange={e=>setCForm(p=>({...p,gram:e.target.value}))} style={inpSm} placeholder="1" />
+              </div>
+              <div>
+                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Harga Jual</label>
+                <input type="number" min={0} value={cForm.harga_jual} onChange={e=>setCForm(p=>({...p,harga_jual:e.target.value}))} style={inpSm} placeholder="1698000" />
+              </div>
+              <div>
+                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Uang Muka %</label>
+                <input type="number" min={0} value={cForm.uang_muka_persen} onChange={e=>setCForm(p=>({...p,uang_muka_persen:e.target.value}))} style={inpSm} placeholder="10" />
+              </div>
+            </div>
+
+            <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:8 }}>Angsuran / bulan per tenor</label>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))", gap:12, marginBottom:16 }}>
+              {TENOR_OPTIONS.map(t=>(
+                <div key={t}>
+                  <label style={{ color:"rgba(255,255,255,0.55)", fontSize:".76rem", display:"block", marginBottom:6, fontWeight:600 }}>{t} bulan</label>
+                  <input type="number" min={0} value={cForm.angsuran[t] ?? ""}
+                    onChange={e=>setCForm(p=>({...p, angsuran:{ ...p.angsuran, [t]: e.target.value }}))}
+                    style={inpSm} placeholder="angsuran/bln" />
                 </div>
               ))}
             </div>
-            <button onClick={saveCicilan} disabled={savingCicilan||!cForm.gram||!cForm.harga_jual||!cForm.angsuran}
+
+            <button onClick={saveCicilan} disabled={savingCicilan||!cForm.gram||!cForm.harga_jual||!TENOR_OPTIONS.some(t=>Number(cForm.angsuran[t])>0)}
               style={{ display:"flex", alignItems:"center", gap:8, padding:"11px 20px", borderRadius:10, background: savedCicilan?"rgba(52,211,153,0.2)":"rgba(167,139,250,0.2)", border: savedCicilan?"1px solid #34d399":"1px solid rgba(167,139,250,0.4)", color: savedCicilan?"#34d399":"#a78bfa", fontWeight:700, fontSize:".88rem", cursor:"pointer", transition:"all .3s" }}>
               {savingCicilan ? <><RefreshCw style={{ width:14, height:14 }} /> Menyimpan...</> : savedCicilan ? "✓ Paket Ditambahkan" : <><Plus style={{ width:14, height:14 }} /> Tambah Paket</>}
             </button>
