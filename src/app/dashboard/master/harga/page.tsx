@@ -10,6 +10,14 @@ import { getMarkup, saveMarkup, type Markup } from "@/lib/harga";
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
 
+// Tampilkan angka dengan pemisah ribuan (1000000 -> "1.000.000"); kosong jika tak ada angka.
+const fmtRibuan = (v: string) => {
+  const digits = (v ?? "").replace(/\D/g, "");
+  return digits ? new Intl.NumberFormat("id-ID").format(Number(digits)) : "";
+};
+// Ambil hanya digit dari input bermask.
+const onlyDigits = (v: string) => v.replace(/\D/g, "");
+
 const inp: React.CSSProperties = {
   width:"100%", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)",
   borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".9rem", outline:"none", boxSizing:"border-box",
@@ -218,15 +226,21 @@ export default function HargaEmasPage() {
                       <td style={{ padding:"10px 16px", color:"#fff", fontWeight:700, whiteSpace:"nowrap" }}>{r.gram} gram</td>
                       <td style={{ padding:"10px 16px", color:"rgba(255,255,255,0.55)", fontWeight:700, whiteSpace:"nowrap" }}>{fmt(r.harga)}</td>
                       <td style={{ padding:"10px 16px" }}>
-                        <input type="number" min={0} value={markupForm.anggota[String(r.gram)] ?? ""} disabled={!isMaster}
-                          onChange={e=>setMarkupCell("anggota", r.gram, e.target.value)}
-                          style={{ ...inpSm, width:120 }} placeholder="0" />
+                        <div style={{ position:"relative", width:120 }}>
+                          <span style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".8rem", pointerEvents:"none" }}>Rp</span>
+                          <input inputMode="numeric" value={fmtRibuan(markupForm.anggota[String(r.gram)])} disabled={!isMaster}
+                            onChange={e=>setMarkupCell("anggota", r.gram, onlyDigits(e.target.value))}
+                            style={{ ...inpSm, width:120, paddingLeft:32 }} placeholder="0" />
+                        </div>
                       </td>
                       <td style={{ padding:"10px 16px", color:"#34d399", fontWeight:900, whiteSpace:"nowrap" }}>{fmt(r.harga + mkA)}</td>
                       <td style={{ padding:"10px 16px" }}>
-                        <input type="number" min={0} value={markupForm.nonAnggota[String(r.gram)] ?? ""} disabled={!isMaster}
-                          onChange={e=>setMarkupCell("nonAnggota", r.gram, e.target.value)}
-                          style={{ ...inpSm, width:120 }} placeholder="0" />
+                        <div style={{ position:"relative", width:120 }}>
+                          <span style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".8rem", pointerEvents:"none" }}>Rp</span>
+                          <input inputMode="numeric" value={fmtRibuan(markupForm.nonAnggota[String(r.gram)])} disabled={!isMaster}
+                            onChange={e=>setMarkupCell("nonAnggota", r.gram, onlyDigits(e.target.value))}
+                            style={{ ...inpSm, width:120, paddingLeft:32 }} placeholder="0" />
+                        </div>
                       </td>
                       <td style={{ padding:"10px 16px", color:"#D4AF37", fontWeight:900, whiteSpace:"nowrap" }}>{fmt(r.harga + mkN)}</td>
                       {isMaster && (
