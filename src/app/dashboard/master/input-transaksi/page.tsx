@@ -12,6 +12,14 @@ import { getStaffMap, fmtTgl, fmtTglJam } from "@/lib/staff";
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
 
+// Tampilkan angka dengan pemisah ribuan (1000000 -> "1.000.000"); kosong jika tak ada angka.
+const fmtRibuan = (v: string) => {
+  const digits = v.replace(/\D/g, "");
+  return digits ? new Intl.NumberFormat("id-ID").format(Number(digits)) : "";
+};
+// Ambil hanya digit dari input bermask.
+const onlyDigits = (v: string) => v.replace(/\D/g, "");
+
 const inp: React.CSSProperties = {
   width:"100%", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)",
   borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".9rem", outline:"none", boxSizing:"border-box",
@@ -172,7 +180,10 @@ export default function InputTransaksiPage() {
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
               <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Jumlah (Rp) *</label>
-              <input type="number" min={0} value={form.amount} onChange={e=>setForm(p=>({...p,amount:e.target.value}))} style={inp} placeholder="0" />
+              <div style={{ position:"relative" }}>
+                <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".9rem", pointerEvents:"none" }}>Rp</span>
+                <input inputMode="numeric" value={fmtRibuan(form.amount)} onChange={e=>setForm(p=>({...p,amount:onlyDigits(e.target.value)}))} style={{ ...inp, paddingLeft:36 }} placeholder="0" />
+              </div>
             </div>
             <div>
               <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Berat (gram)</label>
@@ -184,7 +195,10 @@ export default function InputTransaksiPage() {
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
               <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Harga/gram (Rp)</label>
-              <input type="number" min={0} value={form.price_per_gram} onChange={e=>setForm(p=>({...p,price_per_gram:e.target.value}))} style={inp} placeholder="0" />
+              <div style={{ position:"relative" }}>
+                <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".9rem", pointerEvents:"none" }}>Rp</span>
+                <input inputMode="numeric" value={fmtRibuan(form.price_per_gram)} onChange={e=>setForm(p=>({...p,price_per_gram:onlyDigits(e.target.value)}))} style={{ ...inp, paddingLeft:36 }} placeholder="0" />
+              </div>
             </div>
             <div>
               <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Metode Bayar</label>
