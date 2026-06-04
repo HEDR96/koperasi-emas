@@ -32,15 +32,15 @@ export default function HargaViewer() {
         (supabase.from("harga_emas_berat") as any).select("gram,harga,created_at").eq("kategori","buyback").order("created_at",{ ascending:false }).limit(200),
         getMarkup(),
       ]);
-      const latestPerGram = (rows: any[], markupPerGram: number) => {
+      const latestPerGram = (rows: any[], markupMap: Record<string, number>) => {
         const seen = new Set<number>();
         return (rows||[])
           .filter(r => { const g = Number(r.gram); if (seen.has(g)) return false; seen.add(g); return true; })
-          .map(r => ({ ...r, gram: Number(r.gram), harga: withMarkup(r.harga, Number(r.gram), markupPerGram) }))
+          .map(r => ({ ...r, gram: Number(r.gram), harga: withMarkup(r.harga, Number(r.gram), markupMap) }))
           .sort((a,b) => a.gram - b.gram);
       };
       setHargaEmas(latestPerGram(e||[], markup.anggota));
-      setHargaBuyback(latestPerGram(b||[], 0)); // buyback ditampilkan apa adanya
+      setHargaBuyback(latestPerGram(b||[], {})); // buyback ditampilkan apa adanya
       setCicilan((c||[]).map((r:any) => ({ ...r, gram: Number(r.gram) })));
     } catch {}
     setLoading(false);

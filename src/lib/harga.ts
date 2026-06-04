@@ -1,16 +1,29 @@
 import { supabase } from "@/lib/supabase";
 
-// Markup harga emas disimpan di site_settings sebagai Rupiah PER GRAM.
-// Harga tampil = harga dasar + (markup per gram × berat gram).
-// Harga dasar & nilai markup TIDAK pernah ditampilkan ke anggota/publik.
+// Markup harga emas disimpan PER GRAM TIER (per baris berat), bukan satu nilai global.
+// Tiap berat (0.5, 1, 2, ... 100) punya markup sendiri (nominal Rupiah, ditambahkan langsung).
+// Disimpan di site_settings sebagai JSON map { "<gram>": <rupiah> }.
+// Harga tampil = harga dasar + markup tier tsb. Harga dasar & markup tidak ditampilkan ke anggota/publik.
 export const MARKUP_KEYS = {
-  anggota: "markup_emas_anggota",
-  nonAnggota: "markup_emas_non_anggota",
+  anggota: "markup_emas_anggota_map",
+  nonAnggota: "markup_emas_non_anggota_map",
 } as const;
 
-export interface MarkupPerGram { anggota: number; nonAnggota: number; }
+export type MarkupMap = Record<string, number>;
+export interface Markup { anggota: MarkupMap; nonAnggota: MarkupMap; }
 
-export async function getMarkup(): Promise<MarkupPerGram> {
+function parseMap(s: string | undefined | null): MarkupMap {
+  try {
+    const obj = JSON.parse(s || "{}") || {};
+    const out: MarkupMap = {};
+    Object.keys(obj).forEach(k => { out[String(Number(k))] = Number(obj[k]) || 0; });
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+export async function getMarkup(): Promise<Markup> {
   try {
     const { data } = await (supabase.from("site_settings") as any)
       .select("key,value")
@@ -18,19 +31,24 @@ export async function getMarkup(): Promise<MarkupPerGram> {
     const map: Record<string, string> = {};
     (data || []).forEach((r: any) => { map[r.key] = r.value; });
     return {
-      anggota: Number(map[MARKUP_KEYS.anggota]) || 0,
-      nonAnggota: Number(map[MARKUP_KEYS.nonAnggota]) || 0,
+      anggota: parseMap(map[MARKUP_KEYS.anggota]),
+      nonAnggota: parseMap(map[MARKUP_KEYS.nonAnggota]),
     };
   } catch {
-    return { anggota: 0, nonAnggota: 0 };
+    return { anggota: {}, nonAnggota: {} };
   }
 }
 
-export async function saveMarkup(m: MarkupPerGram): Promise<{ error?: string }> {
+export async function saveMarkup(m: Markup): Promise<{ error?: string }> {
   try {
+    const clean = (map: MarkupMap) => {
+      const out: Record<string, number> = {};
+      Object.keys(map).forEach(k => { const v = Number(map[k]) || 0; if (v) out[String(Number(k))] = Math.round(v); });
+      return out;
+    };
     const rows = [
-      { key: MARKUP_KEYS.anggota,    value: String(Math.round(m.anggota)),    label: "Markup Emas Anggota (Rp/gram)",     type: "number", group_name: "Harga" },
-      { key: MARKUP_KEYS.nonAnggota, value: String(Math.round(m.nonAnggota)), label: "Markup Emas Non-Anggota (Rp/gram)", type: "number", group_name: "Harga" },
+      { key: MARKUP_KEYS.anggota,    value: JSON.stringify(clean(m.anggota)),    label: "Markup Emas Anggota per gram (Rp)",     type: "json", group_name: "Harga" },
+      { key: MARKUP_KEYS.nonAnggota, value: JSON.stringify(clean(m.nonAnggota)), label: "Markup Emas Non-Anggota per gram (Rp)", type: "json", group_name: "Harga" },
     ];
     const { error } = await (supabase.from("site_settings") as any).upsert(rows, { onConflict: "key" });
     return error ? { error: error.message } : {};
@@ -39,7 +57,12 @@ export async function saveMarkup(m: MarkupPerGram): Promise<{ error?: string }> 
   }
 }
 
-// Hitung harga jual = harga dasar + markup per gram × berat.
-export function withMarkup(base: number, gram: number, markupPerGram: number): number {
-  return Math.round(Number(base) + Number(markupPerGram) * Number(gram));
+// Nilai markup untuk satu berat tertentu.
+export function markupFor(map: MarkupMap, gram: number): number {
+  return Number(map?.[String(Number(gram))]) || 0;
+}
+
+// Harga tampil = harga dasar + markup tier (nominal, tidak dikali berat).
+export function withMarkup(base: number, gram: number, map: MarkupMap): number {
+  return Math.round(Number(base) + markupFor(map, gram));
 }

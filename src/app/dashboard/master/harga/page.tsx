@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Coins, Save, RefreshCw, Plus, Trash2 } from "lucide-react";
+import { Save, RefreshCw, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
-import { getMarkup, saveMarkup, withMarkup, type MarkupPerGram } from "@/lib/harga";
+import { getMarkup, saveMarkup, type Markup } from "@/lib/harga";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -33,9 +33,10 @@ export default function HargaEmasPage() {
   const [savingEmas, setSavingEmas]   = useState(false);
   const [savedEmas, setSavedEmas]     = useState(false);
 
-  // ─── Markup (Rp per gram) ───
-  const [markup, setMarkup]           = useState<MarkupPerGram>({ anggota:0, nonAnggota:0 });
-  const [markupForm, setMarkupForm]   = useState({ anggota:"", nonAnggota:"" });
+  // ─── Markup per gram tier (tiap berat punya markup sendiri) ───
+  const [markup, setMarkup]           = useState<Markup>({ anggota:{}, nonAnggota:{} });
+  // form editable: { anggota: { "<gram>": "<rp>" }, nonAnggota: {...} }
+  const [markupForm, setMarkupForm]   = useState<{ anggota: Record<string,string>; nonAnggota: Record<string,string> }>({ anggota:{}, nonAnggota:{} });
   const [savingMarkup, setSavingMarkup] = useState(false);
   const [savedMarkup, setSavedMarkup] = useState(false);
 
@@ -63,7 +64,12 @@ export default function HargaEmasPage() {
         getMarkup(),
       ]);
       setMarkup(mk);
-      setMarkupForm({ anggota: String(mk.anggota || ""), nonAnggota: String(mk.nonAnggota || "") });
+      const toForm = (m: Record<string, number>) => {
+        const o: Record<string, string> = {};
+        Object.keys(m).forEach(k => { o[k] = String(m[k]); });
+        return o;
+      };
+      setMarkupForm({ anggota: toForm(mk.anggota), nonAnggota: toForm(mk.nonAnggota) });
       // Latest per gram for display
       const latestPerGram = (rows: any[]) => {
         const seen = new Set<number>();
@@ -91,10 +97,15 @@ export default function HargaEmasPage() {
     setSavingEmas(false);
   }
 
-  // ─── Save Markup ───
+  // ─── Save Markup (per gram tier) ───
   async function saveMarkupHandler() {
     setSavingMarkup(true);
-    const next = { anggota: Number(markupForm.anggota) || 0, nonAnggota: Number(markupForm.nonAnggota) || 0 };
+    const toMap = (form: Record<string, string>) => {
+      const m: Record<string, number> = {};
+      Object.keys(form).forEach(k => { const v = Number(form[k]) || 0; if (v) m[k] = v; });
+      return m;
+    };
+    const next: Markup = { anggota: toMap(markupForm.anggota), nonAnggota: toMap(markupForm.nonAnggota) };
     const { error } = await saveMarkup(next);
     if (!error) {
       setMarkup(next);
@@ -102,6 +113,8 @@ export default function HargaEmasPage() {
     }
     setSavingMarkup(false);
   }
+  const setMarkupCell = (kind: "anggota"|"nonAnggota", gram: number, val: string) =>
+    setMarkupForm(p => ({ ...p, [kind]: { ...p[kind], [String(gram)]: val } }));
 
   // ─── Save Cicilan ───
   async function saveCicilan() {
@@ -172,31 +185,44 @@ export default function HargaEmasPage() {
       {/* ─── TAB: HARGA EMAS ─── */}
       {tab === "emas" && (
         <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} style={{ display:"flex", flexDirection:"column", gap:20 }}>
-          {/* Current table */}
+          {/* Current table + markup per baris */}
           <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(212,175,55,0.15)", borderRadius:16, overflow:"hidden" }}>
             <div style={{ padding:"14px 20px", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-              <p style={{ color:"#D4AF37", fontWeight:700, fontSize:".85rem", margin:0 }}>Harga Beli Aktif (per berat)</p>
+              <p style={{ color:"#D4AF37", fontWeight:700, fontSize:".85rem", margin:0 }}>Harga Beli Aktif & Markup (per berat)</p>
+              <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".74rem", margin:"4px 0 0" }}>
+                Markup diisi per baris berat (nominal Rp ditambahkan langsung). Harga Anggota = harga dasar + markup anggota baris itu · Harga Non-Anggota (landing) = harga dasar + markup non-anggota. Harga dasar & markup tidak ditampilkan ke anggota/publik.
+              </p>
             </div>
             {hargaEmas.length === 0 ? <p style={{ padding:"20px", color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Belum ada data</p> : (
               <div style={{ overflowX:"auto" }}>
               <table style={{ width:"100%", borderCollapse:"collapse" }}>
                 <thead><tr style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                  {["Berat", "Harga Dasar", "Harga Anggota", "Harga Non-Anggota", "Terakhir Update", ...(isMaster?[""]:[])].map(h=>(
-                    <th key={h} style={{ padding:"10px 18px", textAlign:"left", color:"rgba(255,255,255,0.3)", fontSize:".72rem", fontWeight:600, textTransform:"uppercase", whiteSpace:"nowrap" }}>{h}</th>
+                  {["Berat", "Harga Dasar", "Markup Anggota", "Harga Anggota", "Markup Non-Anggota", "Harga Non-Anggota", ...(isMaster?[""]:[])].map(h=>(
+                    <th key={h} style={{ padding:"10px 16px", textAlign:"left", color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:600, textTransform:"uppercase", whiteSpace:"nowrap" }}>{h}</th>
                   ))}
                 </tr></thead>
                 <tbody>
-                  {hargaEmas.map((r,i)=>(
+                  {hargaEmas.map((r,i)=>{
+                    const mkA = Number(markupForm.anggota[String(r.gram)]) || 0;
+                    const mkN = Number(markupForm.nonAnggota[String(r.gram)]) || 0;
+                    return (
                     <tr key={r.gram} style={{ borderBottom: i<hargaEmas.length-1?"1px solid rgba(255,255,255,0.04)":"none" }}>
-                      <td style={{ padding:"12px 18px", color:"#fff", fontWeight:700, whiteSpace:"nowrap" }}>{r.gram} gram</td>
-                      <td style={{ padding:"12px 18px", color:"rgba(255,255,255,0.55)", fontWeight:700, whiteSpace:"nowrap" }}>{fmt(r.harga)}</td>
-                      <td style={{ padding:"12px 18px", color:"#34d399", fontWeight:900, whiteSpace:"nowrap" }}>{fmt(withMarkup(r.harga, r.gram, markup.anggota))}</td>
-                      <td style={{ padding:"12px 18px", color:"#D4AF37", fontWeight:900, whiteSpace:"nowrap" }}>{fmt(withMarkup(r.harga, r.gram, markup.nonAnggota))}</td>
-                      <td style={{ padding:"12px 18px", color:"rgba(255,255,255,0.35)", fontSize:".8rem", whiteSpace:"nowrap" }}>
-                        {new Date(r.created_at).toLocaleString("id-ID", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" })}
+                      <td style={{ padding:"10px 16px", color:"#fff", fontWeight:700, whiteSpace:"nowrap" }}>{r.gram} gram</td>
+                      <td style={{ padding:"10px 16px", color:"rgba(255,255,255,0.55)", fontWeight:700, whiteSpace:"nowrap" }}>{fmt(r.harga)}</td>
+                      <td style={{ padding:"10px 16px" }}>
+                        <input type="number" min={0} value={markupForm.anggota[String(r.gram)] ?? ""} disabled={!isMaster}
+                          onChange={e=>setMarkupCell("anggota", r.gram, e.target.value)}
+                          style={{ ...inpSm, width:120 }} placeholder="0" />
                       </td>
+                      <td style={{ padding:"10px 16px", color:"#34d399", fontWeight:900, whiteSpace:"nowrap" }}>{fmt(r.harga + mkA)}</td>
+                      <td style={{ padding:"10px 16px" }}>
+                        <input type="number" min={0} value={markupForm.nonAnggota[String(r.gram)] ?? ""} disabled={!isMaster}
+                          onChange={e=>setMarkupCell("nonAnggota", r.gram, e.target.value)}
+                          style={{ ...inpSm, width:120 }} placeholder="0" />
+                      </td>
+                      <td style={{ padding:"10px 16px", color:"#D4AF37", fontWeight:900, whiteSpace:"nowrap" }}>{fmt(r.harga + mkN)}</td>
                       {isMaster && (
-                        <td style={{ padding:"12px 18px" }}>
+                        <td style={{ padding:"10px 16px" }}>
                           <button onClick={()=>{ setNewGram(String(r.gram)); setNewHarga(String(r.harga)); }}
                             style={{ background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:7, padding:"5px 12px", color:"#D4AF37", cursor:"pointer", fontSize:".76rem", fontWeight:600 }}>
                             Edit
@@ -204,38 +230,20 @@ export default function HargaEmasPage() {
                         </td>
                       )}
                     </tr>
-                  ))}
+                  );})}
                 </tbody>
               </table>
               </div>
             )}
-          </div>
-
-          {/* Markup per gram */}
-          {isMaster && (
-          <div style={{ background:"rgba(52,211,153,0.04)", border:"1px solid rgba(52,211,153,0.2)", borderRadius:16, padding:20 }}>
-            <p style={{ color:"#34d399", fontWeight:700, fontSize:".85rem", marginBottom:4, display:"flex", alignItems:"center", gap:6 }}>
-              <Coins style={{ width:14, height:14 }} /> Markup Harga Emas (Rp / gram)
-            </p>
-            <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".75rem", margin:"0 0 14px" }}>
-              Harga yang dilihat anggota = harga dasar + (markup anggota × berat). Harga di landing (publik) = harga dasar + (markup non-anggota × berat). Harga dasar & markup tidak ditampilkan ke anggota maupun publik.
-            </p>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:14 }}>
-              <div>
-                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Markup Anggota (Rp/gram)</label>
-                <input type="number" min={0} value={markupForm.anggota} onChange={e=>setMarkupForm(p=>({...p,anggota:e.target.value}))} style={inp} placeholder="0" />
+            {isMaster && hargaEmas.length > 0 && (
+              <div style={{ padding:"14px 16px", borderTop:"1px solid rgba(255,255,255,0.05)" }}>
+                <button onClick={saveMarkupHandler} disabled={savingMarkup}
+                  style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 18px", borderRadius:10, background: savedMarkup?"rgba(52,211,153,0.2)":"linear-gradient(135deg,#34d399,#6ee7b7)", border: savedMarkup?"1px solid #34d399":"none", color: savedMarkup?"#34d399":"#0a0a0a", fontWeight:700, fontSize:".85rem", cursor:"pointer", transition:"all .3s" }}>
+                  {savingMarkup ? <><RefreshCw style={{ width:14, height:14 }} /> Menyimpan...</> : savedMarkup ? "✓ Markup Tersimpan" : <><Save style={{ width:14, height:14 }} /> Simpan Markup</>}
+                </button>
               </div>
-              <div>
-                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Markup Non-Anggota (Rp/gram)</label>
-                <input type="number" min={0} value={markupForm.nonAnggota} onChange={e=>setMarkupForm(p=>({...p,nonAnggota:e.target.value}))} style={inp} placeholder="0" />
-              </div>
-            </div>
-            <button onClick={saveMarkupHandler} disabled={savingMarkup}
-              style={{ display:"flex", alignItems:"center", gap:8, padding:"11px 20px", borderRadius:10, background: savedMarkup?"rgba(52,211,153,0.2)":"linear-gradient(135deg,#34d399,#6ee7b7)", border: savedMarkup?"1px solid #34d399":"none", color: savedMarkup?"#34d399":"#0a0a0a", fontWeight:700, fontSize:".88rem", cursor:"pointer", transition:"all .3s" }}>
-              {savingMarkup ? <><RefreshCw style={{ width:14, height:14 }} /> Menyimpan...</> : savedMarkup ? "✓ Markup Tersimpan" : <><Save style={{ width:14, height:14 }} /> Simpan Markup</>}
-            </button>
+            )}
           </div>
-          )}
 
           {/* Add new */}
           <div style={{ background:"rgba(212,175,55,0.04)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:16, padding:20 }}>
