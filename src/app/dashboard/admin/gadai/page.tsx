@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Landmark, RefreshCw, Check, X, CheckCircle, Clock, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+import { getStaffMap, fmtTgl } from "@/lib/staff";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -34,13 +35,21 @@ export default function AdminGadaiPage() {
   const [detail, setDetail] = useState<any | null>(null);
   const [pmts, setPmts] = useState<any[]>([]);
   const [pmtLoading, setPmtLoading] = useState(false);
+  const [staff, setStaff] = useState<Record<string,string>>({});
+
+  // Nama penginput: staff (admin/master) atau anggota sendiri bila ia yang mengajukan.
+  const recorderName = (g: any) => g?.recorded_by ? (staff[g.recorded_by] || (g.recorded_by === g.user_id ? (g.profiles?.name || "Anggota") : "—")) : "—";
 
   async function load() {
     setLoading(true);
-    const { data } = await (supabase.from("gadai") as any)
-      .select("id, user_id, dana_cair, sisa_tagihan, nilai_jaminan, gram_setara, tenor, angsuran_per_bulan, status, created_at, profiles:profiles!user_id(name)")
-      .order("created_at",{ascending:false}).limit(200);
+    const [{ data }, staffMap] = await Promise.all([
+      (supabase.from("gadai") as any)
+        .select("id, user_id, dana_cair, sisa_tagihan, nilai_jaminan, gram_setara, tenor, angsuran_per_bulan, status, created_at, transaction_date, recorded_by, profiles:profiles!user_id(name)")
+        .order("created_at",{ascending:false}).limit(200),
+      getStaffMap(),
+    ]);
     setRows(data || []);
+    setStaff(staffMap);
     setLoading(false);
   }
   useEffect(() => { load(); }, []);
@@ -140,7 +149,10 @@ export default function AdminGadaiPage() {
                       {g.profiles?.name||"—"} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>· {g.tenor} bln · {Number(g.gram_setara).toFixed(4)} gr</span>
                     </p>
                     <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".76rem", margin:"2px 0 0" }}>
-                      Pinjaman {fmt(g.dana_cair)} · Sisa {fmt(g.sisa_tagihan)} · Angsuran {fmt(g.angsuran_per_bulan)}/bln · {fmtDate(g.created_at)}
+                      Pinjaman {fmt(g.dana_cair)} · Sisa {fmt(g.sisa_tagihan)} · Angsuran {fmt(g.angsuran_per_bulan)}/bln · Tgl transaksi {fmtTgl(g.transaction_date || g.created_at)}
+                    </p>
+                    <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:"2px 0 0" }}>
+                      Diinput oleh: <span style={{ color:"#60a5fa" }}>{recorderName(g)}</span> · Diinput {fmtDate(g.created_at)}
                     </p>
                   </div>
                   <div style={{ display:"flex", alignItems:"center", gap:8 }}>
@@ -184,6 +196,7 @@ export default function AdminGadaiPage() {
                 <div>
                   <h2 style={{ color:"#fff", fontWeight:700, fontSize:"1.05rem", margin:0 }}>Gadai · {detail.profiles?.name||"—"}</h2>
                   <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".8rem", margin:"2px 0 0" }}>{Number(detail.gram_setara).toFixed(4)} gr · {detail.tenor} bln · <span style={{ color:s.color }}>{s.label}</span></p>
+                  <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".74rem", margin:"3px 0 0" }}>Diinput oleh {recorderName(detail)} · Tgl transaksi {fmtTgl(detail.transaction_date || detail.created_at)}</p>
                 </div>
                 <div style={{ display:"flex", gap:8, flexShrink:0 }}>
                   {isMaster && (

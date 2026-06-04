@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import Select from "@/components/ui/Select";
 import MemberPicker from "@/components/ui/MemberPicker";
+import { getStaffMap, fmtTgl, fmtTglJam } from "@/lib/staff";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -42,13 +43,18 @@ export default function InputTransaksiPage() {
   const [saved, setSaved]       = useState(false);
   const [error, setError]       = useState("");
   const [recent, setRecent]     = useState<any[]>([]);
+  const [staff, setStaff]       = useState<Record<string,string>>({});
 
   async function loadRecent() {
-    const { data } = await (supabase.from("transactions") as any)
-      .select("id, type, amount, gram, status, created_at, profiles(name)")
-      .order("created_at", { ascending: false })
-      .limit(10);
+    const [{ data }, staffMap] = await Promise.all([
+      (supabase.from("transactions") as any)
+        .select("id, type, amount, gram, status, created_at, transaction_date, recorded_by, profiles(name)")
+        .order("created_at", { ascending: false })
+        .limit(10),
+      getStaffMap(),
+    ]);
     setRecent(data || []);
+    setStaff(staffMap);
   }
 
   useEffect(() => { loadRecent(); }, []);
@@ -88,8 +94,9 @@ export default function InputTransaksiPage() {
         status:         form.status,
         payment_method: form.payment_method || null,
         notes:          form.notes || null,
-        created_at:     new Date(form.created_at).toISOString(),
-        updated_at:     new Date(form.created_at).toISOString(),
+        // transaction_date = kapan transaksi terjadi (dipilih); created_at biar default NOW (kapan diinput)
+        transaction_date: new Date(form.created_at).toISOString(),
+        recorded_by:    user?.id || null,
       };
       if (form.gram)           payload.gram           = Number(form.gram);
       if (form.price_per_gram) payload.price_per_gram = Number(form.price_per_gram);
@@ -247,8 +254,8 @@ export default function InputTransaksiPage() {
                   <span style={{ color: TYPE_COLOR[tx.type] || "#fff", fontWeight:700, fontSize:".82rem" }}>
                     {TYPE_LABEL[tx.type] || tx.type}
                   </span>
-                  <span style={{ color:"rgba(255,255,255,0.35)", fontSize:".72rem" }}>
-                    {new Date(tx.created_at).toLocaleDateString("id-ID", { day:"2-digit", month:"short", year:"numeric" })}
+                  <span style={{ color:"rgba(255,255,255,0.45)", fontSize:".72rem" }}>
+                    Tgl transaksi: {fmtTgl(tx.transaction_date || tx.created_at)}
                   </span>
                 </div>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
@@ -257,6 +264,14 @@ export default function InputTransaksiPage() {
                     {tx.gram ? ` · ${Number(tx.gram).toFixed(2)}g` : ""}
                   </span>
                   <span style={{ color:"#fff", fontWeight:700, fontSize:".85rem" }}>{fmt(tx.amount)}</span>
+                </div>
+                <div style={{ marginTop:6, paddingTop:6, borderTop:"1px solid rgba(255,255,255,0.05)", display:"flex", justifyContent:"space-between", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+                  <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>
+                    Diinput oleh: <span style={{ color:"#D4AF37" }}>{staff[tx.recorded_by] || "—"}</span>
+                  </span>
+                  <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem" }}>
+                    Diinput: {fmtTglJam(tx.created_at)}
+                  </span>
                 </div>
               </div>
             ))

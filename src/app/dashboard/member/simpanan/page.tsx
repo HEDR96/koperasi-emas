@@ -104,6 +104,8 @@ export default function SimpananPage() {
         angsuran_per_bulan:  angsuran,
         status:              "pengajuan",
         keterangan:          `Pengajuan gadai ${gramNum} gram emas, tenor ${tenor} bulan`,
+        recorded_by:         user.id,
+        transaction_date:    new Date().toISOString(),
       });
       if (error) { setGadaiErr("Gagal mengajukan gadai: " + error.message); }
       else { setSubmitted(true); setShowGadai(false); load(); }

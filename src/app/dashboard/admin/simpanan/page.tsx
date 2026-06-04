@@ -7,12 +7,10 @@ import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import Select from "@/components/ui/Select";
 import MemberPicker from "@/components/ui/MemberPicker";
+import { getStaffMap, fmtTgl, fmtTglJam } from "@/lib/staff";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
-const fmtDate = (s: string) =>
-  new Date(s).toLocaleDateString("id-ID", { day:"2-digit", month:"short", year:"numeric" });
-
 const inp: React.CSSProperties = {
   width:"100%", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)",
   borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".9rem", outline:"none", boxSizing:"border-box",
@@ -28,19 +26,25 @@ const STATUS_COLOR: Record<string,string> = { pending:"#fbbf24", completed:"#34d
 
 export default function AdminSimpananPage() {
   const { user } = useAuthStore();
-  const [form, setForm]       = useState({ user_id:"", type:"wajib", amount:"", description:"" });
+  const today = new Date().toISOString().slice(0,10);
+  const [form, setForm]       = useState({ user_id:"", type:"wajib", amount:"", description:"", tgl: today });
   const [saving, setSaving]   = useState(false);
   const [saved, setSaved]     = useState(false);
   const [error, setError]     = useState("");
   const [recent, setRecent]   = useState<any[]>([]);
+  const [staff, setStaff]     = useState<Record<string,string>>({});
   const [loading, setLoading] = useState(true);
 
   async function loadRecent() {
     setLoading(true);
-    const { data } = await (supabase.from("simpanan") as any)
-      .select("id, type, amount, status, created_at, profiles:profiles!user_id(name)")
-      .order("created_at",{ascending:false}).limit(15);
+    const [{ data }, staffMap] = await Promise.all([
+      (supabase.from("simpanan") as any)
+        .select("id, type, amount, status, created_at, transaction_date, recorded_by, profiles:profiles!user_id(name)")
+        .order("created_at",{ascending:false}).limit(15),
+      getStaffMap(),
+    ]);
     setRecent(data || []);
+    setStaff(staffMap);
     setLoading(false);
   }
   useEffect(() => { loadRecent(); }, []);
@@ -56,6 +60,8 @@ export default function AdminSimpananPage() {
         description: form.description || null,
         status: "completed",        // langsung sah karena diinput admin
         verified_by: user?.id,
+        recorded_by: user?.id,
+        transaction_date: new Date(form.tgl).toISOString(),
       });
       if (err) { setError(err.message); }
       else {
@@ -67,7 +73,7 @@ export default function AdminSimpananPage() {
             type:"simpanan", is_read:false, link:"/dashboard/member/simpanan",
           });
         } catch {}
-        setForm({ user_id:"", type:"wajib", amount:"", description:"" });
+        setForm({ user_id:"", type:"wajib", amount:"", description:"", tgl: today });
         loadRecent();
       }
     } catch { setError("Terjadi kesalahan."); }
@@ -114,9 +120,15 @@ export default function AdminSimpananPage() {
             </div>
           </div>
 
-          <div>
-            <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Keterangan</label>
-            <input value={form.description} onChange={e=>setForm(p=>({...p,description:e.target.value}))} style={inp} placeholder="Contoh: Setoran wajib Juni" />
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+            <div>
+              <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tanggal Setoran</label>
+              <input type="date" value={form.tgl} onChange={e=>setForm(p=>({...p,tgl:e.target.value}))} style={inp} />
+            </div>
+            <div>
+              <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Keterangan</label>
+              <input value={form.description} onChange={e=>setForm(p=>({...p,description:e.target.value}))} style={inp} placeholder="Contoh: Setoran wajib Juni" />
+            </div>
           </div>
 
           <button onClick={save} disabled={saving || !form.user_id || !form.amount}
@@ -137,8 +149,12 @@ export default function AdminSimpananPage() {
                   <span style={{ color:STATUS_COLOR[r.status]||"#fff", fontSize:".72rem", textTransform:"capitalize" }}>{r.status}</span>
                 </div>
                 <div style={{ display:"flex", justifyContent:"space-between" }}>
-                  <span style={{ color:"rgba(255,255,255,0.55)", fontSize:".8rem" }}>{r.profiles?.name||"-"} · {fmtDate(r.created_at)}</span>
+                  <span style={{ color:"rgba(255,255,255,0.55)", fontSize:".8rem" }}>{r.profiles?.name||"-"} · Tgl setor {fmtTgl(r.transaction_date || r.created_at)}</span>
                   <span style={{ color:"#fff", fontWeight:700, fontSize:".85rem" }}>{fmt(r.amount)}</span>
+                </div>
+                <div style={{ marginTop:6, paddingTop:6, borderTop:"1px solid rgba(255,255,255,0.05)", display:"flex", justifyContent:"space-between", gap:8, flexWrap:"wrap" }}>
+                  <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>Diinput oleh: <span style={{ color:"#a78bfa" }}>{staff[r.recorded_by] || "—"}</span></span>
+                  <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem" }}>Diinput: {fmtTglJam(r.created_at)}</span>
                 </div>
               </div>
             ))}

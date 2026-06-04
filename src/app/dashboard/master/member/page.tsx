@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, RefreshCw, UserPlus, Eye } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface MemberRow {
   id: string;
@@ -37,6 +38,7 @@ const STATUS_COLOR: Record<string,string> = { active:"#34d399", pending:"#fbbf24
 const STATUS_BG:    Record<string,string> = { active:"rgba(52,211,153,0.12)", pending:"rgba(251,191,36,0.12)", suspended:"rgba(248,113,113,0.12)" };
 
 export default function MemberManagementPage() {
+  const { user } = useAuthStore();
   const [members, setMembers]       = useState<MemberRow[]>([]);
   const [filtered, setFiltered]     = useState<MemberRow[]>([]);
   const [search, setSearch]         = useState("");
@@ -131,6 +133,7 @@ export default function MemberManagementPage() {
       gram_setara: gramNum, dana_cair: dana, sisa_tagihan: dana, tenor: gForm.tenor,
       angsuran_per_bulan: angsuran, status: "aktif", tanggal_cair: new Date().toISOString(),
       keterangan: `Gadai ${gramNum} gram emas (admin dari profil)`,
+      recorded_by: user?.id, transaction_date: new Date().toISOString(),
     });
     if (error) { setGForm(f=>({...f,saving:false,err:error.message})); return; }
     try { await (supabase.from("notifications") as any).insert({ user_id:m.id, title:"Gadai Emas Disetujui", body:`Gadai ${gramNum} gram (cair ${fmt(dana)}, tenor ${gForm.tenor} bln, angsuran ${fmt(angsuran)}) telah aktif.`, type:"gadai", is_read:false, link:"/dashboard/member/gadai" }); } catch {}
