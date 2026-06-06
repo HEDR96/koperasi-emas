@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { create } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 import { supabase } from "@/lib/supabase";
 import { SITE_CONFIG } from "@/lib/constants";
 
@@ -104,25 +105,29 @@ export function useSiteName(): string {
   return useSettingsStore((s) => s.siteName);
 }
 
-/** Semua settings sekaligus (untuk komponen yang butuh banyak field). */
+/** Semua settings sekaligus (untuk komponen yang butuh banyak field).
+ *  useShallow mencegah re-render tak terbatas akibat object reference baru tiap siklus.
+ */
 export function useSiteSettings(): SiteSettings {
   useLoadSettings();
-  return useSettingsStore((s) => ({
-    siteName:       s.siteName,
-    tagline:        s.tagline,
-    phone:          s.phone,
-    email:          s.email,
-    whatsapp:       s.whatsapp,
-    instagram:      s.instagram,
-    address:        s.address,
-    mapEmbed:       s.mapEmbed,
-    mapUrl:         s.mapUrl,
-    legalNumber:    s.legalNumber,
-    operatingHours: s.operatingHours,
-    totalAnggota:   s.totalAnggota,
-    simpananPokok:  s.simpananPokok,
-    simpananWajib:  s.simpananWajib,
-  }));
+  return useSettingsStore(
+    useShallow((s) => ({
+      siteName:       s.siteName,
+      tagline:        s.tagline,
+      phone:          s.phone,
+      email:          s.email,
+      whatsapp:       s.whatsapp,
+      instagram:      s.instagram,
+      address:        s.address,
+      mapEmbed:       s.mapEmbed,
+      mapUrl:         s.mapUrl,
+      legalNumber:    s.legalNumber,
+      operatingHours: s.operatingHours,
+      totalAnggota:   s.totalAnggota,
+      simpananPokok:  s.simpananPokok,
+      simpananWajib:  s.simpananWajib,
+    }))
+  );
 }
 
 /** Normalise instagram handle → tanpa "@". */

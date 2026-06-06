@@ -26,7 +26,7 @@ export default function ContactSection() {
       .from("site_settings" as any)
       .select("value")
       .eq("key", "building_photo_url")
-      .single()
+      .maybeSingle()                          // ← tidak throw 406 saat baris belum ada
       .then(({ data }) => {
         if (data && (data as any).value) {
           setBuildingPhoto((data as any).value);

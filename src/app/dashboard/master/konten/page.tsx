@@ -17,7 +17,7 @@ export default function KontenPage() {
 
   async function loadPhoto() {
     const { data } = await (supabase.from("site_settings") as any)
-      .select("value").eq("key","building_photo_url").single();
+      .select("value").eq("key","building_photo_url").maybeSingle(); // ← tidak throw 406
     if (data?.value) setPhotoUrl(data.value);
     else setPhotoUrl(FALLBACK);
   }
