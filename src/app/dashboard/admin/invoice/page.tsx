@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FileText, RefreshCw, Search, X, Printer } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useSiteName } from "@/store/useSettingsStore";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -15,6 +16,7 @@ const TYPE_LABEL: Record<string,string> = {
 };
 
 export default function AdminInvoicePage() {
+  const siteName = useSiteName();
   const [rows, setRows] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -93,7 +95,7 @@ export default function AdminInvoicePage() {
               <div id="invoice-print" style={{ padding:"28px 28px 20px" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:20 }}>
                   <div>
-                    <p style={{ color:"#D4AF37", fontWeight:900, fontSize:"1.1rem", margin:0 }}>Koperasi Emas</p>
+                    <p style={{ color:"#D4AF37", fontWeight:900, fontSize:"1.1rem", margin:0 }}>{siteName}</p>
                     <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"2px 0 0" }}>Bukti Transaksi Resmi</p>
                   </div>
                   <span style={{ color:"#D4AF37", fontFamily:"monospace", fontSize:".82rem" }}>INV-{inv.id.slice(0,8).toUpperCase()}</span>

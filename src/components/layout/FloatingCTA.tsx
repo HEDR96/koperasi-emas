@@ -4,8 +4,10 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X, Phone, Mail, ChevronUp } from "lucide-react";
 import { SITE_CONFIG } from "@/lib/constants";
+import { useSiteSettings, waNumber } from "@/store/useSettingsStore";
 
 export default function FloatingCTA() {
+  const s = useSiteSettings();
   const [open, setOpen] = useState(false);
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
@@ -28,9 +30,9 @@ export default function FloatingCTA() {
           {open && (
             <>
               {[
-                { icon: Phone, label: "Telepon Kami", href: `tel:${SITE_CONFIG.phone}`, color: "text-blue-400" },
-                { icon: Mail, label: "Email Kami", href: `mailto:${SITE_CONFIG.email}`, color: "text-purple-400" },
-                { icon: MessageCircle, label: "WhatsApp", href: `https://wa.me/${SITE_CONFIG.whatsapp}`, color: "text-green-400" },
+                { icon: Phone, label: "Telepon Kami", href: `tel:${(s.phone || SITE_CONFIG.phone).replace(/\s/g,"")}`, color: "text-blue-400" },
+                { icon: Mail, label: "Email Kami", href: `mailto:${s.email || SITE_CONFIG.email}`, color: "text-purple-400" },
+                { icon: MessageCircle, label: "WhatsApp", href: `https://wa.me/${waNumber(s.whatsapp) || SITE_CONFIG.whatsapp}`, color: "text-green-400" },
               ].map((item, i) => {
                 const Icon = item.icon;
                 return (

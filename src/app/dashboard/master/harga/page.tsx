@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Save, RefreshCw, Plus, Trash2 } from "lucide-react";
+import { Save, RefreshCw, Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
-import { getMarkup, saveMarkup, type Markup } from "@/lib/harga";
+import {
+  getMarkup, saveMarkup, type Markup,
+  buildDerivedCicilan, CICILAN_TENORS, CICILAN_ADMIN_FEE, CICILAN_MARGIN_PCT,
+} from "@/lib/harga";
 import RupiahInput from "@/components/ui/RupiahInput";
 
 const fmt = (n: number) =>
@@ -28,7 +31,6 @@ const inpSm: React.CSSProperties = { ...inp, padding:"8px 12px", fontSize:".85re
 type Tab = "emas" | "cicilan" | "buyback";
 
 interface HargaBerat { id: number; gram: number; harga: number; created_at: string; }
-interface CicilanRow { id: number; gram: number; tenor: number; harga_jual: number; angsuran: number; uang_muka_persen: number; created_at: string; }
 
 export default function HargaEmasPage() {
   const { user } = useAuthStore();
@@ -49,14 +51,7 @@ export default function HargaEmasPage() {
   const [savingMarkup, setSavingMarkup] = useState(false);
   const [savedMarkup, setSavedMarkup] = useState(false);
 
-  // ─── Cicilan (angsuran per tenor diisi sekaligus) ───
-  const TENOR_OPTIONS = [12, 24, 36, 48, 60];
-  const [cicilan, setCicilan]         = useState<CicilanRow[]>([]);
-  const [cForm, setCForm]             = useState<{ gram:string; harga_jual:string; uang_muka_persen:string; angsuran: Record<number,string> }>(
-    { gram:"", harga_jual:"", uang_muka_persen:"10", angsuran:{} }
-  );
-  const [savingCicilan, setSavingCicilan] = useState(false);
-  const [savedCicilan, setSavedCicilan]   = useState(false);
+  // ─── Cicilan: diturunkan otomatis dari Harga Emas + markup anggota (tanpa input) ───
 
   // ─── Buyback (hanya 1 gram) ───
   const [hargaBuyback, setHargaBuyback]   = useState<HargaBerat[]>([]);
@@ -69,9 +64,8 @@ export default function HargaEmasPage() {
   async function load() {
     setLoading(true);
     try {
-      const [{ data: e }, { data: c }, { data: b }, mk] = await Promise.all([
+      const [{ data: e }, { data: b }, mk] = await Promise.all([
         (supabase.from("harga_emas_berat") as any).select("*").eq("kategori","emas").order("gram").order("created_at", { ascending:false }).limit(100),
-        (supabase.from("cicilan_harga") as any).select("*").order("gram").order("tenor").limit(200),
         (supabase.from("harga_emas_berat") as any).select("*").eq("kategori","buyback").order("gram").order("created_at", { ascending:false }).limit(100),
         getMarkup(),
       ]);
@@ -90,7 +84,6 @@ export default function HargaEmasPage() {
           .sort((a,b) => a.gram - b.gram);
       };
       setHargaEmas(latestPerGram(e||[]));
-      setCicilan((c||[]).map((r:any) => ({...r, gram: Number(r.gram)})));
       setHargaBuyback(latestPerGram(b||[]));
     } catch {}
     setLoading(false);
@@ -128,31 +121,7 @@ export default function HargaEmasPage() {
   const setMarkupCell = (kind: "anggota"|"nonAnggota", gram: number, val: string) =>
     setMarkupForm(p => ({ ...p, [kind]: { ...p[kind], [String(gram)]: val } }));
 
-  // ─── Save Cicilan: tambah semua tenor yang diisi sekaligus ───
-  async function saveCicilan() {
-    if (!cForm.gram || !cForm.harga_jual) return;
-    // Bangun satu baris per tenor yang angsurannya diisi.
-    const rows = TENOR_OPTIONS
-      .filter(t => Number(cForm.angsuran[t]) > 0)
-      .map(t => ({
-        gram: Number(cForm.gram), tenor: t,
-        harga_jual: Number(cForm.harga_jual), angsuran: Number(cForm.angsuran[t]),
-        uang_muka_persen: Number(cForm.uang_muka_persen) || 0, updated_by: user?.id,
-      }));
-    if (rows.length === 0) return;
-    setSavingCicilan(true);
-    await (supabase.from("cicilan_harga") as any).insert(rows);
-    setCForm({ gram:"", harga_jual:"", uang_muka_persen:"10", angsuran:{} });
-    setSavedCicilan(true); setTimeout(() => setSavedCicilan(false), 2000);
-    load();
-    setSavingCicilan(false);
-  }
-
-  async function deleteCicilan(id: number) {
-    if (!window.confirm("Hapus paket cicilan ini?")) return;
-    await (supabase.from("cicilan_harga") as any).delete().eq("id", id);
-    load();
-  }
+  // ─── Cicilan dihitung otomatis (lihat lib/harga.ts) — tidak ada simpan/hapus ───
 
   // ─── Save Buyback (selalu 1 gram) ───
   async function saveBuyback() {
@@ -292,38 +261,43 @@ export default function HargaEmasPage() {
         </motion.div>
       )}
 
-      {/* ─── TAB: CICILAN ─── */}
-      {tab === "cicilan" && (
+      {/* ─── TAB: CICILAN (otomatis dari Harga Emas) ─── */}
+      {tab === "cicilan" && (() => {
+        const derived = buildDerivedCicilan(hargaEmas, markup.anggota);
+        return (
         <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} style={{ display:"flex", flexDirection:"column", gap:20 }}>
-          {/* Existing */}
+          <div style={{ background:"rgba(167,139,250,0.04)", border:"1px solid rgba(167,139,250,0.2)", borderRadius:14, padding:"14px 18px" }}>
+            <p style={{ color:"#a78bfa", fontWeight:700, fontSize:".85rem", margin:0 }}>Cicilan dihitung otomatis dari Harga Emas</p>
+            <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".76rem", margin:"6px 0 0", lineHeight:1.6 }}>
+              Tidak ada input manual. Berat &amp; harga mengikuti tabel Harga Emas (kolom <b style={{color:"#34d399"}}>Harga Anggota</b>).
+              Total cicilan = harga anggota + biaya admin <b>{fmt(CICILAN_ADMIN_FEE)}</b> + margin <b>{CICILAN_MARGIN_PCT}%</b>,
+              lalu angsuran/bln = total ÷ tenor. Ubah angka di tab <b>Harga Emas</b> untuk memperbarui cicilan.
+            </p>
+          </div>
+
           <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(167,139,250,0.2)", borderRadius:16, overflow:"hidden" }}>
             <div style={{ padding:"14px 20px", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-              <p style={{ color:"#a78bfa", fontWeight:700, fontSize:".85rem", margin:0 }}>Paket Cicilan Tersedia</p>
+              <p style={{ color:"#a78bfa", fontWeight:700, fontSize:".85rem", margin:0 }}>Angsuran per Tenor</p>
             </div>
-            {cicilan.length === 0 ? <p style={{ padding:"20px", color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Belum ada paket cicilan</p> : (
+            {derived.length === 0 ? <p style={{ padding:"20px", color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Belum ada data harga emas. Tambahkan harga di tab Harga Emas.</p> : (
               <div style={{ overflowX:"auto" }}>
                 <table style={{ width:"100%", borderCollapse:"collapse" }}>
                   <thead><tr style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                    {["Gram", "Tenor", "Harga Jual", "UM %", "Angsuran/bln", ...(isMaster?[""]:[])].map(h=>(
-                      <th key={h} style={{ padding:"10px 16px", textAlign:"left", color:"rgba(255,255,255,0.3)", fontSize:".72rem", fontWeight:600, textTransform:"uppercase" }}>{h}</th>
+                    {["Berat", "Harga Anggota", "Total Cicilan", ...CICILAN_TENORS.map(t=>`${t} bln`)].map(h=>(
+                      <th key={h} style={{ padding:"10px 16px", textAlign:"left", color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:600, textTransform:"uppercase", whiteSpace:"nowrap" }}>{h}</th>
                     ))}
                   </tr></thead>
                   <tbody>
-                    {cicilan.map((r,i)=>(
-                      <tr key={r.id} style={{ borderBottom: i<cicilan.length-1?"1px solid rgba(255,255,255,0.04)":"none" }}>
-                        <td style={{ padding:"11px 16px", color:"#fff", fontWeight:700 }}>{r.gram}g</td>
-                        <td style={{ padding:"11px 16px", color:"rgba(255,255,255,0.7)" }}>{r.tenor} bln</td>
-                        <td style={{ padding:"11px 16px", color:"#a78bfa", fontWeight:700 }}>{fmt(r.harga_jual)}</td>
-                        <td style={{ padding:"11px 16px", color:"rgba(255,255,255,0.5)" }}>{r.uang_muka_persen}%</td>
-                        <td style={{ padding:"11px 16px", color:"#D4AF37", fontWeight:900 }}>{fmt(r.angsuran)}</td>
-                        {isMaster && (
-                          <td style={{ padding:"11px 16px" }}>
-                            <button onClick={() => deleteCicilan(r.id)} title="Hapus (master)"
-                              style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:7, padding:"5px 8px", color:"#f87171", cursor:"pointer" }}>
-                              <Trash2 style={{ width:13, height:13 }} />
-                            </button>
+                    {derived.map((r,i)=>(
+                      <tr key={r.gram} style={{ borderBottom: i<derived.length-1?"1px solid rgba(255,255,255,0.04)":"none" }}>
+                        <td style={{ padding:"11px 16px", color:"#fff", fontWeight:700, whiteSpace:"nowrap" }}>{r.gram} gram</td>
+                        <td style={{ padding:"11px 16px", color:"#34d399", fontWeight:900, whiteSpace:"nowrap" }}>{fmt(r.hargaAnggota)}</td>
+                        <td style={{ padding:"11px 16px", color:"#a78bfa", fontWeight:700, whiteSpace:"nowrap" }}>{fmt(r.total)}</td>
+                        {r.tenors.map(t=>(
+                          <td key={t.tenor} style={{ padding:"11px 16px", color:"#D4AF37", fontWeight:900, whiteSpace:"nowrap" }}>
+                            {fmt(t.angsuran)}<span style={{ color:"rgba(255,255,255,0.3)", fontWeight:500, fontSize:".7rem" }}>/bln</span>
                           </td>
-                        )}
+                        ))}
                       </tr>
                     ))}
                   </tbody>
@@ -331,49 +305,14 @@ export default function HargaEmasPage() {
               </div>
             )}
           </div>
-
-          {/* Add new — isi angsuran untuk semua tenor sekaligus */}
-          <div style={{ background:"rgba(167,139,250,0.04)", border:"1px solid rgba(167,139,250,0.2)", borderRadius:16, padding:20 }}>
-            <p style={{ color:"#a78bfa", fontWeight:700, fontSize:".85rem", marginBottom:4, display:"flex", alignItems:"center", gap:6 }}>
-              <Plus style={{ width:14, height:14 }} /> Tambah Paket Cicilan
+          {isMaster && (
+            <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".74rem", margin:0 }}>
+              Catatan: markup anggota yang dipakai adalah yang sudah <b>tersimpan</b>. Simpan markup di tab Harga Emas agar cicilan ikut berubah.
             </p>
-            <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".74rem", margin:"0 0 14px" }}>
-              Isi berat, harga jual & uang muka, lalu masukkan angsuran/bln untuk tenor yang diinginkan. Baris tenor yang diisi akan tersimpan sekaligus dalam satu klik.
-            </p>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))", gap:12, marginBottom:16 }}>
-              <div>
-                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Berat (gram)</label>
-                <input type="number" min={0} step={0.5} value={cForm.gram} onChange={e=>setCForm(p=>({...p,gram:e.target.value}))} style={inpSm} placeholder="1" />
-              </div>
-              <div>
-                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Harga Jual</label>
-                <RupiahInput value={cForm.harga_jual} onValueChange={v=>setCForm(p=>({...p,harga_jual:v}))} style={inpSm} placeholder="1.698.000" />
-              </div>
-              <div>
-                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Uang Muka %</label>
-                <input type="number" min={0} value={cForm.uang_muka_persen} onChange={e=>setCForm(p=>({...p,uang_muka_persen:e.target.value}))} style={inpSm} placeholder="10" />
-              </div>
-            </div>
-
-            <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:8 }}>Angsuran / bulan per tenor</label>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))", gap:12, marginBottom:16 }}>
-              {TENOR_OPTIONS.map(t=>(
-                <div key={t}>
-                  <label style={{ color:"rgba(255,255,255,0.55)", fontSize:".76rem", display:"block", marginBottom:6, fontWeight:600 }}>{t} bulan</label>
-                  <RupiahInput value={cForm.angsuran[t] ?? ""}
-                    onValueChange={v=>setCForm(p=>({...p, angsuran:{ ...p.angsuran, [t]: v }}))}
-                    style={inpSm} placeholder="angsuran/bln" />
-                </div>
-              ))}
-            </div>
-
-            <button onClick={saveCicilan} disabled={savingCicilan||!cForm.gram||!cForm.harga_jual||!TENOR_OPTIONS.some(t=>Number(cForm.angsuran[t])>0)}
-              style={{ display:"flex", alignItems:"center", gap:8, padding:"11px 20px", borderRadius:10, background: savedCicilan?"rgba(52,211,153,0.2)":"rgba(167,139,250,0.2)", border: savedCicilan?"1px solid #34d399":"1px solid rgba(167,139,250,0.4)", color: savedCicilan?"#34d399":"#a78bfa", fontWeight:700, fontSize:".88rem", cursor:"pointer", transition:"all .3s" }}>
-              {savingCicilan ? <><RefreshCw style={{ width:14, height:14 }} /> Menyimpan...</> : savedCicilan ? "✓ Paket Ditambahkan" : <><Plus style={{ width:14, height:14 }} /> Tambah Paket</>}
-            </button>
-          </div>
+          )}
         </motion.div>
-      )}
+        );
+      })()}
 
       {/* ─── TAB: BUYBACK ─── */}
       {tab === "buyback" && (

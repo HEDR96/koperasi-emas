@@ -8,6 +8,10 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { formatCurrency } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
+import {
+  getMarkup, withMarkup,
+  buildDerivedCicilan, CICILAN_ADMIN_FEE, CICILAN_MARGIN_PCT,
+} from "@/lib/harga";
 import { Calculator, ArrowLeftRight, MessageCircle } from "lucide-react";
 
 type SimType = "cicilan" | "buyback";
@@ -20,20 +24,21 @@ const TABS: { id: SimType; label: string; icon: any }[] = [
 const WA_ADMIN    = "6281297533899";
 const WA_PENGURUS = "6288214460345";
 
-interface CicilanHarga {
-  id: number;
+// Flat plan per (gram × tenor) – derived from live gold price
+interface DerivedPlan {
+  key: string;   // `${gram}-${tenor}`
   gram: number;
   tenor: number;
-  harga_jual: number;
+  hargaAnggota: number;
+  total: number;
   angsuran: number;
-  uang_muka_persen: number;
 }
 
 export default function SimulationSection() {
   const [activeTab, setActiveTab] = useState<SimType>("cicilan");
 
-  // Cicilan state
-  const [cicilanPlans, setCicilanPlans]   = useState<CicilanHarga[]>([]);
+  // Cicilan state — derived from harga emas + markup anggota
+  const [cicilanPlans, setCicilanPlans]   = useState<DerivedPlan[]>([]);
   const [selectedGram, setSelectedGram]   = useState<number | null>(null);
   const [selectedTenor, setSelectedTenor] = useState<number | null>(null);
   const [loadingCicilan, setLoadingCicilan] = useState(true);
@@ -43,19 +48,39 @@ export default function SimulationSection() {
   const [buybackPrice, setBuybackPrice]     = useState(0);
   const [loadingBuyback, setLoadingBuyback] = useState(true);
 
-  // Load cicilan plans from DB
+  // Load cicilan plans: derive from harga_emas_berat + markup anggota
   useEffect(() => {
     (async () => {
       setLoadingCicilan(true);
       try {
-        const { data } = await (supabase.from("cicilan_harga") as any)
-          .select("*")
-          .order("gram", { ascending: true })
-          .order("tenor", { ascending: true });
-        if (data?.length) {
-          setCicilanPlans(data.map((d: any) => ({ ...d, gram: Number(d.gram) })));
-          setSelectedGram(Number(data[0].gram));
-          setSelectedTenor(data[0].tenor);
+        const [{ data: e }, markup] = await Promise.all([
+          (supabase.from("harga_emas_berat") as any)
+            .select("gram,harga")
+            .eq("kategori", "emas")
+            .order("created_at", { ascending: false })
+            .limit(200),
+          getMarkup(),
+        ]);
+        // Deduplicate — latest per gram
+        const seen = new Set<number>();
+        const latest = (e || [])
+          .filter((r: any) => { const g = Number(r.gram); if (seen.has(g)) return false; seen.add(g); return true; })
+          .map((r: any) => ({ gram: Number(r.gram), harga: withMarkup(r.harga, Number(r.gram), markup.anggota) }));
+        // Flatten derived cicilan into per-(gram×tenor) entries
+        const derived = buildDerivedCicilan(latest, {});
+        const flat: DerivedPlan[] = derived.flatMap(d =>
+          d.tenors.map(t => ({
+            key: `${d.gram}-${t.tenor}`,
+            gram: d.gram, tenor: t.tenor,
+            hargaAnggota: d.hargaAnggota,
+            total: d.total,
+            angsuran: t.angsuran,
+          }))
+        );
+        setCicilanPlans(flat);
+        if (flat.length) {
+          setSelectedGram(flat[0].gram);
+          setSelectedTenor(flat[0].tenor);
         }
       } catch {}
       setLoadingCicilan(false);
@@ -102,18 +127,13 @@ export default function SimulationSection() {
     p => p.gram === selectedGram && p.tenor === selectedTenor
   );
 
-  const uangMuka = selectedPlan
-    ? Math.round(selectedPlan.harga_jual * (selectedPlan.uang_muka_persen / 100))
-    : 0;
-
-  function buildMsg(plan: CicilanHarga) {
-    const um = Math.round(plan.harga_jual * plan.uang_muka_persen / 100);
+  function buildMsg(plan: DerivedPlan) {
     return encodeURIComponent([
       "Halo, saya ingin mengajukan cicilan emas:",
       `• Berat: ${plan.gram} gram`,
-      `• Harga Jual: ${formatCurrency(plan.harga_jual)}`,
+      `• Harga Anggota: ${formatCurrency(plan.hargaAnggota)}`,
+      `• Total Cicilan: ${formatCurrency(plan.total)}`,
       `• Tenor: ${plan.tenor} bulan`,
-      `• Uang Muka (${plan.uang_muka_persen}%): ${formatCurrency(um)}`,
       `• Angsuran/bulan: ${formatCurrency(plan.angsuran)}`,
       "",
       "Mohon info lebih lanjut. Terima kasih."
@@ -202,10 +222,10 @@ export default function SimulationSection() {
                 {selectedPlan ? (
                   <div className="space-y-4">
                     {[
-                      { label: "Berat Emas",       value: `${selectedPlan.gram} gram` },
-                      { label: "Harga Jual",        value: formatCurrency(selectedPlan.harga_jual) },
-                      { label: `Uang Muka (${selectedPlan.uang_muka_persen}%)`, value: formatCurrency(uangMuka), highlight: true },
-                      { label: "Tenor",             value: `${selectedPlan.tenor} bulan` },
+                      { label: "Berat Emas",      value: `${selectedPlan.gram} gram` },
+                      { label: "Harga Anggota",   value: formatCurrency(selectedPlan.hargaAnggota) },
+                      { label: "Total Cicilan",   value: formatCurrency(selectedPlan.total), highlight: true },
+                      { label: "Tenor",           value: `${selectedPlan.tenor} bulan` },
                     ].map(row => (
                       <div key={row.label} className="flex justify-between py-3 border-b border-white/5">
                         <span className="text-white/80 text-sm">{row.label}</span>
@@ -216,7 +236,10 @@ export default function SimulationSection() {
                       <span className="text-white font-semibold">Angsuran / Bulan</span>
                       <span className="text-2xl font-black text-gold-gradient">{formatCurrency(selectedPlan.angsuran)}</span>
                     </div>
-                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginTop:8 }}>
+                    <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:0 }}>
+                      Total = harga + biaya admin {formatCurrency(CICILAN_ADMIN_FEE)} + margin {CICILAN_MARGIN_PCT}% ÷ {selectedPlan.tenor} bulan
+                    </p>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginTop:4 }}>
                       <a href={`https://wa.me/${WA_ADMIN}?text=${buildMsg(selectedPlan)}`} target="_blank" rel="noopener noreferrer"
                         style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none" }}>
                         <MessageCircle className="w-4 h-4" style={{ color:"#25d366" }} />

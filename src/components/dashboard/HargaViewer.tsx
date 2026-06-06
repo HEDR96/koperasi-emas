@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { RefreshCw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { getMarkup, withMarkup } from "@/lib/harga";
+import {
+  getMarkup, withMarkup,
+  buildDerivedCicilan, type DerivedCicilan, CICILAN_TENORS, CICILAN_ADMIN_FEE, CICILAN_MARGIN_PCT,
+} from "@/lib/harga";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -12,7 +15,6 @@ const fmt = (n: number) =>
 type Tab = "emas" | "cicilan" | "buyback";
 
 interface HargaBerat { gram: number; harga: number; created_at: string; }
-interface CicilanRow { id: number; gram: number; tenor: number; harga_jual: number; angsuran: number; uang_muka_persen: number; }
 
 // Tampilan read-only harga emas untuk anggota (member) & admin.
 // Harga emas = harga dasar + (markup anggota × berat). Harga dasar & markup tidak ditampilkan.
@@ -20,15 +22,14 @@ export default function HargaViewer() {
   const [tab, setTab] = useState<Tab>("emas");
   const [hargaEmas, setHargaEmas]     = useState<HargaBerat[]>([]);
   const [hargaBuyback, setHargaBuyback] = useState<HargaBerat[]>([]);
-  const [cicilan, setCicilan]         = useState<CicilanRow[]>([]);
+  const [cicilan, setCicilan]         = useState<DerivedCicilan[]>([]);
   const [loading, setLoading]         = useState(true);
 
   async function load() {
     setLoading(true);
     try {
-      const [{ data: e }, { data: c }, { data: b }, markup] = await Promise.all([
+      const [{ data: e }, { data: b }, markup] = await Promise.all([
         (supabase.from("harga_emas_berat") as any).select("gram,harga,created_at").eq("kategori","emas").order("created_at",{ ascending:false }).limit(200),
-        (supabase.from("cicilan_harga") as any).select("*").order("gram").order("tenor").limit(200),
         (supabase.from("harga_emas_berat") as any).select("gram,harga,created_at").eq("kategori","buyback").order("created_at",{ ascending:false }).limit(200),
         getMarkup(),
       ]);
@@ -39,9 +40,11 @@ export default function HargaViewer() {
           .map(r => ({ ...r, gram: Number(r.gram), harga: withMarkup(r.harga, Number(r.gram), markupMap) }))
           .sort((a,b) => a.gram - b.gram);
       };
-      setHargaEmas(latestPerGram(e||[], markup.anggota));
+      const emasAnggota = latestPerGram(e||[], markup.anggota);
+      setHargaEmas(emasAnggota);
       setHargaBuyback(latestPerGram(b||[], {})); // buyback ditampilkan apa adanya
-      setCicilan((c||[]).map((r:any) => ({ ...r, gram: Number(r.gram) })));
+      // Cicilan diturunkan otomatis dari harga anggota (emasAnggota.harga sudah termasuk markup).
+      setCicilan(buildDerivedCicilan(emasAnggota, {}));
     } catch {}
     setLoading(false);
   }
@@ -115,23 +118,26 @@ export default function HargaViewer() {
             style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(167,139,250,0.2)", borderRadius:16, overflow:"hidden" }}>
             <div style={{ padding:"14px 20px", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
               <p style={{ color:"#a78bfa", fontWeight:700, fontSize:".85rem", margin:0 }}>Paket Cicilan Tersedia</p>
+              <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".74rem", margin:"4px 0 0" }}>
+                Angsuran/bln otomatis dari harga emas. Total = harga + biaya admin {fmt(CICILAN_ADMIN_FEE)} + margin {CICILAN_MARGIN_PCT}%, lalu dibagi tenor.
+              </p>
             </div>
-            {cicilan.length === 0 ? <p style={{ padding:"20px", color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Belum ada paket cicilan</p> : (
+            {cicilan.length === 0 ? <p style={{ padding:"20px", color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Belum ada data harga emas</p> : (
               <div style={{ overflowX:"auto" }}>
                 <table style={{ width:"100%", borderCollapse:"collapse" }}>
                   <thead><tr style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                    {["Gram", "Tenor", "Harga Jual", "UM %", "Angsuran/bln"].map(h=>(
-                      <th key={h} style={{ padding:"10px 16px", textAlign:"left", color:"rgba(255,255,255,0.3)", fontSize:".72rem", fontWeight:600, textTransform:"uppercase" }}>{h}</th>
+                    {["Gram", "Harga", ...CICILAN_TENORS.map(t=>`${t} bln`)].map(h=>(
+                      <th key={h} style={{ padding:"10px 16px", textAlign:"left", color:"rgba(255,255,255,0.3)", fontSize:".72rem", fontWeight:600, textTransform:"uppercase", whiteSpace:"nowrap" }}>{h}</th>
                     ))}
                   </tr></thead>
                   <tbody>
                     {cicilan.map((r,i)=>(
-                      <tr key={r.id} style={{ borderBottom: i<cicilan.length-1?"1px solid rgba(255,255,255,0.04)":"none" }}>
-                        <td style={{ padding:"11px 16px", color:"#fff", fontWeight:700 }}>{r.gram}g</td>
-                        <td style={{ padding:"11px 16px", color:"rgba(255,255,255,0.7)" }}>{r.tenor} bln</td>
-                        <td style={{ padding:"11px 16px", color:"#a78bfa", fontWeight:700 }}>{fmt(r.harga_jual)}</td>
-                        <td style={{ padding:"11px 16px", color:"rgba(255,255,255,0.5)" }}>{r.uang_muka_persen}%</td>
-                        <td style={{ padding:"11px 16px", color:"#D4AF37", fontWeight:900 }}>{fmt(r.angsuran)}</td>
+                      <tr key={r.gram} style={{ borderBottom: i<cicilan.length-1?"1px solid rgba(255,255,255,0.04)":"none" }}>
+                        <td style={{ padding:"11px 16px", color:"#fff", fontWeight:700, whiteSpace:"nowrap" }}>{r.gram}g</td>
+                        <td style={{ padding:"11px 16px", color:"#a78bfa", fontWeight:700, whiteSpace:"nowrap" }}>{fmt(r.hargaAnggota)}</td>
+                        {r.tenors.map(t=>(
+                          <td key={t.tenor} style={{ padding:"11px 16px", color:"#D4AF37", fontWeight:900, whiteSpace:"nowrap" }}>{fmt(t.angsuran)}<span style={{ color:"rgba(255,255,255,0.3)", fontWeight:500, fontSize:".7rem" }}>/bln</span></td>
+                        ))}
                       </tr>
                     ))}
                   </tbody>

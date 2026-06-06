@@ -5,10 +5,15 @@ import { motion } from "framer-motion";
 import { Calculator, MessageCircle, Send, CheckCircle, Clock } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+import {
+  getMarkup, withMarkup,
+  buildDerivedCicilan, CICILAN_ADMIN_FEE, CICILAN_MARGIN_PCT,
+} from "@/lib/harga";
 
-interface CicilanHarga {
-  id: number; gram: number; tenor: number;
-  harga_jual: number; angsuran: number; uang_muka_persen: number;
+// Paket cicilan diturunkan otomatis dari harga emas (harga anggota) — tanpa data manual.
+interface CicilanPlan {
+  id: string; gram: number; tenor: number;
+  hargaAnggota: number; total: number; angsuran: number;
 }
 
 const fmt = (n: number) =>
@@ -24,10 +29,10 @@ const STATUS_C: Record<string,{label:string;color:string}> = {
 
 export default function CicilanPage() {
   const { user } = useAuthStore();
-  const [plans, setPlans] = useState<CicilanHarga[]>([]);
+  const [plans, setPlans] = useState<CicilanPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [mine, setMine] = useState<any[]>([]);
-  const [applyId, setApplyId] = useState<number | null>(null);
+  const [applyId, setApplyId] = useState<string | null>(null);
   const [applied, setApplied] = useState(false);
 
   async function loadMine() {
@@ -40,23 +45,35 @@ export default function CicilanPage() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await (supabase.from("cicilan_harga") as any)
-        .select("*")
-        .order("gram", { ascending:true })
-        .order("tenor", { ascending:true });
-      setPlans((data||[]).map((d:any) => ({...d, gram: Number(d.gram)})));
+      const [{ data: e }, markup] = await Promise.all([
+        (supabase.from("harga_emas_berat") as any)
+          .select("gram,harga,created_at").eq("kategori","emas")
+          .order("created_at",{ ascending:false }).limit(200),
+        getMarkup(),
+      ]);
+      // Ambil harga terbaru per berat, lalu terapkan markup anggota.
+      const seen = new Set<number>();
+      const latest = (e||[])
+        .filter((r:any) => { const g = Number(r.gram); if (seen.has(g)) return false; seen.add(g); return true; })
+        .map((r:any) => ({ gram: Number(r.gram), harga: withMarkup(r.harga, Number(r.gram), markup.anggota) }));
+      // Turunkan paket cicilan dari harga anggota (latest.harga sudah termasuk markup → markup map kosong).
+      const derived = buildDerivedCicilan(latest, {});
+      const flat: CicilanPlan[] = derived.flatMap(d =>
+        d.tenors.map(t => ({ id:`${d.gram}-${t.tenor}`, gram:d.gram, tenor:t.tenor, hargaAnggota:d.hargaAnggota, total:d.total, angsuran:t.angsuran }))
+      );
+      setPlans(flat);
       setLoading(false);
     })();
     loadMine();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  async function ajukan(plan: CicilanHarga) {
+  async function ajukan(plan: CicilanPlan) {
     if (!user?.id) return;
     setApplyId(plan.id); setApplied(false);
     const { error } = await (supabase.from("installments") as any).insert({
       user_id: user.id, product_name: `Emas ${plan.gram} gram`, total_gram: plan.gram,
-      total_amount: plan.harga_jual, monthly_amount: plan.angsuran, tenor: plan.tenor,
+      total_amount: plan.total, monthly_amount: plan.angsuran, tenor: plan.tenor,
       paid_installments: 0, status: "pending",
     });
     if (!error) {
@@ -73,14 +90,13 @@ export default function CicilanPage() {
 
   const grams = [...new Set(plans.map(p => p.gram))].sort((a,b)=>a-b);
 
-  function buildMsg(plan: CicilanHarga) {
-    const um = Math.round(plan.harga_jual * plan.uang_muka_persen / 100);
+  function buildMsg(plan: CicilanPlan) {
     return encodeURIComponent([
       "Halo, saya ingin mengajukan cicilan emas:",
       `• Berat: ${plan.gram} gram`,
-      `• Harga Jual: ${fmt(plan.harga_jual)}`,
+      `• Harga Anggota: ${fmt(plan.hargaAnggota)}`,
       `• Tenor: ${plan.tenor} bulan`,
-      `• Uang Muka (${plan.uang_muka_persen}%): ${fmt(um)}`,
+      `• Total Cicilan: ${fmt(plan.total)}`,
       `• Angsuran/bulan: ${fmt(plan.angsuran)}`,
       "",
       "Mohon info lebih lanjut. Terima kasih."
@@ -92,6 +108,9 @@ export default function CicilanPage() {
       <div>
         <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Cicilan Emas</h1>
         <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Pilih paket lalu Ajukan Cicilan — admin akan menyetujui</p>
+        <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".75rem", margin:"4px 0 0" }}>
+          Total cicilan = harga anggota + biaya admin {fmt(CICILAN_ADMIN_FEE)} + margin {CICILAN_MARGIN_PCT}%. Angsuran/bln = total ÷ tenor.
+        </p>
       </div>
 
       {applied && (
@@ -143,12 +162,11 @@ export default function CicilanPage() {
                 </div>
                 <div>
                   <p style={{ color:"#D4AF37", fontWeight:900, fontSize:"1.05rem", margin:0 }}>{gram} Gram</p>
-                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:0 }}>Harga Jual: {fmt(gramPlans[0].harga_jual)}</p>
+                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:0 }}>Harga Anggota: {fmt(gramPlans[0].hargaAnggota)}</p>
                 </div>
               </div>
               <div style={{ padding:16, display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))", gap:12 }}>
                 {gramPlans.map(plan => {
-                  const um = Math.round(plan.harga_jual * plan.uang_muka_persen / 100);
                   return (
                     <div key={plan.id}
                       style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:13, padding:"16px 14px", display:"flex", flexDirection:"column", gap:8 }}>
@@ -158,8 +176,8 @@ export default function CicilanPage() {
                       </div>
                       <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
                         <div style={{ display:"flex", justifyContent:"space-between", fontSize:".78rem" }}>
-                          <span style={{ color:"rgba(255,255,255,0.4)" }}>Uang Muka {plan.uang_muka_persen}%</span>
-                          <span style={{ color:"#D4AF37", fontWeight:600 }}>{fmt(um)}</span>
+                          <span style={{ color:"rgba(255,255,255,0.4)" }}>Total Cicilan</span>
+                          <span style={{ color:"#D4AF37", fontWeight:600 }}>{fmt(plan.total)}</span>
                         </div>
                         <div style={{ display:"flex", justifyContent:"space-between", fontSize:".78rem" }}>
                           <span style={{ color:"rgba(255,255,255,0.4)" }}>Angsuran/bln</span>

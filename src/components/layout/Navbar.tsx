@@ -6,11 +6,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/constants";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useSiteName } from "@/store/useSettingsStore";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const { user, isAuthenticated } = useAuthStore();
+  const siteName = useSiteName();
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 40);
@@ -39,7 +41,7 @@ export default function Navbar() {
               onError={e => { const el = e.currentTarget as HTMLImageElement; el.style.display="none"; (el.nextElementSibling as HTMLElement).style.display="flex"; }}
             />
             <div className="bg-gold-gradient" style={{ width:42, height:42, borderRadius:10, display:"none", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 14px rgba(212,175,55,0.35)", fontSize:"1rem", fontWeight:900, color:"#0a0a0a", flexShrink:0 }}>K</div>
-            <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:".82rem", lineHeight:1, letterSpacing:".02em" }}>KOPERASI EMAS</div>
+            <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:".82rem", lineHeight:1, letterSpacing:".02em" }}>{siteName.toUpperCase()}</div>
           </Link>
 
           {/* Desktop Nav */}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Save, RefreshCw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useSettingsStore, igHandle, waNumber } from "@/store/useSettingsStore";
 
 interface Setting {
   key: string;
@@ -15,20 +16,26 @@ interface Setting {
 
 const DEFAULTS: Setting[] = [
   // Informasi Umum
-  { key:"site_name",  value:"Koperasi Emas",               label:"Nama Koperasi",  type:"text",     group_name:"Informasi Umum" },
-  { key:"tagline",    value:"Investasi Emas Terpercaya",    label:"Tagline",        type:"text",     group_name:"Informasi Umum" },
+  { key:"site_name",      value:"Koperasi Emas",                label:"Nama Koperasi",           type:"text",     group_name:"Informasi Umum" },
+  { key:"tagline",        value:"Investasi Emas Terpercaya",    label:"Tagline / Slogan",        type:"text",     group_name:"Informasi Umum" },
+  { key:"legal_number",   value:"BH.0012345/KOP.2019",          label:"Nomor Badan Hukum",       type:"text",     group_name:"Informasi Umum" },
+  { key:"total_anggota",  value:"150.000+",                     label:"Jumlah Anggota (tampil)", type:"text",     group_name:"Informasi Umum" },
+  // Bisnis
+  { key:"jam_operasional",value:"Senin – Sabtu: 08.00 – 17.00 WIB", label:"Jam Operasional",   type:"text",     group_name:"Bisnis" },
+  { key:"simpanan_pokok", value:"Rp 5.000.000",                 label:"Simpanan Pokok",          type:"text",     group_name:"Bisnis" },
+  { key:"simpanan_wajib", value:"Rp 200.000/bulan",             label:"Simpanan Wajib",          type:"text",     group_name:"Bisnis" },
   // Kontak
-  { key:"wa_number",  value:"",  label:"Nomor WhatsApp",   type:"text",     group_name:"Kontak" },
-  { key:"email",      value:"",  label:"Email",            type:"email",    group_name:"Kontak" },
-  { key:"phone",      value:"",  label:"Telepon",          type:"text",     group_name:"Kontak" },
-  { key:"instagram",  value:"",  label:"Instagram",        type:"text",     group_name:"Kontak" },
+  { key:"wa_number",      value:"",  label:"Nomor WhatsApp",    type:"text",     group_name:"Kontak" },
+  { key:"email",          value:"",  label:"Email",             type:"email",    group_name:"Kontak" },
+  { key:"phone",          value:"",  label:"Telepon",           type:"text",     group_name:"Kontak" },
+  { key:"instagram",      value:"",  label:"Instagram",         type:"text",     group_name:"Kontak" },
   // Lokasi
-  { key:"address",    value:"",  label:"Alamat",           type:"textarea", group_name:"Lokasi" },
-  { key:"map_url",    value:"",  label:"URL Google Maps",  type:"url",      group_name:"Lokasi" },
-  { key:"map_embed",  value:"",  label:"Embed Maps (iframe src)", type:"url", group_name:"Lokasi" },
+  { key:"address",        value:"",  label:"Alamat",            type:"textarea", group_name:"Lokasi" },
+  { key:"map_url",        value:"",  label:"URL Google Maps",   type:"url",      group_name:"Lokasi" },
+  { key:"map_embed",      value:"",  label:"Embed Maps (iframe src)", type:"url", group_name:"Lokasi" },
 ];
 
-const GROUPS = ["Informasi Umum","Kontak","Lokasi"];
+const GROUPS = ["Informasi Umum","Bisnis","Kontak","Lokasi"];
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string,string>>({});
@@ -70,7 +77,27 @@ export default function SettingsPage() {
       }));
       const { error: err } = await (supabase.from("site_settings") as any).upsert(rows, { onConflict:"key" });
       if (err) { setError("Gagal menyimpan: " + err.message); }
-      else { setSaved(true); setTimeout(()=>setSaved(false), 2500); }
+      else {
+        // Perbarui store langsung supaya semua komponen ikut berubah tanpa reload.
+        useSettingsStore.setState({
+          siteName:       (settings["site_name"]      ?? "").trim() || useSettingsStore.getState().siteName,
+          tagline:        (settings["tagline"]         ?? "").trim(),
+          legalNumber:    (settings["legal_number"]    ?? "").trim(),
+          totalAnggota:   (settings["total_anggota"]   ?? "").trim(),
+          operatingHours: (settings["jam_operasional"] ?? "").trim(),
+          simpananPokok:  (settings["simpanan_pokok"]  ?? "").trim(),
+          simpananWajib:  (settings["simpanan_wajib"]  ?? "").trim(),
+          phone:          (settings["phone"]           ?? "").trim(),
+          email:          (settings["email"]           ?? "").trim(),
+          whatsapp:       waNumber(settings["wa_number"] ?? ""),
+          instagram:      (settings["instagram"]       ?? "").trim(),
+          address:        (settings["address"]         ?? "").trim(),
+          mapEmbed:       (settings["map_embed"]       ?? "").trim(),
+          mapUrl:         (settings["map_url"]         ?? "").trim(),
+          status: "ready",
+        });
+        setSaved(true); setTimeout(()=>setSaved(false), 2500);
+      }
     } catch (e:any) {
       setError(e.message || "Terjadi kesalahan.");
     }

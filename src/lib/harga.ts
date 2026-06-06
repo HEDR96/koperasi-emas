@@ -66,3 +66,55 @@ export function markupFor(map: MarkupMap, gram: number): number {
 export function withMarkup(base: number, gram: number, map: MarkupMap): number {
   return Math.round(Number(base) + markupFor(map, gram));
 }
+
+// ─────────────────────────────────────────────────────────────
+// CICILAN — dihitung otomatis dari harga emas (harga anggota).
+// Tidak ada input/edit manual; semua diturunkan dari Harga Emas + markup anggota.
+//
+// Rumus (flat):
+//   total harga cicilan = harga anggota + biaya admin + (harga anggota × margin%)
+//   angsuran/bulan      = total ÷ tenor
+// Total sama untuk semua tenor; hanya angsuran/bln yang berbeda.
+// ─────────────────────────────────────────────────────────────
+export const CICILAN_ADMIN_FEE = 100_000;      // biaya admin (Rp) ditambahkan sekali
+export const CICILAN_MARGIN_PCT = 0.5;         // margin (% dari harga anggota)
+export const CICILAN_TENORS = [12, 24, 36, 48, 60] as const;
+
+// Total harga cicilan dari harga anggota.
+export function cicilanTotal(hargaAnggota: number): number {
+  return Math.round(
+    Number(hargaAnggota) + CICILAN_ADMIN_FEE + Number(hargaAnggota) * (CICILAN_MARGIN_PCT / 100)
+  );
+}
+
+// Angsuran per bulan = total ÷ tenor.
+export function cicilanAngsuran(hargaAnggota: number, tenor: number): number {
+  if (!tenor) return 0;
+  return Math.round(cicilanTotal(hargaAnggota) / tenor);
+}
+
+export interface DerivedCicilan {
+  gram: number;
+  hargaAnggota: number;
+  total: number;
+  tenors: { tenor: number; angsuran: number }[];
+}
+
+// Bangun paket cicilan turunan dari baris harga emas + markup anggota.
+export function buildDerivedCicilan(
+  hargaEmasRows: { gram: number; harga: number }[],
+  anggotaMap: MarkupMap
+): DerivedCicilan[] {
+  return [...hargaEmasRows]
+    .map((r) => {
+      const gram = Number(r.gram);
+      const hargaAnggota = withMarkup(Number(r.harga), gram, anggotaMap);
+      return {
+        gram,
+        hargaAnggota,
+        total: cicilanTotal(hargaAnggota),
+        tenors: CICILAN_TENORS.map((t) => ({ tenor: t, angsuran: cicilanAngsuran(hargaAnggota, t) })),
+      };
+    })
+    .sort((a, b) => a.gram - b.gram);
+}

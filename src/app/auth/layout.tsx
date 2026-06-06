@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useSiteSettings } from "@/store/useSettingsStore";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
+  const s = useSiteSettings();
+  const siteName = s.siteName;
   return (
     <div style={{ minHeight:"100vh", background:"#0a0a0a", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", position:"relative", padding:"24px 16px" }}>
       {/* BG */}
@@ -19,8 +22,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         />
         <div className="bg-gold-gradient" style={{ width:56, height:56, borderRadius:14, display:"none", alignItems:"center", justifyContent:"center", boxShadow:"0 6px 20px rgba(212,175,55,0.35)", fontSize:"1.4rem", fontWeight:900, color:"#0a0a0a", flexShrink:0 }}>K</div>
         <div>
-          <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:"1.2rem", lineHeight:1 }}>Koperasi Emas</div>
-          <div style={{ fontSize:".7rem", color:"rgba(255,255,255,0.3)", marginTop:2 }}>Platform Investasi Emas Terpercaya</div>
+          <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:"1.2rem", lineHeight:1 }}>{siteName}</div>
+          <div style={{ fontSize:".7rem", color:"rgba(255,255,255,0.3)", marginTop:2 }}>{s.tagline || "Platform Investasi Emas Terpercaya"}</div>
         </div>
       </Link>
 
@@ -29,7 +32,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       <p style={{ position:"relative", zIndex:1, marginTop:24, color:"rgba(255,255,255,0.18)", fontSize:".72rem" }}>
-        © 2024 Koperasi Emas · Terdaftar Kemenkop UKM RI · SSL 256-bit
+        © 2024 {siteName} · Terdaftar Kemenkop UKM RI · SSL 256-bit
       </p>
     </div>
   );

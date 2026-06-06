@@ -12,6 +12,7 @@ import {
   Wallet, UserCheck, Newspaper, FileText, Receipt, Activity, Megaphone,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useSiteName } from "@/store/useSettingsStore";
 
 const NAV: Record<string, { group: string; items: { label:string; href:string; icon:any }[] }[]> = {
   master: [
@@ -97,6 +98,7 @@ interface SidebarProps { mobileOpen: boolean; onMobileClose: () => void; }
 
 function SidebarInner({ collapsed, onToggle, onClose }: { collapsed: boolean; onToggle: () => void; onClose: () => void }) {
   const { user, logout } = useAuthStore();
+  const siteName = useSiteName();
   const pathname = usePathname();
   const router = useRouter();
   const role = user?.role || "member";
@@ -114,7 +116,7 @@ function SidebarInner({ collapsed, onToggle, onClose }: { collapsed: boolean; on
               onError={e => { (e.currentTarget as HTMLImageElement).style.display="none"; }}
             />
             <div>
-              <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:".82rem", lineHeight:1, letterSpacing:".02em" }}>KOPERASI EMAS</div>
+              <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:".82rem", lineHeight:1, letterSpacing:".02em" }}>{siteName.toUpperCase()}</div>
               <div style={{ fontSize:".65rem", color:"rgba(255,255,255,0.3)", textTransform:"capitalize", marginTop:3 }}>{role} Panel</div>
             </div>
           </div>

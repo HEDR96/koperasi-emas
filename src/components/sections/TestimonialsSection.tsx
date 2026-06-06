@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/Badge";
 import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useSiteSettings } from "@/store/useSettingsStore";
 
 interface Testimonial {
   id: number;
@@ -28,6 +29,7 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 export default function TestimonialsSection() {
+  const s = useSiteSettings();
   const [items, setItems] = useState<Testimonial[]>([]);
   const [active, setActive] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -64,7 +66,7 @@ export default function TestimonialsSection() {
         <motion.div initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} className="text-center mb-12">
           <Badge variant="gold" className="mb-4">Testimoni Anggota</Badge>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-4">
-            Dipercaya <span className="text-gold-gradient">150.000+ Anggota</span>
+            Dipercaya <span className="text-gold-gradient">{s.totalAnggota || "150.000+"} Anggota</span>
           </h2>
           <p className="text-white/80">Cerita sukses anggota koperasi dari seluruh Indonesia.</p>
         </motion.div>

@@ -9,10 +9,13 @@ import { MapPin, Phone, Mail, MessageCircle, Clock, Send } from "lucide-react";
 import { SITE_CONFIG } from "@/lib/constants";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { useSiteSettings, waNumber } from "@/store/useSettingsStore";
 
 const FALLBACK_PHOTO = "https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=800&q=80";
 
 export default function ContactSection() {
+  const s = useSiteSettings();
+  const siteName = s.siteName;
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -68,10 +71,10 @@ export default function ContactSection() {
             className="space-y-4"
           >
             {[
-              { icon: MapPin, label: "Alamat Kantor", value: SITE_CONFIG.address, color: "text-yellow-400" },
-              { icon: Phone, label: "Telepon", value: SITE_CONFIG.phone, color: "text-green-400" },
-              { icon: Mail, label: "Email", value: SITE_CONFIG.email, color: "text-blue-400" },
-              { icon: Clock, label: "Jam Operasional", value: "Senin - Sabtu: 08.00 - 17.00 WIB", color: "text-purple-400" },
+              { icon: MapPin, label: "Alamat Kantor", value: s.address   || SITE_CONFIG.address, color: "text-yellow-400" },
+              { icon: Phone, label: "Telepon",        value: s.phone     || SITE_CONFIG.phone,   color: "text-green-400" },
+              { icon: Mail, label: "Email",           value: s.email     || SITE_CONFIG.email,   color: "text-blue-400" },
+              { icon: Clock, label: "Jam Operasional", value: s.operatingHours || "Senin – Sabtu: 08.00 – 17.00 WIB", color: "text-purple-400" },
             ].map((item, i) => {
               const Icon = item.icon;
               return (
@@ -91,7 +94,7 @@ export default function ContactSection() {
 
             {/* WhatsApp */}
             <a
-              href={`https://wa.me/${SITE_CONFIG.whatsapp}`}
+              href={`https://wa.me/${waNumber(s.whatsapp) || SITE_CONFIG.whatsapp}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-4 glass-dark gold-border-glow rounded-2xl p-5 hover:bg-green-500/5 hover:border-green-500/30 transition-all duration-300 group"
@@ -206,15 +209,15 @@ export default function ContactSection() {
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                   <img src="/logo.jpg" alt="KE" style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.4)" }} />
                   <div>
-                    <p style={{ color: "#fff", fontWeight: 900, fontSize: ".95rem", lineHeight: 1.1 }}>{SITE_CONFIG.name}</p>
+                    <p style={{ color: "#fff", fontWeight: 900, fontSize: ".95rem", lineHeight: 1.1 }}>{siteName}</p>
                     <p style={{ color: "#D4AF37", fontSize: ".72rem", fontWeight: 600 }}>Kantor Pusat</p>
                   </div>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
                   {[
-                    { icon: MapPin, text: SITE_CONFIG.address, color: "#D4AF37" },
-                    { icon: Phone,  text: SITE_CONFIG.phone,   color: "#4ade80" },
-                    { icon: Clock,  text: "Senin–Sabtu: 08.00 – 17.00 WIB", color: "#60a5fa" },
+                    { icon: MapPin, text: s.address || SITE_CONFIG.address, color: "#D4AF37" },
+                    { icon: Phone,  text: s.phone   || SITE_CONFIG.phone,   color: "#4ade80" },
+                    { icon: Clock,  text: s.operatingHours || "Senin–Sabtu: 08.00 – 17.00 WIB", color: "#60a5fa" },
                   ].map(({ icon: Icon, text, color }) => (
                     <div key={text} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
                       <Icon style={{ width: 13, height: 13, color, flexShrink: 0, marginTop: 2 }} />
@@ -223,7 +226,7 @@ export default function ContactSection() {
                   ))}
                 </div>
                 <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(SITE_CONFIG.address)}`}
+                  href={s.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.address || SITE_CONFIG.address)}`}
                   target="_blank" rel="noopener noreferrer"
                   style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 16, padding: "8px 16px", borderRadius: 10, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.35)", color: "#D4AF37", fontSize: ".78rem", fontWeight: 700, textDecoration: "none", backdropFilter: "blur(10px)" }}>
                   <MapPin style={{ width: 12, height: 12 }} />
@@ -236,8 +239,8 @@ export default function ContactSection() {
           {/* Google Maps — right */}
           <div style={{ position: "relative", minHeight: 420 }}>
             <iframe
-              title="Lokasi Koperasi Emas"
-              src={`https://maps.google.com/maps?q=${encodeURIComponent(SITE_CONFIG.address)}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
+              title={`Lokasi ${siteName}`}
+              src={s.mapEmbed || `https://maps.google.com/maps?q=${encodeURIComponent(s.address || SITE_CONFIG.address)}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
               width="100%"
               height="100%"
               style={{ display: "block", border: "none", minHeight: 420, filter: "invert(90%) hue-rotate(180deg)" }}

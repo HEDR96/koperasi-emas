@@ -4,8 +4,10 @@ import { motion } from "framer-motion";
 import { Clock, CheckCircle, Phone, Mail } from "lucide-react";
 import Link from "next/link";
 import { SITE_CONFIG } from "@/lib/constants";
+import { useSiteSettings } from "@/store/useSettingsStore";
 
 export default function PendingPage() {
+  const s = useSiteSettings();
   return (
     <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }}
       style={{ background:"rgba(14,14,14,0.85)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:22, padding:"36px 28px", backdropFilter:"blur(20px)", textAlign:"center" }}>
@@ -46,11 +48,11 @@ export default function PendingPage() {
         <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, justifyContent:"center" }}>
             <Phone style={{ width:13, height:13, color:"#D4AF37" }} />
-            <span style={{ color:"rgba(255,255,255,0.6)", fontSize:".82rem" }}>{SITE_CONFIG.phone}</span>
+            <span style={{ color:"rgba(255,255,255,0.6)", fontSize:".82rem" }}>{s.phone || SITE_CONFIG.phone}</span>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:8, justifyContent:"center" }}>
             <Mail style={{ width:13, height:13, color:"#D4AF37" }} />
-            <span style={{ color:"rgba(255,255,255,0.6)", fontSize:".82rem" }}>{SITE_CONFIG.email}</span>
+            <span style={{ color:"rgba(255,255,255,0.6)", fontSize:".82rem" }}>{s.email || SITE_CONFIG.email}</span>
           </div>
         </div>
       </div>

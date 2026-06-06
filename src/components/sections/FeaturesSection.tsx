@@ -7,6 +7,7 @@ import {
   Landmark, BadgeDollarSign,
 } from "lucide-react";
 import { FEATURES } from "@/lib/constants";
+import { useSiteSettings } from "@/store/useSettingsStore";
 
 const ICONS: Record<string, any> = {
   PiggyBank, CreditCard, ArrowLeftRight, TrendingUp,
@@ -15,6 +16,7 @@ const ICONS: Record<string, any> = {
 };
 
 export default function FeaturesSection() {
+  const s = useSiteSettings();
   return (
     <section id="tentang" style={{ padding:"80px 0", background:"#0a0a0a", position:"relative", overflow:"hidden" }}>
       <div style={{ position:"absolute", top:0, left:0, right:0, bottom:0, background:"linear-gradient(180deg, #0a0a0a 0%, rgba(13,13,0,0.5) 50%, #0a0a0a 100%)", pointerEvents:"none" }} />
@@ -73,7 +75,7 @@ export default function FeaturesSection() {
         <motion.div initial={{ opacity:0 }} whileInView={{ opacity:1 }} viewport={{ once:true }} transition={{ delay:.5 }}
           style={{ textAlign:"center", marginTop:40, color:"rgba(255,255,255,0.65)", fontSize:".85rem" }}
         >
-          Semua fitur tersedia untuk anggota aktif (simpanan pokok Rp 5 jt + wajib Rp 200 rb/bln).{" "}
+          Semua fitur tersedia untuk anggota aktif (simpanan pokok {s.simpananPokok || "Rp 5.000.000"} + wajib {s.simpananWajib || "Rp 200.000/bulan"}).{" "}
           <a href="/auth/register" style={{ color:"#D4AF37", fontWeight:600, textDecoration:"none" }}>Daftar jadi anggota →</a>
         </motion.div>
       </div>

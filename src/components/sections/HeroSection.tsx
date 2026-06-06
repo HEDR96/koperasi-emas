@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
 import { ChevronDown, Shield, Award, TrendingUp } from "lucide-react";
+import { useSiteSettings } from "@/store/useSettingsStore";
 
 /* ── Particle (fixed positions — no hydration mismatch) ── */
 const PARTICLES = [
@@ -22,6 +23,8 @@ const PARTICLES = [
 ];
 
 export default function HeroSection() {
+  const s = useSiteSettings();
+  const siteName = s.siteName;
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const y = useTransform(scrollYProgress, [0, 1], [0, -80]);
@@ -67,11 +70,11 @@ export default function HeroSection() {
           style={{ fontSize:"clamp(2rem, 6vw, 4.5rem)", fontWeight:900, lineHeight:1.1, marginBottom:"1.5rem", color:"#fff", letterSpacing:"-0.02em" }}
         >
           Investasi Emas{" "}
-          <span className="text-gold-gradient">Aman & Terpercaya</span>
+          <span className="text-gold-gradient">{s.tagline || "Aman & Terpercaya"}</span>
           <br />
           Bersama{" "}
           <span style={{ position:"relative", display:"inline-block" }}>
-            Koperasi Emas
+            {siteName}
             <span style={{ position:"absolute", bottom:-6, left:0, right:0, height:3, background:"linear-gradient(90deg,#D4AF37,#F5D060)", borderRadius:2 }} />
           </span>
         </motion.h1>
@@ -81,7 +84,7 @@ export default function HeroSection() {
           initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay:.5 }}
           style={{ fontSize:"clamp(1rem,2vw,1.2rem)", color:"rgba(255,255,255,0.85)", maxWidth:640, margin:"0 auto 2.5rem", lineHeight:1.7 }}
         >
-          Platform koperasi emas terpercaya untuk 150.000+ anggota Indonesia.
+          Platform koperasi emas terpercaya untuk {s.totalAnggota || "150.000+"} anggota Indonesia.
           Tabung, cicil, buyback, gadai simpanan, dan dapatkan SHU tahunan.
         </motion.p>
 
