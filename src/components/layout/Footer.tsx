@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Shield, Award, Phone, Mail, MapPin, AtSign } from "lucide-react";
 import { SITE_CONFIG, NAV_ITEMS } from "@/lib/constants";
-import { useSiteSettings, igHandle, waNumber } from "@/store/useSettingsStore";
+import { useSiteSettings, igHandle } from "@/store/useSettingsStore";
 
 export default function Footer() {
   const s = useSiteSettings();
