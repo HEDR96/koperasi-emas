@@ -129,8 +129,8 @@ export default function MemberHistoriPage() {
                   </div>
                   <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".78rem", margin:0 }}>
                     {fmtDate(tx.created_at)}
-                    {tx.gram && ` Â· ${tx.gram} gr`}
-                    {tx.payment_method && ` Â· ${tx.payment_method}`}
+                    {tx.gram && ` · ${tx.gram} gr`}
+                    {tx.payment_method && ` · ${tx.payment_method}`}
                   </p>
                   {tx.status==="rejected" && tx.notes && (
                     <p style={{ color:"#f87171", fontSize:".78rem", marginTop:6, background:"rgba(248,113,113,0.06)", borderRadius:6, padding:"5px 10px" }}>

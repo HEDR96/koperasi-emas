@@ -134,7 +134,7 @@ export default function AdminSimpananPage() {
 
           <button onClick={save} disabled={saving || !form.user_id || !form.amount}
             style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px", borderRadius:11, background: saved ? "rgba(52,211,153,0.2)" : "linear-gradient(135deg,#a78bfa,#c4b5fd)", border:"none", color: saved ? "#34d399" : "#0a0a0a", fontWeight:700, fontSize:".95rem", cursor: saving||!form.user_id||!form.amount ? "not-allowed" : "pointer", opacity: saving?.7:1 }}>
-            {saving ? "Menyimpan..." : saved ? "âœ“ Tersimpan" : <><Save style={{ width:15, height:15 }} /> Simpan Simpanan</>}
+            {saving ? "Menyimpan..." : saved ? "✓ Tersimpan" : <><Save style={{ width:15, height:15 }} /> Simpan Simpanan</>}
           </button>
         </motion.div>
 
@@ -150,11 +150,11 @@ export default function AdminSimpananPage() {
                   <span style={{ color:STATUS_COLOR[r.status]||"#fff", fontSize:".72rem", textTransform:"capitalize" }}>{r.status}</span>
                 </div>
                 <div style={{ display:"flex", justifyContent:"space-between" }}>
-                  <span style={{ color:"rgba(255,255,255,0.55)", fontSize:".8rem" }}>{r.profiles?.name||"-"} Â· Tgl setor {fmtTgl(r.transaction_date || r.created_at)}</span>
+                  <span style={{ color:"rgba(255,255,255,0.55)", fontSize:".8rem" }}>{r.profiles?.name||"-"} · Tgl setor {fmtTgl(r.transaction_date || r.created_at)}</span>
                   <span style={{ color:"#fff", fontWeight:700, fontSize:".85rem" }}>{fmt(r.amount)}</span>
                 </div>
                 <div style={{ marginTop:6, paddingTop:6, borderTop:"1px solid rgba(255,255,255,0.05)", display:"flex", justifyContent:"space-between", gap:8, flexWrap:"wrap" }}>
-                  <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>Diinput oleh: <span style={{ color:"#a78bfa" }}>{staff[r.recorded_by] || "â€”"}</span></span>
+                  <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>Diinput oleh: <span style={{ color:"#a78bfa" }}>{staff[r.recorded_by] || "—"}</span></span>
                   <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem" }}>Diinput: {fmtTglJam(r.created_at)}</span>
                 </div>
               </div>

@@ -76,7 +76,7 @@ export default function FeaturesSection() {
           style={{ textAlign:"center", marginTop:40, color:"rgba(255,255,255,0.65)", fontSize:".85rem" }}
         >
           Semua fitur tersedia untuk anggota aktif (simpanan pokok {s.simpananPokok || "Rp 5.000.000"} + wajib {s.simpananWajib || "Rp 200.000/bulan"}).{" "}
-          <a href="/auth/register" style={{ color:"#D4AF37", fontWeight:600, textDecoration:"none" }}>Daftar jadi anggota â†’</a>
+          <a href="/auth/register" style={{ color:"#D4AF37", fontWeight:600, textDecoration:"none" }}>Daftar jadi anggota →</a>
         </motion.div>
       </div>
 

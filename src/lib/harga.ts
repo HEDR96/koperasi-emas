@@ -73,11 +73,14 @@ export function withMarkup(base: number, gram: number, map: MarkupMap): number {
 // anggota + parameter cicilan (admin, % per bulan, % DP) di Pengaturan.
 //
 // Rumus per tenor (t bulan):
-//   a = harga emas anggota + admin anggota
-//   b = a × (% per bulan ÷ 100) × t          ← bunga akumulasi per bulan
-//   c = (a + b) × (% DP ÷ 100)               ← potongan uang muka
-//   harga cicilan = a + b − c
+//   a  = harga emas anggota + admin anggota
+//   b  = a × (% per bulan ÷ 100) × t                 ← bunga akumulasi per bulan (untuk total)
+//   dp = (a + a × (% per bulan ÷ 100)) × (% DP ÷ 100) ← uang muka, TIDAK tergantung tenor
+//   harga cicilan = a + b − dp
 //   angsuran/bln  = harga cicilan ÷ t
+//
+// Catatan: DP sengaja TIDAK mengandung tenor → nilainya sama untuk semua tenor,
+// hanya berbeda saat harga emas berbeda (sesuai jenis anggota/non-anggota).
 // ─────────────────────────────────────────────────────────────
 export const CICILAN_KEYS = {
   adminAnggota:          "cicilan_admin_anggota",
@@ -125,14 +128,23 @@ export async function getCicilanParams(): Promise<CicilanParams> {
   }
 }
 
-// Harga cicilan (a + b − c) untuk satu tenor.
+// DP / uang muka = (a + a × bunga) × % DP. TIDAK tergantung tenor.
+export function cicilanDpFlat(
+  hargaEmas: number, admin: number, persenBulan: number, persenDp: number
+): number {
+  const a = Number(hargaEmas) + Number(admin);
+  const dpBase = a + a * (Number(persenBulan) / 100);
+  return Math.round(dpBase * (Number(persenDp) / 100));
+}
+
+// Harga cicilan (a + b − dp) untuk satu tenor.
 export function cicilanHargaTenor(
   hargaEmas: number, tenor: number, admin: number, persenBulan: number, persenDp: number
 ): number {
   const a = Number(hargaEmas) + Number(admin);
   const b = a * (Number(persenBulan) / 100) * Number(tenor);
-  const c = (a + b) * (Number(persenDp) / 100);
-  return Math.round(a + b - c);
+  const dp = cicilanDpFlat(hargaEmas, admin, persenBulan, persenDp);
+  return Math.round(a + b - dp);
 }
 
 // Angsuran/bln = harga cicilan ÷ tenor.
@@ -143,14 +155,12 @@ export function cicilanAngsuranTenor(
   return Math.round(cicilanHargaTenor(hargaEmas, tenor, admin, persenBulan, persenDp) / tenor);
 }
 
-// DP / uang muka = c = (a + b) × (% DP ÷ 100).
+// DP / uang muka — tidak tergantung tenor. (tenor diabaikan, dipertahankan agar
+// pemanggil lama tetap kompatibel)
 export function cicilanDpTenor(
-  hargaEmas: number, tenor: number, admin: number, persenBulan: number, persenDp: number
+  hargaEmas: number, _tenor: number, admin: number, persenBulan: number, persenDp: number
 ): number {
-  const a = Number(hargaEmas) + Number(admin);
-  const b = a * (Number(persenBulan) / 100) * Number(tenor);
-  const c = (a + b) * (Number(persenDp) / 100);
-  return Math.round(c);
+  return cicilanDpFlat(hargaEmas, admin, persenBulan, persenDp);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -235,12 +245,12 @@ export function buildDerivedCicilan(
         tenors: CICILAN_TENORS.map((t) => {
           const a = harga + admin;
           const b = a * (persenBulan / 100) * t;
-          const c = Math.round((a + b) * (persenDp / 100));
-          const total = Math.round(a + b - c);   // sisa yang dicicil
+          const dp = cicilanDpFlat(harga, admin, persenBulan, persenDp); // flat, tanpa tenor
+          const total = Math.round(a + b - dp);   // sisa yang dicicil
           return {
             tenor: t,
             totalSebelumDp: Math.round(a + b),
-            dp: c,
+            dp,
             total,
             angsuran: t > 0 ? Math.round(total / t) : 0,
           };

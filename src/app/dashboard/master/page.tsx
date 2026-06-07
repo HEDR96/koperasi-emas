@@ -132,7 +132,7 @@ export default function MasterDashboardPage() {
                 </div>
               </div>
               <p style={{ color:"#fff", fontSize:"1.8rem", fontWeight:800, margin:0, lineHeight:1 }}>
-                {loading ? "â€”" : c.value.toLocaleString("id-ID")}
+                {loading ? "—" : c.value.toLocaleString("id-ID")}
               </p>
             </motion.div>
           );
@@ -146,7 +146,7 @@ export default function MasterDashboardPage() {
         <div style={{ padding:"18px 22px", borderBottom:"1px solid rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <h2 style={{ color:"#fff", fontWeight:700, fontSize:"1rem", margin:0 }}>Transaksi Terkini</h2>
           <Link href="/dashboard/master/approval" style={{ color:"#D4AF37", fontSize:".8rem", textDecoration:"none" }}>
-            Lihat Semua â†’
+            Lihat Semua →
           </Link>
         </div>
         <div style={{ overflowX:"auto" }}>
@@ -169,7 +169,7 @@ export default function MasterDashboardPage() {
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background="transparent"}
                 >
                   <td style={{ padding:"13px 18px", color:"#fff", fontSize:".85rem" }}>
-                    {(tx.profiles as any)?.name || "â€”"}
+                    {(tx.profiles as any)?.name || "—"}
                   </td>
                   <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.65)", fontSize:".85rem" }}>
                     {TYPE_LABEL[tx.type] || tx.type}

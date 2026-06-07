@@ -197,7 +197,7 @@ export default function ApprovalPage() {
         <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}> - {TX_TYPE_LABEL[row.type]||row.type}</span>
       </p>
       <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", margin:"3px 0 0" }}>
-        {row.gram ? `${Number(row.gram).toFixed(2)} gr - ` : ""}{row.payment_method || "-"} - {fmtDate(row.created_at)}
+        {row.gram ? `${Number(row.gram).toFixed(1)} gr - ` : ""}{row.payment_method || "-"} - {fmtDate(row.created_at)}
       </p>
     </div>
     <div style={{ display:"flex", alignItems:"center", gap:16 }}>
@@ -245,7 +245,7 @@ export default function ApprovalPage() {
         <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}> - Gadai {row.tenor} bln</span>
       </p>
       <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", margin:"3px 0 0" }}>
-        Jaminan {Number(row.gram_setara).toFixed(2)} gr - Angsuran {fmt(row.angsuran_per_bulan)}/bln - {fmtDate(row.created_at)}
+        Jaminan {Number(row.gram_setara).toFixed(1)} gr - Angsuran {fmt(row.angsuran_per_bulan)}/bln - {fmtDate(row.created_at)}
       </p>
     </div>
     <div style={{ display:"flex", alignItems:"center", gap:16 }}>

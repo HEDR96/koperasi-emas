@@ -10,7 +10,7 @@ import { getGadaiParams, type GadaiParams, GADAI_PARAM_DEFAULTS } from "@/lib/ha
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
-const fmtGram = (n: number) => `${n.toFixed(4)} gram`;
+const fmtGram = (n: number) => `${n.toFixed(1)} gram`;
 
 const GRAM_IN = new Set(["buy", "cicilan", "Simpanan"]);
 

@@ -110,7 +110,7 @@ export default function AdminRiwayatPage() {
             </p>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
-            {showGram && r.gram > 0 && <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem" }}>{Number(r.gram).toFixed(3)} gr</span>}
+            {showGram && r.gram > 0 && <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem" }}>{Number(r.gram).toFixed(1)} gr</span>}
             <span style={{ color, fontWeight:800 }}>{fmt(r.amount)}</span>
             <StatusBadge status={r.status} />
           </div>
@@ -159,7 +159,7 @@ export default function AdminRiwayatPage() {
           <div style={{ flex:1, minWidth:140 }}>
             <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:"0 0 2px" }}>
               {r.profiles?.name || "-"}
-              <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400, fontSize:".82rem" }}> - {Number(r.gram_setara||0).toFixed(2)} gr - Gadai {r.tenor} bln</span>
+              <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400, fontSize:".82rem" }}> - {Number(r.gram_setara||0).toFixed(1)} gr - Gadai {r.tenor} bln</span>
             </p>
             <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".74rem", margin:0 }}>
               {fmtDate(r.created_at)} - Angsuran {fmt(r.angsuran_per_bulan)}/bln - Sisa {fmt(r.sisa_tagihan)}

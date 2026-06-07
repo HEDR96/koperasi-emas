@@ -25,9 +25,9 @@ interface PromoItem {
 
 // Susun pesan WhatsApp sesuai promo yang diklik.
 function promoWaMessage(item: PromoItem): string {
-  const lines = ["Halo, saya tertarik dengan promo berikut:", `â€¢ Promo: ${item.title}`];
-  if (item.gram_weight != null) lines.push(`â€¢ Berat: ${item.gram_weight} gram`);
-  if (item.price != null)       lines.push(`â€¢ Harga: ${fmtRp(item.price)}`);
+  const lines = ["Halo, saya tertarik dengan promo berikut:", `• Promo: ${item.title}`];
+  if (item.gram_weight != null) lines.push(`• Berat: ${item.gram_weight} gram`);
+  if (item.price != null)       lines.push(`• Harga: ${fmtRp(item.price)}`);
   lines.push("", "Mohon info lebih lanjut. Terima kasih.");
   return encodeURIComponent(lines.join("\n"));
 }
@@ -111,7 +111,7 @@ function PromoCard({ item, index }: { item: PromoItem; index: number }) {
           </span>
         </div>
 
-        {/* Tombol WhatsApp â€” kirim pesan otomatis sesuai promo */}
+        {/* Tombol WhatsApp — kirim pesan otomatis sesuai promo */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
           <a
             href={`https://wa.me/${WA_ADMIN}?text=${promoWaMessage(item)}`}

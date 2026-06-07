@@ -57,7 +57,7 @@ export default function MemberManagementPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [buybackHarga, setBuybackHarga]     = useState(0);
   const [gadaiParams, setGadaiParams]       = useState<GadaiParams>(GADAI_PARAM_DEFAULTS);
-  // Form aksi di profil â€” pinjaman sekarang dalam Rupiah
+  // Form aksi di profil — pinjaman sekarang dalam Rupiah
   const [gForm, setGForm] = useState({ open:false, pinjaman:"", tenor:1, saving:false, err:"" });
   const [cForm, setCForm] = useState({ open:false, product:"", total:"", tenor:"6", monthly:"", saving:false, err:"" });
 
@@ -125,8 +125,8 @@ export default function MemberManagementPage() {
     load();
   }
 
-  // â”€â”€ Aksi: Ajukan Gadai dari profil (admin atas nama anggota) â”€â”€
-  // Nilai gadai = total simpanan Ã— 80% âˆ’ admin gadai
+  // ── Aksi: Ajukan Gadai dari profil (admin atas nama anggota) ──
+  // Nilai gadai = total simpanan × 80% − admin gadai
   async function submitGadai(m: MemberDetail, totalSim: number) {
     const maxPin = nilaiGadaiMax(totalSim, gadaiParams.adminAnggota);
     const dana   = Math.min(Number(gForm.pinjaman) || 0, maxPin);
@@ -148,7 +148,7 @@ export default function MemberManagementPage() {
     await openDetail(m); load();
   }
 
-  // â”€â”€ Aksi: Buat Cicilan dari profil â”€â”€
+  // ── Aksi: Buat Cicilan dari profil ──
   async function submitCicilan(m: MemberDetail) {
     if (!cForm.product || !cForm.total) { setCForm(f=>({...f,err:"Produk & total wajib."})); return; }
     setCForm(f=>({...f,saving:true,err:""}));
@@ -252,15 +252,15 @@ export default function MemberManagementPage() {
                       <span style={{ color:"#fff", fontWeight:600, fontSize:".88rem" }}>{m.name}</span>
                     </div>
                   </td>
-                  <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>{m.nik||"â€”"}</td>
-                  <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>{m.phone||"â€”"}</td>
+                  <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>{m.nik||"—"}</td>
+                  <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>{m.phone||"—"}</td>
                   <td style={{ padding:"13px 18px" }}>
                     <span style={{ background:STATUS_BG[m.status]||"rgba(255,255,255,0.08)", color:STATUS_COLOR[m.status]||"#fff", borderRadius:6, padding:"3px 10px", fontSize:".75rem", fontWeight:600, textTransform:"capitalize" }}>
                       {m.status}
                     </span>
                   </td>
                   <td style={{ padding:"13px 18px", color:"#D4AF37", fontWeight:600, fontSize:".88rem" }}>
-                    {Number(m.gold_grams).toFixed(2)}
+                    {Number(m.gold_grams).toFixed(1)}
                   </td>
                   <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.65)", fontSize:".83rem" }}>
                     {fmt(m.rupiah_balance)}
@@ -328,7 +328,7 @@ export default function MemberManagementPage() {
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:18 }}>
                   <div style={{ background:"rgba(212,175,55,0.07)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:12, padding:"14px 16px" }}>
                     <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".73rem", margin:"0 0 5px" }}>Total Emas</p>
-                    <p style={{ color:"#D4AF37", fontWeight:800, fontSize:"1.3rem", margin:0 }}>{Number(detail.gold_grams).toFixed(2)}<span style={{ fontSize:".78rem", fontWeight:500, marginLeft:4 }}>gram</span></p>
+                    <p style={{ color:"#D4AF37", fontWeight:800, fontSize:"1.3rem", margin:0 }}>{Number(detail.gold_grams).toFixed(1)}<span style={{ fontSize:".78rem", fontWeight:500, marginLeft:4 }}>gram</span></p>
                   </div>
                   <div style={{ background:"rgba(96,165,250,0.07)", border:"1px solid rgba(96,165,250,0.15)", borderRadius:12, padding:"14px 16px" }}>
                     <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".73rem", margin:"0 0 5px" }}>Saldo Rupiah</p>
@@ -339,8 +339,8 @@ export default function MemberManagementPage() {
                 {/* Info rows */}
                 <div style={{ display:"flex", flexDirection:"column", gap:0, marginBottom:18, background:"rgba(255,255,255,0.02)", borderRadius:12, overflow:"hidden", border:"1px solid rgba(255,255,255,0.05)" }}>
                   {[
-                    ["NIK",       detail.nik||"â€”"],
-                    ["Nomor HP",  detail.phone||"â€”"],
+                    ["NIK",       detail.nik||"—"],
+                    ["Nomor HP",  detail.phone||"—"],
                     ["Bergabung", fmtDate(detail.created_at)],
                   ].map(([k,v], i, arr)=>(
                     <div key={k} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"11px 16px", borderBottom: i < arr.length-1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
@@ -364,22 +364,22 @@ export default function MemberManagementPage() {
                     </div>
                     {buybackHarga > 0 && totalSim > 0 && (
                       <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".76rem", margin:"0 0 10px", textAlign:"right" }}>
-                        Setara <strong style={{ color:"#D4AF37" }}>{gram.toFixed(4)} gram</strong>
-                        <span style={{ color:"rgba(255,255,255,0.3)" }}> Â· harga gadai {fmt(buybackHarga)}/gr</span>
+                        Setara <strong style={{ color:"#D4AF37" }}>{gram.toFixed(1)} gram</strong>
+                        <span style={{ color:"rgba(255,255,255,0.3)" }}> · harga gadai {fmt(buybackHarga)}/gr</span>
                       </p>
                     )}
                     {totalSim > 0 && (
                       activeGadai ? (
                         <div style={{ background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:10, padding:"10px 14px", marginBottom:14 }}>
-                          <p style={{ color:"#f87171", fontSize:".8rem", fontWeight:600, margin:0 }}>âš  Ada gadai aktif â€” belum bisa gadai baru</p>
-                          <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".75rem", margin:"3px 0 0" }}>Pinjaman {fmt(activeGadai.dana_cair)} Â· sisa {fmt(activeGadai.sisa_tagihan)} Â· {activeGadai.tenor} bln</p>
+                          <p style={{ color:"#f87171", fontSize:".8rem", fontWeight:600, margin:0 }}>⚠ Ada gadai aktif — belum bisa gadai baru</p>
+                          <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".75rem", margin:"3px 0 0" }}>Pinjaman {fmt(activeGadai.dana_cair)} · sisa {fmt(activeGadai.sisa_tagihan)} · {activeGadai.tenor} bln</p>
                         </div>
                       ) : (
                         <div style={{ background:"rgba(52,211,153,0.06)", border:"1px solid rgba(52,211,153,0.2)", borderRadius:10, padding:"10px 14px", marginBottom:10 }}>
                           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, flexWrap:"wrap" }}>
                             <div>
                               <p style={{ color:"#34d399", fontSize:".8rem", fontWeight:600, margin:0 }}>Dapat digadai hingga {fmt(maxPin)}</p>
-                              <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".75rem", margin:"3px 0 0" }}>â‰ˆ {gram.toFixed(4)} gram Â· tenor 1-4 bulan</p>
+                              <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".75rem", margin:"3px 0 0" }}>≈ {gram.toFixed(1)} gram · tenor 1-4 bulan</p>
                             </div>
                             {!gForm.open && (
                               <button onClick={()=>setGForm({ open:true, pinjaman:"", tenor:1, saving:false, err:"" })}
@@ -421,7 +421,7 @@ export default function MemberManagementPage() {
                                     <strong style={{ color:"#fff" }}>{fmt(pinRp)}</strong>
                                   </div>
                                   <div style={{ display:"flex", justifyContent:"space-between" }}>
-                                    <span style={{ color:"rgba(255,255,255,0.5)" }}>Angsuran/bln ({fmt(pinRp)} Ã— (1+{gadaiParams.persenAnggota}%) Ã· {gForm.tenor})</span>
+                                    <span style={{ color:"rgba(255,255,255,0.5)" }}>Angsuran/bln ({fmt(pinRp)} × (1+{gadaiParams.persenAnggota}%) / {gForm.tenor})</span>
                                     <strong style={{ color:"#60a5fa" }}>{fmt(angs)}</strong>
                                   </div>
                                 </div>
@@ -523,7 +523,7 @@ export default function MemberManagementPage() {
                     <div key={ins.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(255,255,255,0.03)", borderRadius:9, padding:"9px 14px" }}>
                       <span style={{ color:"rgba(255,255,255,0.7)", fontSize:".83rem" }}>{ins.product_name}</span>
                       <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>
-                        {ins.paid_installments}/{ins.tenor} angsuran Â· sisa {fmt(Math.max(0,(ins.tenor-ins.paid_installments)*ins.monthly_amount))}
+                        {ins.paid_installments}/{ins.tenor} angsuran · sisa {fmt(Math.max(0,(ins.tenor-ins.paid_installments)*ins.monthly_amount))}
                       </span>
                       <span style={{ color:STATUS_COLOR[ins.status]||"#fff", fontSize:".75rem" }}>{ins.status}</span>
                     </div>
@@ -538,7 +538,7 @@ export default function MemberManagementPage() {
                     {detail.gadai.map((g:any)=>(
                       <div key={g.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(255,255,255,0.03)", borderRadius:9, padding:"9px 14px" }}>
                         <span style={{ color:"rgba(255,255,255,0.7)", fontSize:".83rem" }}>Pinjaman {fmt(g.dana_cair)}</span>
-                        <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>sisa {fmt(g.sisa_tagihan)} Â· {g.tenor} bln</span>
+                        <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>sisa {fmt(g.sisa_tagihan)} · {g.tenor} bln</span>
                         <span style={{ color:"#60a5fa", fontSize:".75rem", textTransform:"capitalize" }}>{g.status}</span>
                       </div>
                     ))}

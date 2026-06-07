@@ -85,7 +85,7 @@ export default function StatistikPage() {
 
   const cards = useMemo(() => ([
     { label:"Total Member",       value: stats.member.toLocaleString("id-ID"),       sub:`${stats.memberActive} aktif`, icon:Users,          color:"#34d399", bg:"rgba(52,211,153,0.1)" },
-    { label:"Emas Terjual",       value:`${stats.gramSold.toFixed(2)} gr`,           sub:"transaksi beli selesai",       icon:Coins,          color:"#D4AF37", bg:"rgba(212,175,55,0.1)" },
+    { label:"Emas Terjual",       value:`${stats.gramSold.toFixed(1)} gr`,           sub:"transaksi beli selesai",       icon:Coins,          color:"#D4AF37", bg:"rgba(212,175,55,0.1)" },
     { label:"Volume Transaksi",   value: fmtJuta(stats.txVolume),                    sub:"total selesai",                icon:TrendingUp,     color:"#60a5fa", bg:"rgba(96,165,250,0.1)" },
     { label:"Total Simpanan",     value: fmtJuta(stats.simpanan),                    sub:"terverifikasi",                icon:Wallet,         color:"#a78bfa", bg:"rgba(167,139,250,0.1)" },
     { label:"Volume Buyback",     value: fmtJuta(stats.buybackVol),                  sub:"emas dijual kembali",          icon:ArrowDownCircle,color:"#f59e0b", bg:"rgba(245,158,11,0.1)" },

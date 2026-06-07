@@ -170,19 +170,19 @@ export default function AdminTransaksiPage() {
                     onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background="transparent"}
                   >
                     <td style={{ padding:"13px 18px", color:"#fff", fontWeight:600, fontSize:".88rem" }}>
-                      {(tx.profiles as any)?.name || "â€”"}
+                      {(tx.profiles as any)?.name || "—"}
                     </td>
                     <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.6)", fontSize:".85rem" }}>
                       {TYPE_LABEL[tx.type]||tx.type}
                     </td>
                     <td style={{ padding:"13px 18px", color:"#D4AF37", fontSize:".85rem" }}>
-                      {tx.gram ? tx.gram+" gr" : "â€”"}
+                      {tx.gram ? tx.gram+" gr" : "—"}
                     </td>
                     <td style={{ padding:"13px 18px", color:"#D4AF37", fontWeight:600, fontSize:".85rem" }}>
                       {fmt(tx.amount)}
                     </td>
                     <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.45)", fontSize:".82rem" }}>
-                      {tx.payment_method || "â€”"}
+                      {tx.payment_method || "—"}
                     </td>
                     <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.4)", fontSize:".8rem", whiteSpace:"nowrap" }}>
                       {fmtDate(tx.created_at)}
@@ -240,7 +240,7 @@ export default function AdminTransaksiPage() {
                       onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background="transparent"}
                     >
                       <td style={{ padding:"13px 18px", color:"#fff", fontWeight:600, fontSize:".88rem" }}>
-                        {(tx.profiles as any)?.name || "â€”"}
+                        {(tx.profiles as any)?.name || "—"}
                       </td>
                       <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.6)", fontSize:".85rem" }}>
                         {TYPE_LABEL[tx.type]||tx.type}
@@ -254,7 +254,7 @@ export default function AdminTransaksiPage() {
                         </span>
                       </td>
                       <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.4)", fontSize:".8rem", maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                        {tx.notes || "â€”"}
+                        {tx.notes || "—"}
                       </td>
                       <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.4)", fontSize:".8rem", whiteSpace:"nowrap" }}>
                         {fmtDate(tx.updated_at)}

@@ -22,7 +22,7 @@ export function formatGoldWeight(grams: number): string {
   if (grams >= 1000) {
     return `${(grams / 1000).toFixed(3)} kg`;
   }
-  return `${grams.toFixed(4)} gram`;
+  return `${grams.toFixed(1)} gram`;
 }
 
 export function formatDate(date: Date | string): string {

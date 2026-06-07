@@ -122,8 +122,8 @@ export default function MemberRequestPage() {
   }, [user?.id]);
 
   // Opsi dropdown gram
-  const gramBuyOpts  = goldRows.map(r=>({ value:String(r.gram), label:`${r.gram % 1 === 0 ? r.gram : r.gram.toFixed(1)} gram â€” ${fmt(r.harga)}` }));
-  const gramSellOpts = buybackRows.map(r=>({ value:String(r.gram), label:`${r.gram % 1 === 0 ? r.gram : r.gram.toFixed(1)} gram â€” ${fmt(r.harga)}` }));
+  const gramBuyOpts  = goldRows.map(r=>({ value:String(r.gram), label:`${r.gram % 1 === 0 ? r.gram : r.gram.toFixed(1)} gram — ${fmt(r.harga)}` }));
+  const gramSellOpts = buybackRows.map(r=>({ value:String(r.gram), label:`${r.gram % 1 === 0 ? r.gram : r.gram.toFixed(1)} gram — ${fmt(r.harga)}` }));
 
   // Auto-fill amount ketika gram dipilih
   function onGramChange(gramStr: string) {
@@ -224,7 +224,7 @@ export default function MemberRequestPage() {
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
-          {/* Beli Emas â€” dropdown gram â†’ harga otomatis */}
+          {/* Beli Emas — dropdown gram → harga otomatis */}
           {form.type === "buy" && (
             <div>
               <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:6 }}>Pilih Berat Emas *</label>
@@ -244,7 +244,7 @@ export default function MemberRequestPage() {
             </div>
           )}
 
-          {/* Buyback â€” dropdown gram â†’ dana diterima otomatis */}
+          {/* Buyback — dropdown gram → dana diterima otomatis */}
           {form.type === "buyback" && (
             <div>
               <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:6 }}>Pilih Berat Emas yang Dijual *</label>
@@ -264,7 +264,7 @@ export default function MemberRequestPage() {
             </div>
           )}
 
-          {/* Setor Simpanan â€” input manual */}
+          {/* Setor Simpanan — input manual */}
           {form.type === "tabungan" && (
             <div>
               <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:6 }}>Jumlah Setoran (Rp) *</label>
@@ -272,7 +272,7 @@ export default function MemberRequestPage() {
             </div>
           )}
 
-          {/* Payment method â€” tidak untuk buyback */}
+          {/* Payment method — tidak untuk buyback */}
           {form.type !== "buyback" && (
             <div>
               <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 6 }}>Metode Pembayaran</label>
@@ -334,8 +334,8 @@ export default function MemberRequestPage() {
                   </p>
                   <p style={{ color: "rgba(255,255,255,0.35)", fontSize: ".75rem", margin: 0 }}>
                     {fmtDate(req.created_at)}
-                    {req.gram && ` Â· ${req.gram} gr`}
-                    {req.payment_method && ` Â· ${req.payment_method}`}
+                    {req.gram && ` · ${req.gram} gr`}
+                    {req.payment_method && ` · ${req.payment_method}`}
                   </p>
                 </div>
                 <p style={{ color: "#D4AF37", fontWeight: 700, fontSize: ".95rem", margin: 0 }}>{fmt(req.amount)}</p>

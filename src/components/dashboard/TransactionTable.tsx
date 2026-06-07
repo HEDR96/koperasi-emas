@@ -101,7 +101,7 @@ export default function TransactionTable({ data, title = "Transaksi Terbaru", sh
       {totalPages > 1 && (
         <div style={{ padding:"12px 20px", borderTop:"1px solid rgba(255,255,255,0.05)", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8 }}>
           <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".78rem" }}>
-            {(page-1)*PER+1}â€“{Math.min(page*PER, filtered.length)} dari {filtered.length}
+            {(page-1)*PER+1}–{Math.min(page*PER, filtered.length)} dari {filtered.length}
           </p>
           <div style={{ display:"flex", gap:5 }}>
             <button onClick={() => setPage(p=>Math.max(1,p-1))} disabled={page===1}

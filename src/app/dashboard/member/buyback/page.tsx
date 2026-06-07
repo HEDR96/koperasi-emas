@@ -8,7 +8,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
-const fmtGram = (n: number) => `${n.toFixed(4)} gram`;
+const fmtGram = (n: number) => `${n.toFixed(1)} gram`;
 const fmtDate = (s: string) =>
   new Date(s).toLocaleDateString("id-ID", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
 
@@ -224,7 +224,7 @@ export default function MemberBuybackPage() {
                 {submitting ? "Mengajukan..." : "Ajukan Buyback"}
               </button>
               <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".75rem", textAlign:"center", margin:"10px 0 0" }}>
-                Pengajuan diproses admin. Dana ditransfer setelah disetujui (1Ã—24 jam kerja).
+                Pengajuan diproses admin. Dana ditransfer setelah disetujui (1×24 jam kerja).
               </p>
             </div>
           ) : (

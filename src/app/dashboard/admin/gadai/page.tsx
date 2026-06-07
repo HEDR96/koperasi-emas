@@ -146,7 +146,7 @@ export default function AdminGadaiPage() {
                   style={{ background:"rgba(255,255,255,0.03)", border:`1px solid ${s.color}30`, borderRadius:14, padding:"14px 18px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:14, flexWrap:"wrap" }}>
                   <div>
                     <p style={{ color:"#fff", fontWeight:700, fontSize:".9rem", margin:0 }}>
-                      {g.profiles?.name||"—"} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>· {g.tenor} bln · {Number(g.gram_setara).toFixed(4)} gr</span>
+                      {g.profiles?.name||"—"} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>· {g.tenor} bln · {Number(g.gram_setara).toFixed(1)} gr</span>
                     </p>
                     <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".76rem", margin:"2px 0 0" }}>
                       Pinjaman {fmt(g.dana_cair)} · Sisa {fmt(g.sisa_tagihan)} · Angsuran {fmt(g.angsuran_per_bulan)}/bln · Tgl transaksi {fmtTgl(g.transaction_date || g.created_at)}
@@ -195,7 +195,7 @@ export default function AdminGadaiPage() {
               <div style={{ padding:"20px 22px 16px", borderBottom:"1px solid rgba(255,255,255,0.06)", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12 }}>
                 <div>
                   <h2 style={{ color:"#fff", fontWeight:700, fontSize:"1.05rem", margin:0 }}>Gadai · {detail.profiles?.name||"—"}</h2>
-                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".8rem", margin:"2px 0 0" }}>{Number(detail.gram_setara).toFixed(4)} gr · {detail.tenor} bln · <span style={{ color:s.color }}>{s.label}</span></p>
+                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".8rem", margin:"2px 0 0" }}>{Number(detail.gram_setara).toFixed(1)} gr · {detail.tenor} bln · <span style={{ color:s.color }}>{s.label}</span></p>
                   <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".74rem", margin:"3px 0 0" }}>Diinput oleh {recorderName(detail)} · Tgl transaksi {fmtTgl(detail.transaction_date || detail.created_at)}</p>
                 </div>
                 <div style={{ display:"flex", gap:8, flexShrink:0 }}>

@@ -40,19 +40,19 @@ export default function MasterAuditPage() {
 
       const merged: Item[] = [];
       (txRes.data||[]).forEach((t: any) => merged.push({
-        id:`tx-${t.id}`, ts:t.created_at, kind:"transaksi", who:t.profiles?.name||"â€”",
+        id:`tx-${t.id}`, ts:t.created_at, kind:"transaksi", who:t.profiles?.name||"—",
         detail:`${TX_LABEL[t.type]||t.type}`, amount:t.amount, status:t.status,
       }));
       (gadaiRes.data||[]).forEach((g: any) => merged.push({
-        id:`gd-${g.id}`, ts:g.updated_at||g.created_at, kind:"gadai", who:g.profiles?.name||"â€”",
+        id:`gd-${g.id}`, ts:g.updated_at||g.created_at, kind:"gadai", who:g.profiles?.name||"—",
         detail:"Gadai simpanan", amount:g.dana_cair, status:g.status,
       }));
       (simRes.data||[]).forEach((s: any) => merged.push({
-        id:`sm-${s.id}`, ts:s.created_at, kind:"simpanan", who:s.profiles?.name||"â€”",
+        id:`sm-${s.id}`, ts:s.created_at, kind:"simpanan", who:s.profiles?.name||"—",
         detail:`Simpanan ${s.type}`, amount:s.amount, status:s.status,
       }));
       (memRes.data||[]).forEach((m: any) => merged.push({
-        id:`mb-${m.id}`, ts:m.created_at, kind:"member", who:m.name||"â€”",
+        id:`mb-${m.id}`, ts:m.created_at, kind:"member", who:m.name||"—",
         detail:"Pendaftaran anggota", status:m.status,
       }));
 
@@ -105,7 +105,7 @@ export default function MasterAuditPage() {
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <p style={{ color:"#fff", fontWeight:600, fontSize:".86rem", margin:0 }}>
-                      {it.who} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>Â· {it.detail}</span>
+                      {it.who} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>· {it.detail}</span>
                     </p>
                     <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".73rem", margin:"2px 0 0" }}>{fmtDate(it.ts)}</p>
                   </div>
