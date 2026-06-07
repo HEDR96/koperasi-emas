@@ -5,10 +5,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, RefreshCw, UserPlus, Eye } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
-import RupiahInput from "@/components/ui/RupiahInput";
+import Select from "@/components/ui/Select";
 import {
   getGadaiParams, nilaiGadaiMax, angsuranGadai,
+  getMarkup, withMarkup, getCicilanParams,
+  cicilanHargaTenor, cicilanDpTenor, CICILAN_TENORS,
   type GadaiParams, GADAI_PARAM_DEFAULTS,
+  type CicilanParams, CICILAN_PARAM_DEFAULTS,
 } from "@/lib/harga";
 
 interface MemberRow {
@@ -57,9 +60,14 @@ export default function MemberManagementPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [buybackHarga, setBuybackHarga]     = useState(0);
   const [gadaiParams, setGadaiParams]       = useState<GadaiParams>(GADAI_PARAM_DEFAULTS);
+  // Data harga emas (sudah termasuk markup anggota) untuk dropdown gram + auto-isi.
+  const [goldRows, setGoldRows]             = useState<{ gram:number; harga:number }[]>([]);
+  const [cicilanParams, setCicilanParams]   = useState<CicilanParams>(CICILAN_PARAM_DEFAULTS);
   // Form aksi di profil — pinjaman sekarang dalam Rupiah
   const [gForm, setGForm] = useState({ open:false, pinjaman:"", tenor:1, saving:false, err:"" });
-  const [cForm, setCForm] = useState({ open:false, product:"", total:"", tenor:"6", monthly:"", saving:false, err:"" });
+  // Cicilan/beli otomatis: pilih tipe (beli/cicilan) + berat (gram) → harga & angsuran auto.
+  const C_EMPTY = { open:false, type:"cicilan", gram:"", tenor:"6", saving:false, err:"" };
+  const [cForm, setCForm] = useState(C_EMPTY);
 
   useEffect(() => {
     (async () => {
@@ -74,6 +82,20 @@ export default function MemberManagementPage() {
       setBuybackHarga(hb);
       const gp = await getGadaiParams();
       setGadaiParams(gp);
+
+      // Daftar harga emas (jual) + markup anggota per berat, untuk dropdown gram.
+      const [{ data: e }, markup, cp] = await Promise.all([
+        (supabase.from("harga_emas_berat") as any).select("gram,harga,created_at").eq("kategori","emas").order("created_at",{ascending:false}).limit(200),
+        getMarkup(),
+        getCicilanParams(),
+      ]);
+      const seen = new Set<number>();
+      const rows = (e||[])
+        .filter((r:any)=>{ const g=Number(r.gram); if(seen.has(g)) return false; seen.add(g); return true; })
+        .map((r:any)=>({ gram:Number(r.gram), harga: withMarkup(r.harga, Number(r.gram), markup.anggota) }))
+        .sort((a:any,bb:any)=>a.gram-bb.gram);
+      setGoldRows(rows);
+      setCicilanParams(cp);
     })();
   }, []);
 
@@ -148,22 +170,49 @@ export default function MemberManagementPage() {
     await openDetail(m); load();
   }
 
-  // ── Aksi: Buat Cicilan dari profil ──
-  async function submitCicilan(m: MemberDetail) {
-    if (!cForm.product || !cForm.total) { setCForm(f=>({...f,err:"Produk & total wajib."})); return; }
-    setCForm(f=>({...f,saving:true,err:""}));
+  // Hitung harga/angsuran/DP otomatis dari berat emas terpilih + tenor.
+  //  • Beli Emas  → total = harga emas jual berat tsb (markup anggota).
+  //  • Cicilan    → total = harga cicilan (a+b−DP) tenor terpilih; angsuran = total/tenor; DP flat.
+  function cicilanCalc() {
+    const g = Number(cForm.gram) || 0;
+    const row = goldRows.find(r => r.gram === g);
+    if (!row) return { row: null, gram: g, total: 0, monthly: 0, dp: 0, tenor: Number(cForm.tenor) || 1 };
     const tenor = Number(cForm.tenor) || 1;
-    const total = Number(cForm.total);
-    const monthly = Number(cForm.monthly) || Math.ceil(total / tenor);
-    const due = new Date(); due.setMonth(due.getMonth()+1);
-    const { error } = await (supabase.from("installments") as any).insert({
-      user_id: m.id, product_name: cForm.product, total_gram: 0, total_amount: total,
-      monthly_amount: monthly, tenor, paid_installments: 0, status: "active",
-      next_due_date: due.toISOString().slice(0,10),
-    });
-    if (error) { setCForm(f=>({...f,saving:false,err:error.message})); return; }
-    try { await (supabase.from("notifications") as any).insert({ user_id:m.id, title:"Cicilan Baru", body:`Cicilan ${cForm.product} ${fmt(total)} (${tenor}x ${fmt(monthly)}) dibuat.`, type:"cicilan", is_read:false, link:"/dashboard/member/cicilan" }); } catch {}
-    setCForm({ open:false, product:"", total:"", tenor:"6", monthly:"", saving:false, err:"" });
+    if (cForm.type === "buy") {
+      return { row, gram: g, total: Math.round(row.harga), monthly: 0, dp: 0, tenor };
+    }
+    const total = cicilanHargaTenor(row.harga, tenor, cicilanParams.adminAnggota, cicilanParams.persenBulanAnggota, cicilanParams.persenDpAnggota);
+    const dp    = cicilanDpTenor(row.harga, tenor, cicilanParams.adminAnggota, cicilanParams.persenBulanAnggota, cicilanParams.persenDpAnggota);
+    return { row, gram: g, total, monthly: tenor > 0 ? Math.ceil(total / tenor) : 0, dp, tenor };
+  }
+
+  // ── Aksi: Buat Beli Emas / Cicilan dari profil ──
+  async function submitCicilan(m: MemberDetail) {
+    const c = cicilanCalc();
+    if (!c.row) { setCForm(f=>({...f,err:"Pilih berat emas terlebih dahulu."})); return; }
+    setCForm(f=>({...f,saving:true,err:""}));
+    const produk = `Emas ${c.gram} gram`;
+
+    if (cForm.type === "buy") {
+      const { error } = await (supabase.from("transactions") as any).insert({
+        user_id: m.id, type: "buy", amount: c.total, gram: c.gram,
+        price_per_gram: Math.round(c.row.harga / c.gram), status: "completed",
+        transaction_date: new Date().toISOString(), recorded_by: user?.id || null,
+        notes: `${produk} (dari profil admin)`,
+      });
+      if (error) { setCForm(f=>({...f,saving:false,err:error.message})); return; }
+      try { await (supabase.from("notifications") as any).insert({ user_id:m.id, title:"Pembelian Emas", body:`Pembelian ${produk} ${fmt(c.total)} tercatat.`, type:"transaksi", is_read:false, link:"/dashboard/member/histori" }); } catch {}
+    } else {
+      const due = new Date(); due.setMonth(due.getMonth()+1);
+      const { error } = await (supabase.from("installments") as any).insert({
+        user_id: m.id, product_name: produk, total_gram: c.gram, total_amount: c.total,
+        monthly_amount: c.monthly, tenor: c.tenor, down_payment: c.dp,
+        paid_installments: 0, status: "active", next_due_date: due.toISOString().slice(0,10),
+      });
+      if (error) { setCForm(f=>({...f,saving:false,err:error.message})); return; }
+      try { await (supabase.from("notifications") as any).insert({ user_id:m.id, title:"Cicilan Baru", body:`Cicilan ${produk} ${fmt(c.total)} (${c.tenor}x ${fmt(c.monthly)}, DP ${fmt(c.dp)}) dibuat.`, type:"cicilan", is_read:false, link:"/dashboard/member/cicilan" }); } catch {}
+    }
+    setCForm(C_EMPTY);
     await openDetail(m); load();
   }
 
@@ -487,34 +536,55 @@ export default function MemberManagementPage() {
                   </div>
                 </>
               )}
-              {/* Cicilan */}
+              {/* Beli / Cicilan Emas */}
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", margin:"18px 0 10px" }}>
-                <h3 style={{ color:"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>Cicilan</h3>
+                <h3 style={{ color:"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>Beli / Cicilan Emas</h3>
                 {!cForm.open && (
-                  <button onClick={()=>setCForm({ open:true, product:"", total:"", tenor:"6", monthly:"", saving:false, err:"" })}
+                  <button onClick={()=>setCForm({ ...C_EMPTY, open:true })}
                     style={{ background:"rgba(167,139,250,0.12)", border:"1px solid rgba(167,139,250,0.3)", borderRadius:8, padding:"5px 12px", color:"#a78bfa", cursor:"pointer", fontSize:".76rem", fontWeight:600 }}>
-                    + Buat Cicilan
+                    + Buat
                   </button>
                 )}
               </div>
-              {cForm.open && (
+              {cForm.open && (() => { const cc = cicilanCalc(); return (
                 <div style={{ background:"rgba(167,139,250,0.05)", border:"1px solid rgba(167,139,250,0.2)", borderRadius:10, padding:14, marginBottom:12, display:"flex", flexDirection:"column", gap:10 }}>
                   {cForm.err && <p style={{ color:"#f87171", fontSize:".78rem", margin:0 }}>{cForm.err}</p>}
-                  <input value={cForm.product} onChange={e=>setCForm(f=>({...f,product:e.target.value}))} style={inputStyle} placeholder="Nama produk / emas (mis. Emas 5 gram)" />
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
-                    <RupiahInput value={cForm.total} onValueChange={v=>setCForm(f=>({...f,total:v}))} style={inputStyle} placeholder="Total Rp" />
-                    <input type="number" min={1} value={cForm.tenor} onChange={e=>setCForm(f=>({...f,tenor:e.target.value}))} style={inputStyle} placeholder="Tenor" />
-                    <RupiahInput value={cForm.monthly} onValueChange={v=>setCForm(f=>({...f,monthly:v}))} style={inputStyle} placeholder="Angsuran (auto)" />
+                  <div style={{ display:"grid", gridTemplateColumns: cForm.type==="cicilan" ? "1fr 1fr 1fr" : "1fr 1fr", gap:8 }}>
+                    <Select value={cForm.type} onChange={v=>setCForm(f=>({...f,type:v}))}
+                      options={[{value:"buy",label:"Beli Emas"},{value:"cicilan",label:"Cicilan Emas"}]} placeholder="Tipe" />
+                    <Select value={cForm.gram} onChange={v=>setCForm(f=>({...f,gram:v}))}
+                      options={goldRows.map(r=>({ value:String(r.gram), label:`${r.gram % 1 === 0 ? r.gram : r.gram.toFixed(1)} gram` }))}
+                      placeholder={goldRows.length ? "Pilih berat" : "Memuat..."} />
+                    {cForm.type==="cicilan" && (
+                      <Select value={cForm.tenor} onChange={v=>setCForm(f=>({...f,tenor:v}))}
+                        options={CICILAN_TENORS.map(t=>({ value:String(t), label:`${t} bulan` }))} placeholder="Tenor" />
+                    )}
                   </div>
-                  {cForm.total && cForm.tenor && !cForm.monthly && (
-                    <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".74rem", margin:0 }}>Angsuran otomatis: {fmt(Math.ceil(Number(cForm.total)/Number(cForm.tenor)))}/bln</p>
+                  {cc.row && (
+                    <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:9, padding:"10px 14px", display:"flex", flexDirection:"column", gap:6 }}>
+                      {[
+                        { label:"Harga emas", value:fmt(cc.row.harga), color:"rgba(255,255,255,0.6)" },
+                        ...(cForm.type==="cicilan" ? [
+                          { label:`Total cicilan (${cc.tenor} bln)`, value:fmt(cc.total), color:"rgba(255,255,255,0.6)" },
+                          { label:"DP (uang muka)", value:fmt(cc.dp), color:"#60a5fa" },
+                          { label:"Angsuran / bln", value:fmt(cc.monthly), color:"#a78bfa" },
+                        ] : [
+                          { label:"Total bayar", value:fmt(cc.total), color:"#D4AF37" },
+                        ]),
+                      ].map(r=>(
+                        <div key={r.label} style={{ display:"flex", justifyContent:"space-between" }}>
+                          <span style={{ color:"rgba(255,255,255,0.45)", fontSize:".8rem" }}>{r.label}</span>
+                          <span style={{ color:r.color, fontWeight:700, fontSize:".82rem" }}>{r.value}</span>
+                        </div>
+                      ))}
+                    </div>
                   )}
                   <div style={{ display:"flex", gap:8 }}>
                     <button onClick={()=>setCForm(f=>({...f,open:false}))} style={{ flex:1, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, padding:"9px", color:"rgba(255,255,255,0.6)", cursor:"pointer", fontSize:".82rem" }}>Batal</button>
-                    <button onClick={()=>submitCicilan(detail)} disabled={cForm.saving} style={{ flex:1, background:"linear-gradient(135deg,#a78bfa,#c4b5fd)", border:"none", borderRadius:8, padding:"9px", color:"#0a0a0a", fontWeight:700, cursor:cForm.saving?"not-allowed":"pointer", fontSize:".82rem", opacity:cForm.saving?.7:1 }}>{cForm.saving?"Menyimpan...":"Buat Cicilan"}</button>
+                    <button onClick={()=>submitCicilan(detail)} disabled={cForm.saving || !cForm.gram} style={{ flex:1, background:"linear-gradient(135deg,#a78bfa,#c4b5fd)", border:"none", borderRadius:8, padding:"9px", color:"#0a0a0a", fontWeight:700, cursor:(cForm.saving||!cForm.gram)?"not-allowed":"pointer", fontSize:".82rem", opacity:(cForm.saving||!cForm.gram)?.7:1 }}>{cForm.saving?"Menyimpan...":(cForm.type==="buy"?"Catat Beli Emas":"Buat Cicilan")}</button>
                   </div>
                 </div>
-              )}
+              ); })()}
               {detail.installments.length===0 ? (
                 <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".83rem", marginBottom:8 }}>Belum ada cicilan.</p>
               ) : (
