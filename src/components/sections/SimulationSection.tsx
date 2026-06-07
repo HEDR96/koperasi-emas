@@ -13,13 +13,14 @@ import {
   getMarkup, withMarkup,
   buildDerivedCicilan, getCicilanParams,
 } from "@/lib/harga";
-import { Calculator, ArrowLeftRight, MessageCircle } from "lucide-react";
+import { Calculator, ArrowLeftRight, MessageCircle, ShoppingCart } from "lucide-react";
 
-type SimType = "cicilan" | "buyback";
+type SimType = "beli" | "cicilan" | "buyback";
 
 const TABS: { id: SimType; label: string; icon: any }[] = [
+  { id: "beli",    label: "Beli Emas",    icon: ShoppingCart },
   { id: "cicilan", label: "Cicilan Emas", icon: Calculator },
-  { id: "buyback", label: "Buyback", icon: ArrowLeftRight },
+  { id: "buyback", label: "Buyback",      icon: ArrowLeftRight },
 ];
 
 const WA_ADMIN    = "6281297533899";
@@ -38,7 +39,12 @@ interface DerivedPlan {
 }
 
 export default function SimulationSection() {
-  const [activeTab, setActiveTab] = useState<SimType>("cicilan");
+  const [activeTab, setActiveTab] = useState<SimType>("beli");
+
+  // ── Beli Emas state ──
+  const [beliRows, setBeliRows]         = useState<{ gram: number; harga: number }[]>([]);
+  const [beliGram, setBeliGram]         = useState<string>("");
+  const [loadingBeli, setLoadingBeli]   = useState(true);
 
   // Cicilan state — derived from harga emas + markup anggota
   const [cicilanPlans, setCicilanPlans]   = useState<DerivedPlan[]>([]);
@@ -90,6 +96,29 @@ export default function SimulationSection() {
         }
       } catch {}
       setLoadingCicilan(false);
+    })();
+  }, []);
+
+  // Load beli emas (harga non-anggota per berat)
+  useEffect(() => {
+    (async () => {
+      setLoadingBeli(true);
+      try {
+        const [{ data: e }, markup] = await Promise.all([
+          (supabase.from("harga_emas_berat") as any)
+            .select("gram,harga").eq("kategori","emas")
+            .order("created_at",{ascending:false}).limit(200),
+          getMarkup(),
+        ]);
+        const seen = new Set<number>();
+        const rows = (e||[])
+          .filter((r:any)=>{ const g=Number(r.gram); if(seen.has(g)) return false; seen.add(g); return true; })
+          .map((r:any)=>({ gram:Number(r.gram), harga:withMarkup(r.harga,Number(r.gram),markup.nonAnggota) }))
+          .sort((a:any,b:any)=>a.gram-b.gram);
+        setBeliRows(rows);
+        if (rows.length) setBeliGram(String(rows[0].gram));
+      } catch {}
+      setLoadingBeli(false);
     })();
   }, []);
 
@@ -149,6 +178,21 @@ export default function SimulationSection() {
 
   const buybackTotal = Math.round(buybackPrice * buybackGram);
 
+  // Beli emas derived
+  const beliSelected = beliRows.find(r => String(r.gram) === beliGram) || null;
+  const beliGramOpts = beliRows.map(r => ({ value:String(r.gram), label:`${r.gram % 1 === 0 ? r.gram : r.gram.toFixed(1)} gram` }));
+
+  function buildBeliMsg() {
+    if (!beliSelected) return encodeURIComponent("Halo, saya ingin membeli emas. Mohon info lebih lanjut.");
+    return encodeURIComponent([
+      "Halo, saya ingin membeli emas (cash):",
+      `• Berat: ${beliSelected.gram} gram`,
+      `• Harga: ${formatCurrency(beliSelected.harga)}`,
+      "",
+      "Mohon info lebih lanjut. Terima kasih.",
+    ].join("\n"));
+  }
+
   function buildBuybackMsg() {
     return encodeURIComponent([
       "Halo, saya ingin melakukan buyback emas:",
@@ -192,6 +236,78 @@ export default function SimulationSection() {
         </div>
 
         <motion.div key={activeTab} initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.4 }}>
+
+          {/* BELI EMAS */}
+          {activeTab === "beli" && (
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* Pilih gram */}
+              <Card variant="glass" className="gradient-border">
+                <h3 className="text-lg font-bold text-white mb-6">Beli Emas (Cash)</h3>
+                {loadingBeli ? (
+                  <p className="text-white/40 text-sm">Memuat harga emas...</p>
+                ) : beliRows.length === 0 ? (
+                  <p className="text-white/40 text-sm">Harga emas belum tersedia.</p>
+                ) : (
+                  <div className="space-y-5">
+                    <div>
+                      <label className="text-sm text-white/70 block mb-2">Pilih Berat Emas</label>
+                      <Select
+                        value={beliGram}
+                        placeholder="Pilih berat emas"
+                        options={beliGramOpts}
+                        onChange={v => setBeliGram(v)}
+                      />
+                    </div>
+                    <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".78rem", margin:0 }}>
+                      Harga di atas adalah harga untuk pembelian cash langsung ke koperasi.
+                    </p>
+                  </div>
+                )}
+              </Card>
+
+              {/* Info harga + tombol WA */}
+              <Card variant="glass" className="gradient-border">
+                <h3 className="text-lg font-bold text-white mb-6">Informasi Harga</h3>
+                {beliSelected ? (
+                  <div className="space-y-4">
+                    {[
+                      { label:"Berat Emas",  value:`${beliSelected.gram % 1 === 0 ? beliSelected.gram : beliSelected.gram.toFixed(1)} gram` },
+                      { label:"Harga Beli",  value:formatCurrency(beliSelected.harga), gold:true },
+                    ].map(row=>(
+                      <div key={row.label} className="flex justify-between py-3 border-b border-white/5">
+                        <span className="text-white/80 text-sm">{row.label}</span>
+                        <span className={`font-bold text-sm ${row.gold?"text-yellow-400":"text-white"}`}>{row.value}</span>
+                      </div>
+                    ))}
+                    <div style={{ background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:12, padding:"14px 16px", textAlign:"center" }}>
+                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"0 0 4px" }}>Total Bayar</p>
+                      <p style={{ color:"#D4AF37", fontWeight:900, fontSize:"1.6rem", margin:0 }}>{formatCurrency(beliSelected.harga)}</p>
+                    </div>
+                    <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:0, textAlign:"center" }}>
+                      Hubungi kami untuk konfirmasi ketersediaan & proses transaksi
+                    </p>
+                    {/* WA Buttons */}
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginTop:4 }}>
+                      <a href={`https://wa.me/${WA_ADMIN}?text=${buildBeliMsg()}`} target="_blank" rel="noopener noreferrer"
+                        style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none" }}>
+                        <MessageCircle className="w-4 h-4" style={{ color:"#25d366" }} />
+                        <span style={{ color:"#25d366", fontWeight:700, fontSize:".8rem" }}>WA Admin</span>
+                        <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>0812-9753-3899</span>
+                      </a>
+                      <a href={`https://wa.me/${WA_PENGURUS}?text=${buildBeliMsg()}`} target="_blank" rel="noopener noreferrer"
+                        style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none" }}>
+                        <MessageCircle className="w-4 h-4" style={{ color:"#25d366" }} />
+                        <span style={{ color:"#25d366", fontWeight:700, fontSize:".8rem" }}>WA Pengurus</span>
+                        <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>0882-1446-0345</span>
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-white/40 text-sm">Pilih berat emas untuk melihat harga.</p>
+                )}
+              </Card>
+            </div>
+          )}
 
           {/* CICILAN */}
           {activeTab === "cicilan" && (

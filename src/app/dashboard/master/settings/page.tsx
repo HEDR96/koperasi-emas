@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Save, RefreshCw } from "lucide-react";
+import { Save, RefreshCw, CheckCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useSettingsStore, waNumber } from "@/store/useSettingsStore";
 import RupiahInput from "@/components/ui/RupiahInput";
@@ -55,9 +55,11 @@ const GROUPS = ["Informasi Umum","Bisnis","Kontak","Lokasi","Cicilan"];
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string,string>>({});
   const [loading, setLoading]   = useState(true);
-  const [saving, setSaving]     = useState(false);
-  const [saved, setSaved]       = useState(false);
-  const [error, setError]       = useState("");
+  const [saving, setSaving]         = useState(false);
+  const [saved, setSaved]           = useState(false);
+  const [savingCicilan, setSavingCicilan] = useState(false);
+  const [savedCicilan, setSavedCicilan]   = useState(false);
+  const [error, setError]           = useState("");
 
   async function load() {
     setLoading(true);
@@ -117,6 +119,41 @@ export default function SettingsPage() {
       setError(e.message || "Terjadi kesalahan.");
     }
     setSaving(false);
+  }
+
+  // Simpan hanya parameter cicilan (6 key)
+  async function handleSaveCicilan() {
+    setSavingCicilan(true); setError(""); setSavedCicilan(false);
+    try {
+      const cicilanKeys = DEFAULTS.filter(d => d.group_name === "Cicilan");
+      const rows = cicilanKeys.map(d => ({
+        key: d.key,
+        value: settings[d.key] ?? "0",
+        label: d.label,
+        type: d.type,
+        group_name: d.group_name,
+      }));
+      const { error: err } = await (supabase.from("site_settings") as any).upsert(rows, { onConflict:"key" });
+      if (err) setError("Gagal menyimpan cicilan: " + err.message);
+      else { setSavedCicilan(true); setTimeout(()=>setSavedCicilan(false), 3000); }
+    } catch (e:any) { setError(e?.message||"Terjadi kesalahan."); }
+    setSavingCicilan(false);
+  }
+
+  // Preview kalkulasi cicilan langsung dari input saat ini (contoh: 1 gram harga 2.000.000)
+  function previewCicilan() {
+    const admin    = Number(settings["cicilan_admin_anggota"])          || 0;
+    const pBulan   = Number(settings["cicilan_persen_bulan_anggota"])   || 0;
+    const pDp      = Number(settings["cicilan_persen_dp_anggota"])      || 0;
+    const contohHarga = 2_000_000; // Rp 2.000.000 (patokan preview)
+    const tenors = [6, 12, 24];
+    return tenors.map(t => {
+      const a = contohHarga + admin;
+      const b = a * (pBulan / 100) * t;
+      const c = Math.round((a + b) * (pDp / 100));
+      const total = Math.round(a + b - c);
+      return { tenor: t, dp: c, angsuran: t > 0 ? Math.round(total / t) : 0 };
+    });
   }
 
   const inputStyle: React.CSSProperties = {
@@ -196,6 +233,73 @@ export default function SettingsPage() {
                     )}
                   </div>
                 ))}
+
+                {/* Cicilan: preview kalkulasi + tombol simpan sendiri */}
+                {group === "Cicilan" && (() => {
+                  const fmt = (n:number) => new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n);
+                  const preview = previewCicilan();
+                  const hasValues = Number(settings["cicilan_persen_bulan_anggota"]) > 0 ||
+                                    Number(settings["cicilan_persen_dp_anggota"])    > 0 ||
+                                    Number(settings["cicilan_admin_anggota"])        > 0;
+                  return (
+                    <>
+                      {/* Live preview */}
+                      <div style={{ background:"rgba(167,139,250,0.06)", border:"1px solid rgba(167,139,250,0.2)", borderRadius:12, padding:"14px 16px" }}>
+                        <p style={{ color:"#a78bfa", fontWeight:700, fontSize:".8rem", margin:"0 0 10px" }}>
+                          Preview Kalkulasi (contoh: harga emas Rp 2.000.000 / Anggota)
+                        </p>
+                        {!hasValues ? (
+                          <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".78rem", margin:0 }}>
+                            Isi nilai admin, % per bulan, dan % DP di atas untuk melihat preview.
+                          </p>
+                        ) : (
+                          <div style={{ overflowX:"auto" }}>
+                            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:".78rem" }}>
+                              <thead>
+                                <tr style={{ borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
+                                  {["Tenor","DP (bayar dulu)","Angsuran/bln"].map(h=>(
+                                    <th key={h} style={{ padding:"6px 10px", textAlign:"left", color:"rgba(255,255,255,0.35)", fontWeight:600, textTransform:"uppercase", fontSize:".68rem", whiteSpace:"nowrap" }}>{h}</th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {preview.map(p=>(
+                                  <tr key={p.tenor} style={{ borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
+                                    <td style={{ padding:"7px 10px", color:"#fff", fontWeight:600 }}>{p.tenor} bln</td>
+                                    <td style={{ padding:"7px 10px", color:"#60a5fa", fontWeight:700 }}>{p.dp > 0 ? fmt(p.dp) : "—"}</td>
+                                    <td style={{ padding:"7px 10px", color:"#D4AF37", fontWeight:700 }}>{fmt(p.angsuran)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Tombol simpan khusus cicilan */}
+                      <button onClick={handleSaveCicilan} disabled={savingCicilan}
+                        style={{ display:"flex", alignItems:"center", gap:8, padding:"11px 22px", borderRadius:11,
+                          background: savedCicilan ? "rgba(52,211,153,0.15)" : "linear-gradient(135deg,#a78bfa,#c4b5fd)",
+                          border: savedCicilan ? "1px solid #34d399" : "none",
+                          color: savedCicilan ? "#34d399" : "#0a0a0a",
+                          fontWeight:700, fontSize:".88rem", cursor:savingCicilan?"not-allowed":"pointer",
+                          opacity:savingCicilan?.7:1, transition:"all .3s", width:"fit-content" }}>
+                        {savingCicilan ? (
+                          <><RefreshCw style={{ width:14, height:14 }} /> Menyimpan...</>
+                        ) : savedCicilan ? (
+                          <><CheckCircle style={{ width:14, height:14 }} /> Parameter Cicilan Tersimpan!</>
+                        ) : (
+                          <><Save style={{ width:14, height:14 }} /> Simpan Parameter Cicilan</>
+                        )}
+                      </button>
+                      {savedCicilan && (
+                        <p style={{ color:"#34d399", fontSize:".78rem", margin:0 }}>
+                          ✓ Nilai telah tersimpan ke database. Buka tab Harga → Cicilan untuk melihat angsuran ter-update.
+                        </p>
+                      )}
+                    </>
+                  );
+                })()}
 
                 {/* Map preview */}
                 {group === "Lokasi" && settings["map_embed"] && (
