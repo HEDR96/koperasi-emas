@@ -143,6 +143,16 @@ export function cicilanAngsuranTenor(
   return Math.round(cicilanHargaTenor(hargaEmas, tenor, admin, persenBulan, persenDp) / tenor);
 }
 
+// DP / uang muka = c = (a + b) × (% DP ÷ 100).
+export function cicilanDpTenor(
+  hargaEmas: number, tenor: number, admin: number, persenBulan: number, persenDp: number
+): number {
+  const a = Number(hargaEmas) + Number(admin);
+  const b = a * (Number(persenBulan) / 100) * Number(tenor);
+  const c = (a + b) * (Number(persenDp) / 100);
+  return Math.round(c);
+}
+
 export type CicilanKind = "anggota" | "nonAnggota";
 
 export interface DerivedCicilan {

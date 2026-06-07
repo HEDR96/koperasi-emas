@@ -9,7 +9,7 @@ import Select from "@/components/ui/Select";
 import MemberPicker from "@/components/ui/MemberPicker";
 import { getStaffMap, fmtTgl, fmtTglJam } from "@/lib/staff";
 import {
-  getMarkup, withMarkup, getCicilanParams, cicilanHargaTenor,
+  getMarkup, withMarkup, getCicilanParams, cicilanHargaTenor, cicilanDpTenor,
   type CicilanParams, CICILAN_PARAM_DEFAULTS,
 } from "@/lib/harga";
 
@@ -46,7 +46,7 @@ const EMPTY = {
   user_id:"", type:"buy", gram:"", amount:"", price_per_gram:"",
   // Default "pending" supaya transaksi yang diinput masuk ke Pusat Approval.
   // Admin bisa memilih "Selesai" untuk mencatat transaksi historis tanpa approval.
-  payment_method:"", notes:"", status:"pending", tenor:"6",
+  payment_method:"", notes:"", status:"pending", tenor:"6", dp:"",
   created_at: new Date().toISOString().slice(0,16),
 };
 
@@ -119,8 +119,11 @@ export default function InputTransaksiPage() {
       return { amount: String(Math.round(buybackPerGram * g)), price_per_gram: String(ppg) };
     }
     if (type === "cicilan") {
-      const total = cicilanHargaTenor(row.harga, Number(tenor) || 1, cicilanParams.adminAnggota, cicilanParams.persenBulanAnggota, cicilanParams.persenDpAnggota);
-      return { amount: String(total), price_per_gram: String(Math.round(row.harga / g)) };
+      const t = Number(tenor) || 1;
+      const total = cicilanHargaTenor(row.harga, t, cicilanParams.adminAnggota, cicilanParams.persenBulanAnggota, cicilanParams.persenDpAnggota);
+      // DP otomatis = c = (a+b) × %DP anggota (DP yang disetujui).
+      const dp = cicilanDpTenor(row.harga, t, cicilanParams.adminAnggota, cicilanParams.persenBulanAnggota, cicilanParams.persenDpAnggota);
+      return { amount: String(total), price_per_gram: String(Math.round(row.harga / g)), dp: String(dp) };
     }
     // buy (default) — harga emas jual
     return { amount: String(Math.round(row.harga)), price_per_gram: String(Math.round(row.harga / g)) };
@@ -144,6 +147,7 @@ export default function InputTransaksiPage() {
           total_amount:   total,
           monthly_amount: cicilanAngsuran,
           tenor:          cicilanTenor,
+          down_payment:   form.dp ? Number(form.dp) : 0,
           paid_installments: 0,
           status:         langsungAktif ? "active" : "pending",
           ...(langsungAktif ? { next_due_date: due.toISOString().slice(0,10) } : {}),
@@ -307,6 +311,15 @@ export default function InputTransaksiPage() {
                   ))}
                 </div>
               </div>
+              {/* DP / uang muka yang sudah disetorkan — otomatis sesuai DP yang disetujui, bisa diubah */}
+              <div>
+                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>DP / Uang Muka Disetorkan (Rp)</label>
+                <div style={{ position:"relative" }}>
+                  <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".9rem", pointerEvents:"none" }}>Rp</span>
+                  <input inputMode="numeric" value={fmtRibuan(form.dp)} onChange={e=>setForm(p=>({...p,dp:onlyDigits(e.target.value)}))} style={{ ...inp, paddingLeft:36 }} placeholder="0" />
+                </div>
+                <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", margin:"5px 0 0" }}>Terisi otomatis sesuai DP yang disetujui; ubah bila nominal yang disetor berbeda.</p>
+              </div>
               {form.amount && Number(form.amount) > 0 && (
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", paddingTop:8, borderTop:"1px solid rgba(255,255,255,0.07)" }}>
                   <span style={{ color:"rgba(255,255,255,0.6)", fontSize:".85rem", fontWeight:600 }}>Angsuran/bulan</span>
@@ -314,7 +327,7 @@ export default function InputTransaksiPage() {
                 </div>
               )}
               <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:0 }}>
-                Total ÷ tenor = {form.amount?fmt(Number(form.amount)):"Rp 0"} ÷ {cicilanTenor} = {fmt(cicilanAngsuran)}/bln · akan masuk ke Kelola Cicilan.
+                Total ÷ tenor = {form.amount?fmt(Number(form.amount)):"Rp 0"} ÷ {cicilanTenor} = {fmt(cicilanAngsuran)}/bln · DP {form.dp?fmt(Number(form.dp)):"Rp 0"} · akan masuk ke Kelola Cicilan.
               </p>
             </div>
           )}

@@ -72,6 +72,7 @@ export interface Database {
           total_amount: number;
           monthly_amount: number;
           tenor: number;
+          down_payment: number;
           paid_installments: number;
           status: "active" | "completed" | "overdue";
           next_due_date: string | null;
