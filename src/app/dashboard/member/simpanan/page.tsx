@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -92,7 +92,7 @@ export default function SimpananPage() {
 
   useEffect(() => { load(); }, [user]);
 
-  // Nilai gadai maks = total simpanan × 80% − admin gadai
+  // Nilai gadai maks = total simpanan Ã— 80% âˆ’ admin gadai
   const maxPinjaman  = nilaiGadaiMax(totalSimpanan, gadaiParams.adminAnggota);
   const pinjamanRp   = Math.min(Number(pinjamanInput) || 0, maxPinjaman);
   const angsuran     = angsuranGadai(pinjamanRp, gadaiParams.persenAnggota, tenor);
@@ -124,7 +124,7 @@ export default function SimpananPage() {
     setSubmitting(false);
   }
 
-  const typeLabel: Record<string,string> = { pokok:"Tabungan Pokok", wajib:"Tabungan Wajib", sukarela:"Tabungan Sukarela" };
+  const typeLabel: Record<string,string> = { pokok:"Simpanan Pokok", wajib:"Simpanan Wajib", sukarela:"Simpanan Sukarela" };
   const simpananByType = ["pokok","wajib","sukarela"].map(type => ({
     type,
     label: typeLabel[type],
@@ -136,8 +136,8 @@ export default function SimpananPage() {
     <div style={{ display:"flex", flexDirection:"column", gap:24, maxWidth:800 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Tabungan Koperasi</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Rincian tabungan dan konversi ke emas</p>
+          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Simpanan Koperasi</h1>
+          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Rincian Simpanan dan konversi ke emas</p>
         </div>
         <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:13, height:13 }} /> Refresh
@@ -156,18 +156,18 @@ export default function SimpananPage() {
           {/* Total card */}
           <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }}
             style={{ background:"linear-gradient(135deg,rgba(212,175,55,0.12),rgba(212,175,55,0.04))", border:"1px solid rgba(212,175,55,0.3)", borderRadius:20, padding:24 }}>
-            <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".82rem", marginBottom:6 }}>Total Tabungan</p>
+            <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".82rem", marginBottom:6 }}>Total Simpanan</p>
             <p style={{ color:"#D4AF37", fontSize:"2.2rem", fontWeight:900, margin:0, lineHeight:1 }}>{fmt(totalSimpanan)}</p>
             {buybackHarga > 0 && (
               <div style={{ marginTop:14, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
                 <Coins style={{ width:15, height:15, color:"#D4AF37" }} />
                 <span style={{ color:"rgba(255,255,255,0.6)", fontSize:".85rem" }}>
-                  Setara <strong style={{ color:"#D4AF37" }}>{fmtGram(gramSetara)}</strong> · harga gadai {fmt(buybackHarga)}/gram
+                  Setara <strong style={{ color:"#D4AF37" }}>{fmtGram(gramSetara)}</strong> Â· harga gadai {fmt(buybackHarga)}/gram
                 </span>
               </div>
             )}
             <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".75rem", marginTop:8 }}>
-              Nilai tabungan dapat digunakan sebagai jaminan gadai pinjaman
+              Nilai Simpanan dapat digunakan sebagai jaminan gadai pinjaman
             </p>
           </motion.div>
 
@@ -198,8 +198,8 @@ export default function SimpananPage() {
                 <div>
                   <p style={{ color:"#f87171", fontWeight:600, fontSize:".88rem", margin:0 }}>Ada Gadai Aktif</p>
                   <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", margin:0 }}>
-                    Pinjaman {fmt(activeGadai.dana_cair)} · Status: <strong style={{ color:"#D4AF37", textTransform:"capitalize" }}>{activeGadai.status}</strong>
-                    {" "}· Sisa tagihan: {fmt(activeGadai.sisa_tagihan)}
+                    Pinjaman {fmt(activeGadai.dana_cair)} Â· Status: <strong style={{ color:"#D4AF37", textTransform:"capitalize" }}>{activeGadai.status}</strong>
+                    {" "}Â· Sisa tagihan: {fmt(activeGadai.sisa_tagihan)}
                   </p>
                   <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:"4px 0 0" }}>Lunasi gadai ini terlebih dahulu untuk mengajukan gadai baru.</p>
                 </div>
@@ -260,7 +260,7 @@ export default function SimpananPage() {
                   <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"0 0 2px" }}>Maksimal Pinjaman</p>
                   <p style={{ color:"#60a5fa", fontWeight:900, fontSize:"1.1rem", margin:0 }}>{fmt(maxPinjaman)}</p>
                   <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".7rem", margin:"2px 0 0" }}>
-                    = Simpanan {fmt(totalSimpanan)} × 80%{gadaiParams.adminAnggota > 0 ? ` − admin ${fmt(gadaiParams.adminAnggota)}` : ""}
+                    = Simpanan {fmt(totalSimpanan)} Ã— 80%{gadaiParams.adminAnggota > 0 ? ` âˆ’ admin ${fmt(gadaiParams.adminAnggota)}` : ""}
                   </p>
                 </div>
 
@@ -311,7 +311,7 @@ export default function SimpananPage() {
                       <span style={{ color:"#60a5fa", fontSize:"1.1rem", fontWeight:900 }}>{fmt(angsuran)}</span>
                     </div>
                     <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".72rem", marginTop:6, marginBottom:0 }}>
-                      {fmt(pinjamanRp)} × (1 + {gadaiParams.persenAnggota}%) ÷ {tenor} = {fmt(angsuran)}/bln
+                      {fmt(pinjamanRp)} Ã— (1 + {gadaiParams.persenAnggota}%) Ã· {tenor} = {fmt(angsuran)}/bln
                     </p>
                   </div>
                 )}
@@ -321,7 +321,7 @@ export default function SimpananPage() {
                   {submitting ? "Mengajukan..." : "Ajukan Gadai"}
                 </button>
                 <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".75rem", textAlign:"center", margin:0 }}>
-                  Pengajuan akan diproses admin dalam 1×24 jam kerja
+                  Pengajuan akan diproses admin dalam 1Ã—24 jam kerja
                 </p>
               </div>
             </motion.div>
@@ -331,3 +331,4 @@ export default function SimpananPage() {
     </div>
   );
 }
+

@@ -18,7 +18,7 @@ interface PendingTx {
 
 const TYPE_LABEL: Record<string, string> = {
   buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan",
-  tabungan:"Tabungan", transfer:"Transfer", referral_bonus:"Bonus Referral",
+  Simpanan:"Simpanan", transfer:"Transfer", referral_bonus:"Bonus Referral",
 };
 
 function fmt(n: number) {
@@ -192,4 +192,5 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
 

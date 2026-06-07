@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -11,7 +11,7 @@ const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
 const fmtGram = (n: number) => `${n.toFixed(4)} gram`;
 
-const GRAM_IN = new Set(["buy", "cicilan", "tabungan"]);
+const GRAM_IN = new Set(["buy", "cicilan", "Simpanan"]);
 
 export default function MemberSaldoPage() {
   const { user } = useAuthStore();
@@ -56,7 +56,7 @@ export default function MemberSaldoPage() {
 
   const cards = [
     { label:"Saldo Rupiah", value: fmt(rupiah), sub:"Saldo dompet koperasi", icon:Wallet, color:"#60a5fa", bg:"rgba(96,165,250,0.1)", href:"/dashboard/member/histori" },
-    { label:"Emas Tersimpan", value: fmtGram(emasGram), sub: hargaBuyback>0 ? `≈ ${fmt(emasGram*hargaBuyback)}` : "", icon:Coins, color:"#D4AF37", bg:"rgba(212,175,55,0.1)", href:"/dashboard/member/buyback" },
+    { label:"Emas Tersimpan", value: fmtGram(emasGram), sub: hargaBuyback>0 ? `â‰ˆ ${fmt(emasGram*hargaBuyback)}` : "", icon:Coins, color:"#D4AF37", bg:"rgba(212,175,55,0.1)", href:"/dashboard/member/buyback" },
     { label:"Total Simpanan", value: fmt(simpanan), sub: hargaBuyback>0 ? `Setara ${fmtGram(simpanan/hargaBuyback)}` : "", icon:Landmark, color:"#a78bfa", bg:"rgba(167,139,250,0.1)", href:"/dashboard/member/simpanan" },
   ];
 
@@ -84,7 +84,7 @@ export default function MemberSaldoPage() {
                   <ArrowRight style={{ width:15, height:15, color:"rgba(255,255,255,0.25)" }} />
                 </div>
                 <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", margin:"0 0 6px" }}>{c.label}</p>
-                <p style={{ color:c.color, fontWeight:900, fontSize:"1.4rem", margin:0 }}>{loading ? "—" : c.value}</p>
+                <p style={{ color:c.color, fontWeight:900, fontSize:"1.4rem", margin:0 }}>{loading ? "â€”" : c.value}</p>
                 {c.sub && <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".76rem", margin:"6px 0 0" }}>{c.sub}</p>}
               </motion.div>
             </Link>
@@ -94,3 +94,4 @@ export default function MemberSaldoPage() {
     </div>
   );
 }
+

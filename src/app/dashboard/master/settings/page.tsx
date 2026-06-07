@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -29,9 +29,9 @@ const DEFAULTS: Setting[] = [
   { key:"legal_number",   value:"BH.0012345/KOP.2019",          label:"Nomor Badan Hukum",       type:"text",     group_name:"Informasi Umum" },
   { key:"total_anggota",  value:"150.000+",                     label:"Jumlah Anggota (tampil)", type:"text",     group_name:"Informasi Umum" },
   // Bisnis
-  { key:"jam_operasional",value:"Senin – Sabtu: 08.00 – 17.00 WIB", label:"Jam Operasional",   type:"text",     group_name:"Bisnis" },
-  { key:"simpanan_pokok", value:"Rp 5.000.000",                 label:"Tabungan Pokok",          type:"text",     group_name:"Bisnis" },
-  { key:"simpanan_wajib", value:"Rp 200.000/bulan",             label:"Tabungan Wajib",          type:"text",     group_name:"Bisnis" },
+  { key:"jam_operasional",value:"Senin â€“ Sabtu: 08.00 â€“ 17.00 WIB", label:"Jam Operasional",   type:"text",     group_name:"Bisnis" },
+  { key:"simpanan_pokok", value:"Rp 5.000.000",                 label:"Simpanan Pokok",          type:"text",     group_name:"Bisnis" },
+  { key:"simpanan_wajib", value:"Rp 200.000/bulan",             label:"Simpanan Wajib",          type:"text",     group_name:"Bisnis" },
   // Kontak
   { key:"wa_number",      value:"",  label:"Nomor WhatsApp",    type:"text",     group_name:"Kontak" },
   { key:"email",          value:"",  label:"Email",             type:"email",    group_name:"Kontak" },
@@ -41,14 +41,14 @@ const DEFAULTS: Setting[] = [
   { key:"address",        value:"",  label:"Alamat",            type:"textarea", group_name:"Lokasi" },
   { key:"map_url",        value:"",  label:"URL Google Maps",   type:"url",      group_name:"Lokasi" },
   { key:"map_embed",      value:"",  label:"Embed Maps (iframe src)", type:"url", group_name:"Lokasi" },
-  // Cicilan — parameter rumus cicilan (a + b − c)
+  // Cicilan â€” parameter rumus cicilan (a + b âˆ’ c)
   { key:"cicilan_admin_anggota",          value:"0", label:"Admin Anggota (Rp)",          type:"rupiah",  group_name:"Cicilan" },
   { key:"cicilan_admin_non_anggota",      value:"0", label:"Admin Non-Anggota (Rp)",      type:"rupiah",  group_name:"Cicilan" },
   { key:"cicilan_persen_bulan_anggota",   value:"0", label:"Persen per Bulan Anggota (%)",     type:"percent", group_name:"Cicilan" },
   { key:"cicilan_persen_bulan_non_anggota", value:"0", label:"Persen per Bulan Non-Anggota (%)", type:"percent", group_name:"Cicilan" },
   { key:"cicilan_persen_dp_anggota",      value:"0", label:"Persen DP Anggota (%)",       type:"percent", group_name:"Cicilan" },
   { key:"cicilan_persen_dp_non_anggota",  value:"0", label:"Persen DP Non-Anggota (%)",   type:"percent", group_name:"Cicilan" },
-  // Gadai — parameter rumus gadai simpanan
+  // Gadai â€” parameter rumus gadai simpanan
   { key:"gadai_admin_anggota",   value:"0", label:"Biaya Admin Gadai Anggota (Rp)", type:"rupiah",  group_name:"Gadai" },
   { key:"gadai_persen_anggota",  value:"0", label:"Persen Gadai Anggota (%)",       type:"percent", group_name:"Gadai" },
 ];
@@ -276,12 +276,12 @@ export default function SettingsPage() {
                     <>
                       <div style={{ background:"rgba(96,165,250,0.06)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:12, padding:"14px 16px" }}>
                         <p style={{ color:"#60a5fa", fontWeight:700, fontSize:".8rem", margin:"0 0 6px" }}>
-                          Rumus: Nilai Gadai Maks = Simpanan × 80% − Admin · Angsuran/bln = Nilai × (1 + {persen}%) ÷ Tenor
+                          Rumus: Nilai Gadai Maks = Simpanan Ã— 80% âˆ’ Admin Â· Angsuran/bln = Nilai Ã— (1 + {persen}%) Ã· Tenor
                         </p>
                         {hasVal ? (
                           <>
                             <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"0 0 10px" }}>
-                              Contoh simpanan Rp 10.000.000 → Nilai gadai maks: <strong style={{color:"#60a5fa"}}>{fmt(nilaiMax)}</strong>
+                              Contoh simpanan Rp 10.000.000 â†’ Nilai gadai maks: <strong style={{color:"#60a5fa"}}>{fmt(nilaiMax)}</strong>
                             </p>
                             <div style={{ overflowX:"auto" }}>
                               <table style={{ width:"100%", borderCollapse:"collapse", fontSize:".78rem" }}>
@@ -320,7 +320,7 @@ export default function SettingsPage() {
                       </button>
                       {savedGadai && (
                         <p style={{ color:"#34d399", fontSize:".78rem", margin:0 }}>
-                          ✓ Tersimpan. Halaman Simpanan anggota akan langsung menggunakan nilai baru.
+                          âœ“ Tersimpan. Halaman Simpanan anggota akan langsung menggunakan nilai baru.
                         </p>
                       )}
                     </>
@@ -359,7 +359,7 @@ export default function SettingsPage() {
                                 {preview.map(p=>(
                                   <tr key={p.tenor} style={{ borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
                                     <td style={{ padding:"7px 10px", color:"#fff", fontWeight:600 }}>{p.tenor} bln</td>
-                                    <td style={{ padding:"7px 10px", color:"#60a5fa", fontWeight:700 }}>{p.dp > 0 ? fmt(p.dp) : "—"}</td>
+                                    <td style={{ padding:"7px 10px", color:"#60a5fa", fontWeight:700 }}>{p.dp > 0 ? fmt(p.dp) : "â€”"}</td>
                                     <td style={{ padding:"7px 10px", color:"#D4AF37", fontWeight:700 }}>{fmt(p.angsuran)}</td>
                                   </tr>
                                 ))}
@@ -387,7 +387,7 @@ export default function SettingsPage() {
                       </button>
                       {savedCicilan && (
                         <p style={{ color:"#34d399", fontSize:".78rem", margin:0 }}>
-                          ✓ Nilai telah tersimpan ke database. Buka tab Harga → Cicilan untuk melihat angsuran ter-update.
+                          âœ“ Nilai telah tersimpan ke database. Buka tab Harga â†’ Cicilan untuk melihat angsuran ter-update.
                         </p>
                       )}
                     </>
@@ -418,3 +418,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+

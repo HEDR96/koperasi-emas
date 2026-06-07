@@ -1,4 +1,4 @@
-export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
+﻿export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
 
 export interface Database {
   public: {
@@ -46,7 +46,7 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          type: "buy" | "buyback" | "cicilan" | "tabungan" | "transfer" | "referral_bonus";
+          type: "buy" | "buyback" | "cicilan" | "Simpanan" | "transfer" | "referral_bonus";
           gram: number | null;
           amount: number;
           price_per_gram: number | null;
@@ -208,3 +208,4 @@ export type Payment      = Database["public"]["Tables"]["payments"]["Row"];
 export type Promo        = Database["public"]["Tables"]["promos"]["Row"];
 export type NewsArticle  = Database["public"]["Tables"]["news"]["Row"];
 export type Branch       = Database["public"]["Tables"]["branches"]["Row"];
+

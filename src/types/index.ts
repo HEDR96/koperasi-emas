@@ -1,5 +1,5 @@
-export type UserRole = "master" | "admin" | "member";
-export type TransactionType = "buy" | "sell" | "buyback" | "cicilan" | "tabungan" | "transfer";
+﻿export type UserRole = "master" | "admin" | "member";
+export type TransactionType = "buy" | "sell" | "buyback" | "cicilan" | "Simpanan" | "transfer";
 export type TransactionStatus = "pending" | "processing" | "completed" | "rejected" | "cancelled";
 export type GoldTrend = "up" | "down" | "stable";
 
@@ -62,7 +62,7 @@ export interface CicilanPlan {
   createdAt: string;
 }
 
-export interface TabunganAccount {
+export interface SimpananAccount {
   id: string;
   userId: string;
   goldGrams: number;
@@ -126,3 +126,4 @@ export interface Notification {
   isRead: boolean;
   createdAt: string;
 }
+

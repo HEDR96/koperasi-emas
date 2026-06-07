@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -14,7 +14,7 @@ const fmtDate = (s: string) =>
 
 interface TxRow { id: string; type: string; amount: number; gram: number | null; status: string; created_at: string; notes: string | null; }
 
-const GRAM_IN = new Set(["buy", "cicilan", "tabungan"]);
+const GRAM_IN = new Set(["buy", "cicilan", "Simpanan"]);
 const STATUS_COLOR: Record<string,string> = { pending:"#fbbf24", processing:"#60a5fa", completed:"#34d399", rejected:"#f87171" };
 const STATUS_LABEL: Record<string,string> = { pending:"Menunggu", processing:"Diproses", completed:"Selesai", rejected:"Ditolak" };
 
@@ -224,7 +224,7 @@ export default function MemberBuybackPage() {
                 {submitting ? "Mengajukan..." : "Ajukan Buyback"}
               </button>
               <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".75rem", textAlign:"center", margin:"10px 0 0" }}>
-                Pengajuan diproses admin. Dana ditransfer setelah disetujui (1×24 jam kerja).
+                Pengajuan diproses admin. Dana ditransfer setelah disetujui (1Ã—24 jam kerja).
               </p>
             </div>
           ) : (
@@ -268,3 +268,4 @@ export default function MemberBuybackPage() {
     </div>
   );
 }
+

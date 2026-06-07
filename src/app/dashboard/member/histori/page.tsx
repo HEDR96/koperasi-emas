@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -14,7 +14,7 @@ interface TxRow {
 
 const TYPE_LABEL: Record<string,string> = {
   buy:"Beli Emas", buyback:"Jual Kembali", cicilan:"Cicilan",
-  tabungan:"Tabungan", transfer:"Transfer", referral_bonus:"Bonus Referral",
+  Simpanan:"Simpanan", transfer:"Transfer", referral_bonus:"Bonus Referral",
 };
 const STATUS_COLOR: Record<string,string> = {
   pending:"#fbbf24", processing:"#60a5fa", completed:"#34d399", rejected:"#f87171",
@@ -129,8 +129,8 @@ export default function MemberHistoriPage() {
                   </div>
                   <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".78rem", margin:0 }}>
                     {fmtDate(tx.created_at)}
-                    {tx.gram && ` · ${tx.gram} gr`}
-                    {tx.payment_method && ` · ${tx.payment_method}`}
+                    {tx.gram && ` Â· ${tx.gram} gr`}
+                    {tx.payment_method && ` Â· ${tx.payment_method}`}
                   </p>
                   {tx.status==="rejected" && tx.notes && (
                     <p style={{ color:"#f87171", fontSize:".78rem", marginTop:6, background:"rgba(248,113,113,0.06)", borderRadius:6, padding:"5px 10px" }}>
@@ -147,3 +147,4 @@ export default function MemberHistoriPage() {
     </div>
   );
 }
+

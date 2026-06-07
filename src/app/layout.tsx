@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -14,8 +14,8 @@ export const metadata: Metadata = {
     template: "%s | Koperasi Emas",
   },
   description:
-    "Platform koperasi emas terpercaya. Tabungan emas, cicilan 0%, buyback instan, dan investasi emas untuk 150.000+ anggota Indonesia.",
-  keywords: ["koperasi emas", "investasi emas", "tabungan emas", "cicilan emas", "buyback emas"],
+    "Platform koperasi emas terpercaya. Simpanan emas, cicilan 0%, buyback instan, dan investasi emas untuk 150.000+ anggota Indonesia.",
+  keywords: ["koperasi emas", "investasi emas", "Simpanan emas", "cicilan emas", "buyback emas"],
   icons: {
     icon: "/logo.jpg",
     shortcut: "/logo.jpg",
@@ -44,3 +44,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+

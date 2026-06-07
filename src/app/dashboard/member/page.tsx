@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -20,7 +20,7 @@ interface TxRow { id: string; type: string; amount: number; gram: number | null;
 
 const TYPE_LABEL: Record<string,string> = {
   buy:"Beli Emas", buyback:"Jual Kembali", cicilan:"Cicilan",
-  tabungan:"Tabungan", transfer:"Transfer", referral_bonus:"Bonus Referral",
+  Simpanan:"Simpanan", transfer:"Transfer", referral_bonus:"Bonus Referral",
 };
 const STATUS_COLOR: Record<string,string> = {
   pending:"#fbbf24", processing:"#60a5fa", completed:"#34d399", rejected:"#f87171",
@@ -30,7 +30,7 @@ const STATUS_LABEL: Record<string,string> = {
 };
 
 // Tipe yang menambah emas tersimpan saat completed
-const GRAM_IN = new Set(["buy", "cicilan", "tabungan"]);
+const GRAM_IN = new Set(["buy", "cicilan", "Simpanan"]);
 
 export default function MemberDashboardPage() {
   const { user } = useAuthStore();
@@ -67,7 +67,7 @@ export default function MemberDashboardPage() {
       ]);
 
       const txs: TxRow[] = txRes.data || [];
-      // Emas tersimpan = Σ gram (buy/cicilan/tabungan completed) − Σ gram (buyback completed)
+      // Emas tersimpan = Î£ gram (buy/cicilan/Simpanan completed) âˆ’ Î£ gram (buyback completed)
       const net = txs.reduce((acc, t) => {
         if (t.status !== "completed" || !t.gram) return acc;
         if (GRAM_IN.has(t.type)) return acc + Number(t.gram);
@@ -119,7 +119,7 @@ export default function MemberDashboardPage() {
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
           <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>
-            Halo, {user?.name?.split(" ")[0] || "Anggota"} 👋
+            Halo, {user?.name?.split(" ")[0] || "Anggota"} ðŸ‘‹
           </h1>
           <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>
             Ringkasan emas tersimpan & simpanan Anda
@@ -140,11 +140,11 @@ export default function MemberDashboardPage() {
             <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".82rem", margin:0 }}>Emas Tersimpan</p>
           </div>
           <p style={{ color:"#D4AF37", fontSize:"2.1rem", fontWeight:900, margin:0, lineHeight:1 }}>
-            {loading ? "—" : fmtGram(emasGram)}
+            {loading ? "â€”" : fmtGram(emasGram)}
           </p>
           {hargaBuyback > 0 && (
             <p style={{ color:"rgba(255,255,255,0.6)", fontSize:".85rem", marginTop:10 }}>
-              ≈ <strong style={{ color:"#fff" }}>{fmt(emasValue)}</strong> <span style={{ color:"rgba(255,255,255,0.35)" }}>(harga buyback)</span>
+              â‰ˆ <strong style={{ color:"#fff" }}>{fmt(emasValue)}</strong> <span style={{ color:"rgba(255,255,255,0.35)" }}>(harga buyback)</span>
             </p>
           )}
         </motion.div>
@@ -157,7 +157,7 @@ export default function MemberDashboardPage() {
             <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".82rem", margin:0 }}>Total Simpanan</p>
           </div>
           <p style={{ color:"#60a5fa", fontSize:"2.1rem", fontWeight:900, margin:0, lineHeight:1 }}>
-            {loading ? "—" : fmt(totalSimpanan)}
+            {loading ? "â€”" : fmt(totalSimpanan)}
           </p>
           {hargaBuyback > 0 && (
             <p style={{ color:"rgba(255,255,255,0.6)", fontSize:".85rem", marginTop:10 }}>
@@ -175,7 +175,7 @@ export default function MemberDashboardPage() {
         ].map(h => (
           <div key={h.label} style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:14, padding:"16px 18px" }}>
             <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", marginBottom:6 }}>{h.label}</p>
-            <p style={{ color:h.color, fontWeight:900, fontSize:"1.25rem", margin:0 }}>{loading ? "—" : fmt(h.value)}</p>
+            <p style={{ color:h.color, fontWeight:900, fontSize:"1.25rem", margin:0 }}>{loading ? "â€”" : fmt(h.value)}</p>
           </div>
         ))}
       </div>
@@ -192,7 +192,7 @@ export default function MemberDashboardPage() {
                   <span style={{ marginLeft:"auto", textTransform:"capitalize", color:"#D4AF37", fontSize:".75rem", fontWeight:600 }}>{gadaiAktif.status}</span>
                 </div>
                 <p style={{ color:"rgba(255,255,255,0.6)", fontSize:".82rem", margin:0 }}>
-                  Pinjaman {fmt(gadaiAktif.dana_cair)} · Sisa <strong style={{ color:"#f87171" }}>{fmt(gadaiAktif.sisa_tagihan)}</strong>
+                  Pinjaman {fmt(gadaiAktif.dana_cair)} Â· Sisa <strong style={{ color:"#f87171" }}>{fmt(gadaiAktif.sisa_tagihan)}</strong>
                 </p>
               </div>
             </Link>
@@ -205,7 +205,7 @@ export default function MemberDashboardPage() {
                   <p style={{ color:"#a78bfa", fontWeight:700, fontSize:".88rem", margin:0 }}>{c.product_name || "Cicilan Emas"}</p>
                 </div>
                 <p style={{ color:"rgba(255,255,255,0.6)", fontSize:".82rem", margin:0 }}>
-                  {c.paid_installments}/{c.tenor} bulan · Angsuran {fmt(c.monthly_amount)}
+                  {c.paid_installments}/{c.tenor} bulan Â· Angsuran {fmt(c.monthly_amount)}
                 </p>
               </div>
             </Link>
@@ -242,7 +242,7 @@ export default function MemberDashboardPage() {
         style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, overflow:"hidden" }}>
         <div style={{ padding:"16px 20px", borderBottom:"1px solid rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <h2 style={{ color:"#fff", fontWeight:700, fontSize:"1rem", margin:0 }}>Transaksi Terkini</h2>
-          <Link href="/dashboard/member/histori" style={{ color:"#D4AF37", fontSize:".8rem", textDecoration:"none" }}>Lihat Semua →</Link>
+          <Link href="/dashboard/member/histori" style={{ color:"#D4AF37", fontSize:".8rem", textDecoration:"none" }}>Lihat Semua â†’</Link>
         </div>
         {loading ? (
           <p style={{ padding:"32px", textAlign:"center", color:"rgba(255,255,255,0.3)" }}>Memuat...</p>
@@ -255,7 +255,7 @@ export default function MemberDashboardPage() {
                 <div>
                   <p style={{ color:"#fff", fontWeight:600, fontSize:".88rem", margin:0 }}>
                     {TYPE_LABEL[tx.type] || tx.type}
-                    {tx.gram ? <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}> · {Number(tx.gram).toFixed(2)} gr</span> : null}
+                    {tx.gram ? <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}> Â· {Number(tx.gram).toFixed(2)} gr</span> : null}
                   </p>
                   <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".75rem", margin:"2px 0 0" }}>{fmtDate(tx.created_at)}</p>
                 </div>
@@ -271,3 +271,4 @@ export default function MemberDashboardPage() {
     </div>
   );
 }
+

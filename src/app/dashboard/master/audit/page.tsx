@@ -10,7 +10,7 @@ const fmt = (n: number) =>
 const fmtDate = (s: string) =>
   new Date(s).toLocaleString("id-ID", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
 
-const TX_LABEL: Record<string,string> = { buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan", tabungan:"Tabungan", transfer:"Transfer", referral_bonus:"Bonus Referral" };
+const TX_LABEL: Record<string,string> = { buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan", Simpanan:"Simpanan", transfer:"Transfer", referral_bonus:"Bonus Referral" };
 
 interface Item { id: string; ts: string; kind: "transaksi"|"gadai"|"simpanan"|"member"; who: string; detail: string; amount?: number; status?: string; }
 
@@ -119,4 +119,5 @@ export default function MasterAuditPage() {
     </div>
   );
 }
+
 

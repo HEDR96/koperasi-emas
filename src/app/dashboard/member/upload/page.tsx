@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -17,7 +17,7 @@ const inp: React.CSSProperties = {
   borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".9rem", outline:"none", boxSizing:"border-box",
 };
 const PAYMENT_METHODS = ["Transfer Bank","QRIS","Tunai","BRI","BCA","Mandiri","BNI","BSI"];
-const TYPE_LABEL: Record<string,string> = { buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan", tabungan:"Tabungan" };
+const TYPE_LABEL: Record<string,string> = { buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan", Simpanan:"Simpanan" };
 
 export default function MemberUploadPage() {
   const { user } = useAuthStore();
@@ -104,9 +104,9 @@ export default function MemberUploadPage() {
           {loading ? <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Memuat...</p>
             : pendingTx.length === 0 ? <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".85rem" }}>Tidak ada transaksi pending. Ajukan transaksi dulu di menu Ajukan Transaksi.</p>
             : (
-              <Select value={form.transaction_id} placeholder="— Pilih transaksi —"
+              <Select value={form.transaction_id} placeholder="â€” Pilih transaksi â€”"
                 onChange={v=>{ const tx=pendingTx.find(t=>t.id===v); setForm(p=>({...p, transaction_id:v, amount:tx?String(tx.amount):""})); }}
-                options={pendingTx.map(t=>({ value:t.id, label:`${TYPE_LABEL[t.type]||t.type} · ${fmt(t.amount)} · ${fmtDate(t.created_at)}` }))} />
+                options={pendingTx.map(t=>({ value:t.id, label:`${TYPE_LABEL[t.type]||t.type} Â· ${fmt(t.amount)} Â· ${fmtDate(t.created_at)}` }))} />
             )}
         </div>
 
@@ -145,7 +145,7 @@ export default function MemberUploadPage() {
           <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
             {myPayments.map(p=>(
               <div key={p.id} style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:12, padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
-                <span style={{ color:"rgba(255,255,255,0.6)", fontSize:".82rem" }}>{p.payment_method||"—"} · {fmtDate(p.created_at)}</span>
+                <span style={{ color:"rgba(255,255,255,0.6)", fontSize:".82rem" }}>{p.payment_method||"â€”"} Â· {fmtDate(p.created_at)}</span>
                 <span style={{ color:"#D4AF37", fontWeight:700, fontSize:".85rem" }}>{fmt(p.amount)}</span>
                 <span style={{ color:STATUS_COLOR[p.status]||"#fff", fontSize:".74rem", textTransform:"capitalize" }}>{p.status==="verified"?"Terverifikasi":p.status==="rejected"?"Ditolak":"Menunggu"}</span>
               </div>
@@ -156,3 +156,4 @@ export default function MemberUploadPage() {
     </div>
   );
 }
+

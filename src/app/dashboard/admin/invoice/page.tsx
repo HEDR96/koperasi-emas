@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,7 +12,7 @@ const fmtDate = (s: string) =>
   new Date(s).toLocaleDateString("id-ID", { day:"2-digit", month:"long", year:"numeric", hour:"2-digit", minute:"2-digit" });
 
 const TYPE_LABEL: Record<string,string> = {
-  buy:"Pembelian Emas", buyback:"Buyback Emas", cicilan:"Cicilan Emas", tabungan:"Setoran Tabungan", transfer:"Transfer", referral_bonus:"Bonus Referral",
+  buy:"Pembelian Emas", buyback:"Buyback Emas", cicilan:"Cicilan Emas", Simpanan:"Setoran Simpanan", transfer:"Transfer", referral_bonus:"Bonus Referral",
 };
 
 export default function AdminInvoicePage() {
@@ -70,7 +70,7 @@ export default function AdminInvoicePage() {
               ) : filtered.map(r=>(
                 <tr key={r.id} style={{ borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
                   <td style={{ padding:"12px 18px", color:"#D4AF37", fontFamily:"monospace", fontSize:".8rem" }}>INV-{r.id.slice(0,8).toUpperCase()}</td>
-                  <td style={{ padding:"12px 18px", color:"#fff", fontSize:".85rem" }}>{r.profiles?.name||"—"}</td>
+                  <td style={{ padding:"12px 18px", color:"#fff", fontSize:".85rem" }}>{r.profiles?.name||"â€”"}</td>
                   <td style={{ padding:"12px 18px", color:"rgba(255,255,255,0.6)", fontSize:".85rem" }}>{TYPE_LABEL[r.type]||r.type}</td>
                   <td style={{ padding:"12px 18px", color:"#D4AF37", fontWeight:600, fontSize:".85rem" }}>{fmt(r.amount)}</td>
                   <td style={{ padding:"12px 18px", color:"rgba(255,255,255,0.45)", fontSize:".8rem", whiteSpace:"nowrap" }}>{fmtDate(r.created_at)}</td>
@@ -102,12 +102,12 @@ export default function AdminInvoicePage() {
                 </div>
                 <div style={{ display:"flex", flexDirection:"column", gap:0, border:"1px solid rgba(255,255,255,0.08)", borderRadius:12, overflow:"hidden" }}>
                   {[
-                    ["Anggota", inv.profiles?.name||"—"],
-                    ["NIK", inv.profiles?.nik||"—"],
+                    ["Anggota", inv.profiles?.name||"â€”"],
+                    ["NIK", inv.profiles?.nik||"â€”"],
                     ["Jenis", TYPE_LABEL[inv.type]||inv.type],
                     ...(inv.gram ? [["Berat", `${Number(inv.gram).toFixed(4)} gram`]] : []),
                     ...(inv.price_per_gram ? [["Harga/gram", fmt(inv.price_per_gram)]] : []),
-                    ["Metode", inv.payment_method||"—"],
+                    ["Metode", inv.payment_method||"â€”"],
                     ["Tanggal", fmtDate(inv.created_at)],
                   ].map(([k,v],idx,arr)=>(
                     <div key={k} style={{ display:"flex", justifyContent:"space-between", padding:"10px 16px", borderBottom: idx<arr.length-1?"1px solid rgba(255,255,255,0.05)":"none" }}>
@@ -134,3 +134,4 @@ export default function AdminInvoicePage() {
     </div>
   );
 }
+

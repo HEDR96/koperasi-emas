@@ -1,9 +1,9 @@
-export const SITE_CONFIG = {
+﻿export const SITE_CONFIG = {
   name: "Koperasi Emas",
   shortName: "KOPERASI EMAS",
   tagline: "Investasi Emas Aman & Terpercaya",
   description:
-    "Platform koperasi emas terpercaya untuk tabungan, cicilan, buyback, dan investasi emas online bersama jutaan anggota Indonesia.",
+    "Platform koperasi emas terpercaya untuk Simpanan, cicilan, buyback, dan investasi emas online bersama jutaan anggota Indonesia.",
   url: "https://koperasiemas.co.id",
   email: "info@koperasiemas.co.id",
   phone: "+62 811-0000-1234",
@@ -104,7 +104,7 @@ export const FEATURES = [
   {
     icon: "BadgeDollarSign",
     title: "SHU Tahunan",
-    desc: "Nikmati Sisa Hasil Usaha (SHU) setiap tahun — bagi hasil koperasi untuk seluruh anggota aktif.",
+    desc: "Nikmati Sisa Hasil Usaha (SHU) setiap tahun â€” bagi hasil koperasi untuk seluruh anggota aktif.",
     color: "from-purple-500/20 to-purple-600/5",
   },
 ];
@@ -148,7 +148,7 @@ export const FAQ_ITEMS = [
   {
     question: "Apa itu Gadai Simpanan dan bagaimana cara kerjanya?",
     answer:
-      "Gadai simpanan memungkinkan anggota mengajukan pinjaman menggunakan simpanan sebagai jaminan. Simpanan Anda dikonversi ke nilai gram berdasarkan harga buyback. Pilih tenor 1-4 bulan dengan angsuran = pinjaman ÷ tenor. Tombol gadai hilang selama ada gadai yang belum lunas.",
+      "Gadai simpanan memungkinkan anggota mengajukan pinjaman menggunakan simpanan sebagai jaminan. Simpanan Anda dikonversi ke nilai gram berdasarkan harga buyback. Pilih tenor 1-4 bulan dengan angsuran = pinjaman Ã· tenor. Tombol gadai hilang selama ada gadai yang belum lunas.",
   },
   {
     question: "Apa itu SHU (Sisa Hasil Usaha)?",
@@ -173,7 +173,7 @@ export const MOCK_GOLD_PRICES = {
   trend: "up" as "up" | "down",
 };
 
-// Deterministic chart data — no Math.random() to avoid hydration mismatch
+// Deterministic chart data â€” no Math.random() to avoid hydration mismatch
 const BASE_PRICE = 1_655_000;
 const PRICE_STEPS = [
   0, 3200, -1500, 5100, 2800, -2200, 6400, 1100, -800, 4700,
@@ -187,3 +187,4 @@ export const MOCK_CHART_DATA = Array.from({ length: 30 }, (_, i) => ({
   price: BASE_PRICE + PRICE_STEPS.slice(0, i + 1).reduce((a, b) => a + b, 0),
   volume: 120 + (i * 17 + 43) % 480,
 }));
+

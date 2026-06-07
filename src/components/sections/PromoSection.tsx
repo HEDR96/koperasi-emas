@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -25,9 +25,9 @@ interface PromoItem {
 
 // Susun pesan WhatsApp sesuai promo yang diklik.
 function promoWaMessage(item: PromoItem): string {
-  const lines = ["Halo, saya tertarik dengan promo berikut:", `• Promo: ${item.title}`];
-  if (item.gram_weight != null) lines.push(`• Berat: ${item.gram_weight} gram`);
-  if (item.price != null)       lines.push(`• Harga: ${fmtRp(item.price)}`);
+  const lines = ["Halo, saya tertarik dengan promo berikut:", `â€¢ Promo: ${item.title}`];
+  if (item.gram_weight != null) lines.push(`â€¢ Berat: ${item.gram_weight} gram`);
+  if (item.price != null)       lines.push(`â€¢ Harga: ${fmtRp(item.price)}`);
   lines.push("", "Mohon info lebih lanjut. Terima kasih.");
   return encodeURIComponent(lines.join("\n"));
 }
@@ -111,7 +111,7 @@ function PromoCard({ item, index }: { item: PromoItem; index: number }) {
           </span>
         </div>
 
-        {/* Tombol WhatsApp — kirim pesan otomatis sesuai promo */}
+        {/* Tombol WhatsApp â€” kirim pesan otomatis sesuai promo */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
           <a
             href={`https://wa.me/${WA_ADMIN}?text=${promoWaMessage(item)}`}
@@ -142,7 +142,7 @@ function PromoCard({ item, index }: { item: PromoItem; index: number }) {
 }
 
 const PLACEHOLDER_ITEMS: PromoItem[] = [
-  { id: "1", title: "Tabungan Emas Perdana", description: "Mulai tabungan emas pertama Anda dengan harga spesial member. Nikmati kemudahan menabung emas dari Rp 10.000.", image_url: null, gram_weight: null, price: null, expired_at: null },
+  { id: "1", title: "Simpanan Emas Perdana", description: "Mulai Simpanan emas pertama Anda dengan harga spesial member. Nikmati kemudahan menabung emas dari Rp 10.000.", image_url: null, gram_weight: null, price: null, expired_at: null },
   { id: "2", title: "Cicilan Emas 0% Bunga", description: "Beli emas impian dengan cicilan tanpa bunga khusus untuk anggota aktif koperasi.", image_url: null, gram_weight: null, price: null, expired_at: null },
   { id: "3", title: "Buyback Harga Terbaik", description: "Jual kembali emas Anda dengan harga buyback terbaik di kelasnya. Dana cair dalam 1x24 jam.", image_url: null, gram_weight: null, price: null, expired_at: null },
   { id: "4", title: "Bonus Referral Member", description: "Ajak teman bergabung dan dapatkan bonus emas untuk setiap referral yang berhasil mendaftar.", image_url: null, gram_weight: null, price: null, expired_at: null },
@@ -212,3 +212,4 @@ export default function PromoSection() {
     </section>
   );
 }
+

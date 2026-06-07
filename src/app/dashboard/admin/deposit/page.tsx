@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -17,7 +17,7 @@ interface MemberOption {
 
 const TX_TYPES = [
   { value:"buy",      label:"Beli Emas" },
-  { value:"tabungan", label:"Tabungan Emas" },
+  { value:"Simpanan", label:"Simpanan Emas" },
   { value:"cicilan",  label:"Cicilan Emas" },
 ];
 
@@ -200,3 +200,4 @@ export default function AdminDepositPage() {
     </div>
   );
 }
+

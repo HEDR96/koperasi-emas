@@ -18,7 +18,7 @@ const TABS: { id: Tab; label: string; icon: any; color: string }[] = [
   { id:"gadai",   label:"Gadai (Konversi)",icon:Landmark,       color:"#a78bfa" },
 ];
 
-const EMAS_LABEL: Record<string,string> = { buy:"Beli Emas", cicilan:"Cicilan", tabungan:"Tabungan" };
+const EMAS_LABEL: Record<string,string> = { buy:"Beli Emas", cicilan:"Cicilan", Simpanan:"Simpanan" };
 
 export default function AdminRiwayatPage() {
   const [tab, setTab] = useState<Tab>("cicilan");
@@ -38,7 +38,7 @@ export default function AdminRiwayatPage() {
           .order("paid_at",{ascending:false}).limit(300),
         (supabase.from("transactions") as any)
           .select("id, type, amount, gram, created_at, profiles:profiles!user_id(name)")
-          .in("type",["buy","cicilan","tabungan"]).eq("status","completed")
+          .in("type",["buy","cicilan","Simpanan"]).eq("status","completed")
           .order("created_at",{ascending:false}).limit(300),
         (supabase.from("transactions") as any)
           .select("id, amount, gram, status, created_at, profiles:profiles!user_id(name)")
@@ -181,4 +181,5 @@ export default function AdminRiwayatPage() {
     </div>
   );
 }
+
 

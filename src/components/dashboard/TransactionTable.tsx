@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -24,7 +24,7 @@ const STATUS_MAP = {
 
 const TYPE_MAP: Record<string, string> = {
   buy:"Beli Emas", sell:"Jual Emas", buyback:"Buyback",
-  cicilan:"Cicilan", tabungan:"Tabungan", transfer:"Transfer",
+  cicilan:"Cicilan", Simpanan:"Simpanan", transfer:"Transfer",
 };
 
 interface Props { data: TxRow[]; title?: string; showUser?: boolean; }
@@ -101,7 +101,7 @@ export default function TransactionTable({ data, title = "Transaksi Terbaru", sh
       {totalPages > 1 && (
         <div style={{ padding:"12px 20px", borderTop:"1px solid rgba(255,255,255,0.05)", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8 }}>
           <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".78rem" }}>
-            {(page-1)*PER+1}–{Math.min(page*PER, filtered.length)} dari {filtered.length}
+            {(page-1)*PER+1}â€“{Math.min(page*PER, filtered.length)} dari {filtered.length}
           </p>
           <div style={{ display:"flex", gap:5 }}>
             <button onClick={() => setPage(p=>Math.max(1,p-1))} disabled={page===1}
@@ -127,3 +127,4 @@ export default function TransactionTable({ data, title = "Transaksi Terbaru", sh
     </div>
   );
 }
+

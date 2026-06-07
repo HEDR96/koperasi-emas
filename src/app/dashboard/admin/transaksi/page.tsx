@@ -21,7 +21,7 @@ interface TxRow {
 
 const TYPE_LABEL: Record<string, string> = {
   buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan",
-  tabungan:"Tabungan", transfer:"Transfer", referral_bonus:"Bonus Referral",
+  Simpanan:"Simpanan", transfer:"Transfer", referral_bonus:"Bonus Referral",
 };
 const STATUS_COLOR: Record<string,string> = {
   pending:"#fbbf24", processing:"#60a5fa", completed:"#34d399", rejected:"#f87171",
@@ -310,4 +310,5 @@ export default function AdminTransaksiPage() {
     </div>
   );
 }
+
 

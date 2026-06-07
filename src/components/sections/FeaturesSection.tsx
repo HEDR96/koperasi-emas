@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import {
@@ -35,7 +35,7 @@ export default function FeaturesSection() {
             <span className="text-gold-gradient">dalam Satu Platform</span>
           </h2>
           <p style={{ color:"rgba(255,255,255,0.82)", fontSize:"clamp(.9rem,1.5vw,1.1rem)", maxWidth:540, margin:"0 auto", lineHeight:1.7 }}>
-            Dari tabungan harian hingga investasi jangka panjang, ekosistem lengkap untuk perjalanan emas Anda.
+            Dari Simpanan harian hingga investasi jangka panjang, ekosistem lengkap untuk perjalanan emas Anda.
           </p>
         </motion.div>
 
@@ -76,7 +76,7 @@ export default function FeaturesSection() {
           style={{ textAlign:"center", marginTop:40, color:"rgba(255,255,255,0.65)", fontSize:".85rem" }}
         >
           Semua fitur tersedia untuk anggota aktif (simpanan pokok {s.simpananPokok || "Rp 5.000.000"} + wajib {s.simpananWajib || "Rp 200.000/bulan"}).{" "}
-          <a href="/auth/register" style={{ color:"#D4AF37", fontWeight:600, textDecoration:"none" }}>Daftar jadi anggota →</a>
+          <a href="/auth/register" style={{ color:"#D4AF37", fontWeight:600, textDecoration:"none" }}>Daftar jadi anggota â†’</a>
         </motion.div>
       </div>
 
@@ -87,3 +87,4 @@ export default function FeaturesSection() {
     </section>
   );
 }
+
