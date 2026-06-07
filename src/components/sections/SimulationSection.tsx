@@ -143,6 +143,17 @@ export default function SimulationSection() {
 
   const buybackTotal = Math.round(buybackPrice * buybackGram);
 
+  function buildBuybackMsg() {
+    return encodeURIComponent([
+      "Halo, saya ingin melakukan buyback emas:",
+      `• Berat: ${buybackGram} gram`,
+      `• Harga buyback/gram: ${buybackPrice ? formatCurrency(buybackPrice) : "-"}`,
+      `• Estimasi dana diterima: ${buybackTotal ? formatCurrency(buybackTotal) : "-"}`,
+      "",
+      "Mohon info lebih lanjut. Terima kasih."
+    ].join("\n"));
+  }
+
   return (
     <section id="simulasi" className="py-20 lg:py-28 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-black via-[#0a0900]/50 to-black" />
@@ -308,6 +319,20 @@ export default function SimulationSection() {
                         <span className="text-2xl font-black text-gold-gradient">{buybackTotal ? formatCurrency(buybackTotal) : "-"}</span>
                       </div>
                       <p className="text-white/40 text-xs mt-2 text-center">= Harga Buyback × {buybackGram} gram</p>
+                    </div>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+                      <a href={`https://wa.me/${WA_ADMIN}?text=${buildBuybackMsg()}`} target="_blank" rel="noopener noreferrer"
+                        style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none" }}>
+                        <MessageCircle className="w-4 h-4" style={{ color:"#25d366" }} />
+                        <span style={{ color:"#25d366", fontWeight:700, fontSize:".8rem" }}>Admin</span>
+                        <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>0812-9753-3899</span>
+                      </a>
+                      <a href={`https://wa.me/${WA_PENGURUS}?text=${buildBuybackMsg()}`} target="_blank" rel="noopener noreferrer"
+                        style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none" }}>
+                        <MessageCircle className="w-4 h-4" style={{ color:"#25d366" }} />
+                        <span style={{ color:"#25d366", fontWeight:700, fontSize:".8rem" }}>Pengurus</span>
+                        <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>0882-1446-0345</span>
+                      </a>
                     </div>
                     <Link href="/auth/login" style={{ display:"block" }}>
                       <Button variant="gold" fullWidth>Ajukan Buyback Sekarang</Button>
