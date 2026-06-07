@@ -2,13 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ShoppingBag, Tag, RefreshCw, LogIn } from "lucide-react";
+import { ShoppingBag, Tag, RefreshCw, LogIn, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { gdriveImage } from "@/lib/utils";
 
 const fmtRp = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
+
+// Nomor WhatsApp koperasi (sama dengan halaman cicilan).
+const WA_ADMIN    = "6281297533899";
+const WA_PENGURUS = "6288214460345";
 
 interface PromoItem {
   id: string;
@@ -18,6 +22,15 @@ interface PromoItem {
   gram_weight: number | null;
   price: number | null;
   expired_at: string | null;
+}
+
+// Susun pesan WhatsApp sesuai promo yang diklik.
+function promoWaMessage(item: PromoItem): string {
+  const lines = ["Halo, saya tertarik dengan promo berikut:", `• Promo: ${item.title}`];
+  if (item.gram_weight != null) lines.push(`• Berat: ${item.gram_weight} gram`);
+  if (item.price != null)       lines.push(`• Harga: ${fmtRp(item.price)}`);
+  lines.push("", "Mohon info lebih lanjut. Terima kasih.");
+  return encodeURIComponent(lines.join("\n"));
 }
 
 function PromoCard({ item, index }: { item: PromoItem; index: number }) {
@@ -97,6 +110,32 @@ function PromoCard({ item, index }: { item: PromoItem; index: number }) {
             <Tag style={{ width: 10, height: 10, display: "inline", marginRight: 4 }} />
             Promo
           </span>
+        </div>
+
+        {/* Tombol WhatsApp — kirim pesan otomatis sesuai promo */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
+          <a
+            href={`https://wa.me/${WA_ADMIN}?text=${promoWaMessage(item)}`}
+            target="_blank" rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "9px 4px", borderRadius: 10, background: "rgba(37,211,102,0.12)", border: "1px solid rgba(37,211,102,0.3)", textDecoration: "none" }}
+          >
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#25d366", fontWeight: 700, fontSize: ".78rem" }}>
+              <MessageCircle style={{ width: 13, height: 13 }} /> WA Admin
+            </span>
+            <span style={{ color: "rgba(255,255,255,0.4)", fontSize: ".66rem" }}>0812-9753-3899</span>
+          </a>
+          <a
+            href={`https://wa.me/${WA_PENGURUS}?text=${promoWaMessage(item)}`}
+            target="_blank" rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "9px 4px", borderRadius: 10, background: "rgba(37,211,102,0.12)", border: "1px solid rgba(37,211,102,0.3)", textDecoration: "none" }}
+          >
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#25d366", fontWeight: 700, fontSize: ".78rem" }}>
+              <MessageCircle style={{ width: 13, height: 13 }} /> WA Pengurus
+            </span>
+            <span style={{ color: "rgba(255,255,255,0.4)", fontSize: ".66rem" }}>0882-1446-0345</span>
+          </a>
         </div>
       </div>
     </motion.div>
