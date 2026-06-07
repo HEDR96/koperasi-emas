@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Wallet, Coins, Landmark, RefreshCw, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+import { getGadaiParams, type GadaiParams, GADAI_PARAM_DEFAULTS } from "@/lib/harga";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -15,11 +16,13 @@ const GRAM_IN = new Set(["buy", "cicilan", "Simpanan"]);
 
 export default function MemberSaldoPage() {
   const { user } = useAuthStore();
-  const [rupiah, setRupiah] = useState(0);
-  const [emasGram, setEmasGram] = useState(0);
-  const [simpanan, setSimpanan] = useState(0);
+  const [rupiah, setRupiah]             = useState(0);
+  const [emasGram, setEmasGram]         = useState(0);
+  const [simpanan, setSimpanan]         = useState(0);
   const [hargaBuyback, setHargaBuyback] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [gadaiParams, setGadaiParams]   = useState<GadaiParams>(GADAI_PARAM_DEFAULTS);
+  const [tenorSim, setTenorSim]         = useState(1);
+  const [loading, setLoading]           = useState(true);
 
   async function load() {
     if (!user?.id) return;
@@ -42,26 +45,52 @@ export default function MemberSaldoPage() {
       setSimpanan((simRes.data||[]).reduce((s: number, r: any) => s + (r.amount||0), 0));
       let hb = 0;
       if (bbRes.data?.length) {
-        const one = bbRes.data.find((r: any) => Number(r.gram)===1) || bbRes.data[0];
+        const one = bbRes.data.find((r: any) => Number(r.gram) === 1) || bbRes.data[0];
         hb = Number(one.harga) / Number(one.gram);
       } else {
-        const { data: gp } = await (supabase.from("gold_prices") as any).select("buyback_member").order("created_at",{ascending:false}).limit(1).single();
+        const { data: gp } = await (supabase.from("gold_prices") as any)
+          .select("buyback_member").order("created_at",{ascending:false}).limit(1).single();
         if (gp) hb = Number(gp.buyback_member);
       }
       setHargaBuyback(hb);
+      const gp = await getGadaiParams();
+      setGadaiParams(gp);
     } catch {}
     setLoading(false);
   }
   useEffect(() => { load(); }, [user?.id]);
 
+  // dana_cair = emasGram x buyback x 80% - admin_gadai
+  // angsuran  = dana_cair x (1 + persen_gadai/100) / tenor
+  const danaCairEmas = hargaBuyback > 0
+    ? Math.max(0, Math.round(emasGram * hargaBuyback * 0.8 - gadaiParams.adminAnggota))
+    : 0;
+  const angsuranEmas = danaCairEmas > 0 && tenorSim > 0
+    ? Math.ceil(danaCairEmas * (1 + gadaiParams.persenAnggota / 100) / tenorSim)
+    : 0;
+
   const cards = [
-    { label:"Saldo Rupiah", value: fmt(rupiah), sub:"Saldo dompet koperasi", icon:Wallet, color:"#60a5fa", bg:"rgba(96,165,250,0.1)", href:"/dashboard/member/histori" },
-    { label:"Emas Tersimpan", value: fmtGram(emasGram), sub: hargaBuyback>0 ? `â‰ˆ ${fmt(emasGram*hargaBuyback)}` : "", icon:Coins, color:"#D4AF37", bg:"rgba(212,175,55,0.1)", href:"/dashboard/member/buyback" },
-    { label:"Total Simpanan", value: fmt(simpanan), sub: hargaBuyback>0 ? `Setara ${fmtGram(simpanan/hargaBuyback)}` : "", icon:Landmark, color:"#a78bfa", bg:"rgba(167,139,250,0.1)", href:"/dashboard/member/simpanan" },
+    {
+      label:"Saldo Rupiah", value:fmt(rupiah), sub:"Saldo dompet koperasi",
+      icon:Wallet, color:"#60a5fa", bg:"rgba(96,165,250,0.1)", href:"/dashboard/member/histori",
+    },
+    {
+      label:"Emas Tersimpan", value:fmtGram(emasGram),
+      sub: danaCairEmas > 0
+        ? ("Nilai gadai: " + fmt(danaCairEmas))
+        : hargaBuyback > 0 ? ("~" + fmt(emasGram * hargaBuyback)) : "",
+      icon:Coins, color:"#D4AF37", bg:"rgba(212,175,55,0.1)", href:"/dashboard/member/buyback",
+    },
+    {
+      label:"Total Simpanan", value:fmt(simpanan),
+      sub: hargaBuyback > 0 ? ("Setara " + fmtGram(simpanan / hargaBuyback)) : "",
+      icon:Landmark, color:"#a78bfa", bg:"rgba(167,139,250,0.1)", href:"/dashboard/member/simpanan",
+    },
   ];
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:24, maxWidth:760 }}>
+      {/* Header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
           <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Saldo & Emas</h1>
@@ -72,26 +101,104 @@ export default function MemberSaldoPage() {
         </button>
       </div>
 
+      {/* Kartu aset */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))", gap:16 }}>
-        {cards.map((c,i)=>{
+        {cards.map((c, i) => {
           const Icon = c.icon;
           return (
             <Link key={c.label} href={c.href} style={{ textDecoration:"none" }}>
-              <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:i*.06 }}
-                style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:18, padding:"22px 22px" }}>
+              <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:i * 0.06 }}
+                style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:18, padding:"22px" }}>
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
-                  <div style={{ background:c.bg, borderRadius:10, padding:9 }}><Icon style={{ width:18, height:18, color:c.color }} /></div>
+                  <div style={{ background:c.bg, borderRadius:10, padding:9 }}>
+                    <Icon style={{ width:18, height:18, color:c.color }} />
+                  </div>
                   <ArrowRight style={{ width:15, height:15, color:"rgba(255,255,255,0.25)" }} />
                 </div>
                 <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", margin:"0 0 6px" }}>{c.label}</p>
-                <p style={{ color:c.color, fontWeight:900, fontSize:"1.4rem", margin:0 }}>{loading ? "â€”" : c.value}</p>
+                <p style={{ color:c.color, fontWeight:900, fontSize:"1.4rem", margin:0 }}>{loading ? "-" : c.value}</p>
                 {c.sub && <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".76rem", margin:"6px 0 0" }}>{c.sub}</p>}
               </motion.div>
             </Link>
           );
         })}
       </div>
+
+      {/* Simulasi Gadai Emas */}
+      {!loading && emasGram > 0 && hargaBuyback > 0 && (
+        <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }}
+          style={{ background:"rgba(212,175,55,0.05)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:18, padding:22 }}>
+
+          {/* Judul */}
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
+            <Coins style={{ width:18, height:18, color:"#D4AF37" }} />
+            <div>
+              <p style={{ color:"#D4AF37", fontWeight:700, fontSize:"1rem", margin:0 }}>Simulasi Gadai Emas</p>
+              <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", margin:0 }}>
+                Berdasarkan {fmtGram(emasGram)} emas tersimpan
+              </p>
+            </div>
+          </div>
+
+          {/* Rincian */}
+          <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:12, padding:"14px 16px", marginBottom:14 }}>
+            {[
+              { label:"Emas tersimpan",       val:fmtGram(emasGram),                                  color:"#fff" },
+              { label:"Harga buyback/gram",   val:fmt(hargaBuyback),                                  color:"rgba(255,255,255,0.55)" },
+              { label:"Nilai emas (100%)",    val:fmt(Math.round(emasGram * hargaBuyback)),            color:"rgba(255,255,255,0.55)" },
+              { label:"Nilai gadai (x 80%)",  val:fmt(Math.round(emasGram * hargaBuyback * 0.8)),     color:"rgba(255,255,255,0.55)" },
+            ].map(r => (
+              <div key={r.label} style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                <span style={{ color:"rgba(255,255,255,0.45)", fontSize:".82rem" }}>{r.label}</span>
+                <span style={{ color:r.color, fontWeight:600, fontSize:".82rem" }}>{r.val}</span>
+              </div>
+            ))}
+            {gadaiParams.adminAnggota > 0 && (
+              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                <span style={{ color:"rgba(255,255,255,0.45)", fontSize:".82rem" }}>- Biaya admin</span>
+                <span style={{ color:"#f87171", fontWeight:600, fontSize:".82rem" }}>- {fmt(gadaiParams.adminAnggota)}</span>
+              </div>
+            )}
+            <div style={{ display:"flex", justifyContent:"space-between", paddingTop:8, borderTop:"1px solid rgba(255,255,255,0.07)" }}>
+              <span style={{ color:"rgba(255,255,255,0.8)", fontWeight:700 }}>Dana Cair (Pinjaman)</span>
+              <span style={{ color:"#D4AF37", fontWeight:900, fontSize:".95rem" }}>{fmt(danaCairEmas)}</span>
+            </div>
+          </div>
+
+          {/* Pilih tenor */}
+          <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", margin:"0 0 8px" }}>Pilih Tenor (bulan):</p>
+          <div style={{ display:"flex", gap:8, marginBottom:14 }}>
+            {[1, 2, 3, 4].map(t => (
+              <button key={t} onClick={() => setTenorSim(t)}
+                style={{ flex:1, padding:"10px", borderRadius:10, fontWeight:700, fontSize:".9rem", cursor:"pointer",
+                  border: tenorSim === t ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
+                  background: tenorSim === t ? "rgba(212,175,55,0.15)" : "rgba(255,255,255,0.04)",
+                  color: tenorSim === t ? "#D4AF37" : "rgba(255,255,255,0.5)" }}>
+                {t}
+              </button>
+            ))}
+          </div>
+
+          {/* Hasil angsuran */}
+          <div style={{ background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:12, padding:"14px 16px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <div>
+              <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem", margin:"0 0 3px" }}>
+                Angsuran / Bulan ({tenorSim} bulan)
+              </p>
+              {gadaiParams.persenAnggota > 0 && (
+                <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", margin:0 }}>
+                  {fmt(danaCairEmas)} x (1 + {gadaiParams.persenAnggota}%) / {tenorSim}
+                </p>
+              )}
+            </div>
+            <span style={{ color:"#D4AF37", fontWeight:900, fontSize:"1.3rem" }}>{fmt(angsuranEmas)}</span>
+          </div>
+
+          <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".72rem", margin:"8px 0 0" }}>
+            *Simulasi gadai berdasarkan emas tersimpan. Ajukan gadai melalui menu Simpanan.
+          </p>
+        </motion.div>
+      )}
     </div>
   );
 }
-
