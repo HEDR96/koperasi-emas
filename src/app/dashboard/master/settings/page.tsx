@@ -4,7 +4,15 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Save, RefreshCw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { useSettingsStore, igHandle, waNumber } from "@/store/useSettingsStore";
+import { useSettingsStore, waNumber } from "@/store/useSettingsStore";
+import RupiahInput from "@/components/ui/RupiahInput";
+
+// Bersihkan input persen: hanya digit & satu titik desimal.
+const sanitizePercent = (v: string) => {
+  const cleaned = v.replace(/[^0-9.]/g, "");
+  const parts = cleaned.split(".");
+  return parts.length > 2 ? parts[0] + "." + parts.slice(1).join("") : cleaned;
+};
 
 interface Setting {
   key: string;
@@ -34,12 +42,12 @@ const DEFAULTS: Setting[] = [
   { key:"map_url",        value:"",  label:"URL Google Maps",   type:"url",      group_name:"Lokasi" },
   { key:"map_embed",      value:"",  label:"Embed Maps (iframe src)", type:"url", group_name:"Lokasi" },
   // Cicilan — parameter rumus cicilan (a + b − c)
-  { key:"cicilan_admin_anggota",          value:"0", label:"Admin Anggota (Rp)",          type:"number", group_name:"Cicilan" },
-  { key:"cicilan_admin_non_anggota",      value:"0", label:"Admin Non-Anggota (Rp)",      type:"number", group_name:"Cicilan" },
-  { key:"cicilan_persen_bulan_anggota",   value:"0", label:"Persen per Bulan Anggota (%)",     type:"number", group_name:"Cicilan" },
-  { key:"cicilan_persen_bulan_non_anggota", value:"0", label:"Persen per Bulan Non-Anggota (%)", type:"number", group_name:"Cicilan" },
-  { key:"cicilan_persen_dp_anggota",      value:"0", label:"Persen DP Anggota (%)",       type:"number", group_name:"Cicilan" },
-  { key:"cicilan_persen_dp_non_anggota",  value:"0", label:"Persen DP Non-Anggota (%)",   type:"number", group_name:"Cicilan" },
+  { key:"cicilan_admin_anggota",          value:"0", label:"Admin Anggota (Rp)",          type:"rupiah",  group_name:"Cicilan" },
+  { key:"cicilan_admin_non_anggota",      value:"0", label:"Admin Non-Anggota (Rp)",      type:"rupiah",  group_name:"Cicilan" },
+  { key:"cicilan_persen_bulan_anggota",   value:"0", label:"Persen per Bulan Anggota (%)",     type:"percent", group_name:"Cicilan" },
+  { key:"cicilan_persen_bulan_non_anggota", value:"0", label:"Persen per Bulan Non-Anggota (%)", type:"percent", group_name:"Cicilan" },
+  { key:"cicilan_persen_dp_anggota",      value:"0", label:"Persen DP Anggota (%)",       type:"percent", group_name:"Cicilan" },
+  { key:"cicilan_persen_dp_non_anggota",  value:"0", label:"Persen DP Non-Anggota (%)",   type:"percent", group_name:"Cicilan" },
 ];
 
 const GROUPS = ["Informasi Umum","Bisnis","Kontak","Lokasi","Cicilan"];
@@ -169,9 +177,18 @@ export default function SettingsPage() {
                       <textarea value={settings[f.key]??""} onChange={e=>setSettings(s=>({...s,[f.key]:e.target.value}))}
                         rows={3} placeholder={f.label}
                         style={{ ...inputStyle, resize:"vertical", fontFamily:"inherit" }} />
+                    ) : f.type === "rupiah" ? (
+                      <RupiahInput value={settings[f.key]??""} onValueChange={v=>setSettings(s=>({...s,[f.key]:v}))}
+                        placeholder="0" style={inputStyle} />
+                    ) : f.type === "percent" ? (
+                      <div style={{ position:"relative" }}>
+                        <input inputMode="decimal" value={settings[f.key]??""}
+                          onChange={e=>setSettings(s=>({...s,[f.key]:sanitizePercent(e.target.value)}))}
+                          placeholder="0" style={{ ...inputStyle, paddingRight:34 }} />
+                        <span style={{ position:"absolute", right:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".9rem", pointerEvents:"none" }}>%</span>
+                      </div>
                     ) : (
                       <input type={f.type === "url" ? "text" : f.type}
-                        {...(f.type === "number" ? { step: "any", min: 0 } : {})}
                         value={settings[f.key]??""}
                         onChange={e=>setSettings(s=>({...s,[f.key]:e.target.value}))}
                         placeholder={f.label}

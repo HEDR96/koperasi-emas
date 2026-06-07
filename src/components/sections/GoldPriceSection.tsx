@@ -2,13 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, RefreshCw, TrendingUp, TrendingDown, Minus, MessageCircle } from "lucide-react";
+import { Clock, RefreshCw, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { getMarkup, withMarkup } from "@/lib/harga";
-
-// Nomor WhatsApp koperasi (sama dengan halaman cicilan & promo).
-const WA_ADMIN    = "6281297533899";
-const WA_PENGURUS = "6288214460345";
 
 interface HargaBerat {
   id: number;
@@ -20,16 +16,6 @@ interface HargaBerat {
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
-
-// Pesan WhatsApp untuk beli emas, disesuaikan dengan berat & harga baris.
-const buildBeliMsg = (gram: number, harga: number) =>
-  encodeURIComponent([
-    "Halo, saya ingin membeli emas:",
-    `• Berat: ${gram % 1 === 0 ? gram : gram.toFixed(1)} gram`,
-    `• Harga: ${fmt(harga)}`,
-    "",
-    "Mohon info lebih lanjut. Terima kasih.",
-  ].join("\n"));
 
 export default function GoldPriceSection() {
   const [prices, setPrices]     = useState<HargaBerat[]>([]);
@@ -121,7 +107,7 @@ export default function GoldPriceSection() {
               <table style={{ width:"100%", borderCollapse:"collapse" }}>
                 <thead>
                   <tr style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                    {["Berat (gram)", "Harga Beli", "Tren", "Pesan via WhatsApp"].map(h => (
+                    {["Berat (gram)", "Harga Beli", "Tren"].map(h => (
                       <th key={h} style={{ padding:"12px 24px", textAlign:"left", color:"rgba(255,255,255,0.35)", fontSize:".73rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".06em", whiteSpace:"nowrap" }}>{h}</th>
                     ))}
                   </tr>
@@ -162,18 +148,6 @@ export default function GoldPriceSection() {
                             </span>
                           );
                         })()}
-                      </td>
-                      <td style={{ padding:"14px 24px" }}>
-                        <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                          <a href={`https://wa.me/${WA_ADMIN}?text=${buildBeliMsg(p.gram, p.harga)}`} target="_blank" rel="noopener noreferrer"
-                            style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"6px 12px", borderRadius:9, background:"rgba(37,211,102,0.12)", border:"1px solid rgba(37,211,102,0.3)", color:"#25d366", fontSize:".76rem", fontWeight:700, textDecoration:"none", whiteSpace:"nowrap" }}>
-                            <MessageCircle style={{ width:13, height:13 }} /> Admin
-                          </a>
-                          <a href={`https://wa.me/${WA_PENGURUS}?text=${buildBeliMsg(p.gram, p.harga)}`} target="_blank" rel="noopener noreferrer"
-                            style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"6px 12px", borderRadius:9, background:"rgba(37,211,102,0.12)", border:"1px solid rgba(37,211,102,0.3)", color:"#25d366", fontSize:".76rem", fontWeight:700, textDecoration:"none", whiteSpace:"nowrap" }}>
-                            <MessageCircle style={{ width:13, height:13 }} /> Pengurus
-                          </a>
-                        </div>
                       </td>
                     </tr>
                   ))}

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import Select from "@/components/ui/Select";
 import { formatCurrency } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import {
@@ -198,31 +199,27 @@ export default function SimulationSection() {
                   <p className="text-white/40 text-sm">Paket cicilan belum tersedia. Hubungi admin untuk informasi lebih lanjut.</p>
                 ) : (
                   <div className="space-y-5">
-                    {/* Pilih gram */}
+                    {/* Pilih gram (dropdown) */}
                     <div>
                       <label className="text-sm text-white/70 block mb-2">Berat Emas</label>
-                      <div className="flex flex-wrap gap-2">
-                        {availableGrams.map(g => (
-                          <button key={g} onClick={() => { setSelectedGram(g); setSelectedTenor(cicilanPlans.find(p => p.gram === g)?.tenor ?? null); }}
-                            style={{ padding:"7px 16px", borderRadius:10, fontSize:".85rem", fontWeight:600, cursor:"pointer", border: selectedGram === g ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.12)", background: selectedGram === g ? "rgba(212,175,55,0.18)" : "rgba(255,255,255,0.04)", color: selectedGram === g ? "#D4AF37" : "rgba(255,255,255,0.6)" }}>
-                            {g % 1 === 0 ? g : g.toFixed(1)} gram
-                          </button>
-                        ))}
-                      </div>
+                      <Select
+                        value={selectedGram != null ? String(selectedGram) : ""}
+                        placeholder="Pilih berat emas"
+                        options={availableGrams.map(g => ({ value: String(g), label: `${g % 1 === 0 ? g : g.toFixed(1)} gram` }))}
+                        onChange={v => { const g = Number(v); setSelectedGram(g); setSelectedTenor(cicilanPlans.find(p => p.gram === g)?.tenor ?? null); }}
+                      />
                     </div>
 
-                    {/* Pilih tenor */}
-                    {selectedGram && availableTenors.length > 0 && (
+                    {/* Pilih tenor (dropdown) */}
+                    {selectedGram != null && availableTenors.length > 0 && (
                       <div>
                         <label className="text-sm text-white/70 block mb-2">Tenor (bulan)</label>
-                        <div className="flex flex-wrap gap-2">
-                          {availableTenors.map(t => (
-                            <button key={t} onClick={() => setSelectedTenor(t)}
-                              style={{ padding:"7px 16px", borderRadius:10, fontSize:".85rem", fontWeight:600, cursor:"pointer", border: selectedTenor === t ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.12)", background: selectedTenor === t ? "rgba(212,175,55,0.18)" : "rgba(255,255,255,0.04)", color: selectedTenor === t ? "#D4AF37" : "rgba(255,255,255,0.6)" }}>
-                              {t} bulan
-                            </button>
-                          ))}
-                        </div>
+                        <Select
+                          value={selectedTenor != null ? String(selectedTenor) : ""}
+                          placeholder="Pilih tenor"
+                          options={availableTenors.map(t => ({ value: String(t), label: `${t} bulan` }))}
+                          onChange={v => setSelectedTenor(Number(v))}
+                        />
                       </div>
                     )}
                   </div>

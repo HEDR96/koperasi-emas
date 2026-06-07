@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ShoppingBag, Tag, RefreshCw, LogIn, MessageCircle } from "lucide-react";
-import Link from "next/link";
+import { ShoppingBag, Tag, RefreshCw, MessageCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { gdriveImage } from "@/lib/utils";
 
@@ -190,7 +189,7 @@ export default function PromoSection() {
             <span className="text-gold-gradient">Terbaik Kami</span>
           </h2>
           <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "clamp(.9rem,2vw,1.05rem)", maxWidth: 500, margin: "0 auto" }}>
-            Produk dan program eksklusif untuk anggota koperasi. Login untuk melihat harga member.
+            Produk dan program eksklusif dari koperasi emas.
           </p>
         </motion.div>
 
@@ -208,19 +207,6 @@ export default function PromoSection() {
           </div>
         )}
 
-        {/* CTA */}
-        <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          style={{ textAlign: "center", marginTop: 40 }}>
-          <Link href="/auth/login" style={{ textDecoration: "none" }}>
-            <button className="btn-gold" style={{ padding: "13px 32px", borderRadius: 14, border: "none", cursor: "pointer", fontSize: ".95rem", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <LogIn style={{ width: 16, height: 16 }} />
-              Login untuk Harga Member
-            </button>
-          </Link>
-          <p style={{ color: "rgba(255,255,255,0.45)", fontSize: ".78rem", marginTop: 10 }}>
-            Harga anggota lebih hemat dari non-anggota
-          </p>
-        </motion.div>
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </section>
