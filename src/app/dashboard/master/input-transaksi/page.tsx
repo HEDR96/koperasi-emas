@@ -241,7 +241,7 @@ export default function InputTransaksiPage() {
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
               <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tipe Transaksi *</label>
-              <Select value={form.type} onChange={v=>setForm(p=>({...p,type:v, ...autoFields(p.gram, v, p.tenor)}))} options={TYPE_OPTS} />
+              <Select value={form.type} onChange={v=>setForm(p=>({...p,type:v,gram:"",amount:"",price_per_gram:"",dp:""}))} options={TYPE_OPTS} />
             </div>
             <div>
               <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Status</label>
@@ -249,52 +249,102 @@ export default function InputTransaksiPage() {
             </div>
           </div>
 
-          {/* Jumlah & Gram */}
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-            <div>
-              <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Jumlah (Rp) *</label>
-              <div style={{ position:"relative" }}>
-                <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".9rem", pointerEvents:"none" }}>Rp</span>
-                <input inputMode="numeric" value={fmtRibuan(form.amount)} onChange={e=>setForm(p=>({...p,amount:onlyDigits(e.target.value)}))} style={{ ...inp, paddingLeft:36 }} placeholder="0" />
+          {/* ─── BELI EMAS: form sederhana — pilih gram → harga otomatis ─── */}
+          {form.type === "buy" && (
+            <>
+              <div>
+                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Pilih Berat Emas *</label>
+                {gramOpts.length > 0 ? (
+                  <Select value={form.gram} onChange={v=>setForm(p=>({...p,gram:v,...autoFields(v,"buy",p.tenor)}))} options={gramOpts} placeholder="Pilih berat emas" />
+                ) : (
+                  <p style={{ color:"#f87171", fontSize:".8rem" }}>Harga emas belum tersedia. Tambahkan harga di menu Harga.</p>
+                )}
               </div>
-            </div>
-            <div>
-              <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Berat (gram)</label>
-              {gramOpts.length > 0 ? (
-                <Select value={form.gram} onChange={v=>setForm(p=>({...p,gram:v, ...autoFields(v, p.type, p.tenor)}))} options={gramOpts} placeholder="Pilih berat" />
-              ) : (
-                <input type="number" min={0} step={0.01} value={form.gram} onChange={e=>setForm(p=>({...p,gram:e.target.value}))} style={inp} placeholder="0.00" />
+
+              {/* Preview harga otomatis */}
+              {form.gram && form.amount && (
+                <div style={{ background:"rgba(212,175,55,0.07)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:12, padding:"14px 16px", display:"flex", flexDirection:"column", gap:10 }}>
+                  <p style={{ color:"#D4AF37", fontWeight:700, fontSize:".82rem", margin:0 }}>Detail Harga Beli Emas</p>
+                  {[
+                    { label:"Berat",       val:`${form.gram} gram` },
+                    { label:"Harga/gram",  val:`Rp ${fmtRibuan(form.price_per_gram)}` },
+                    { label:"Total Bayar", val:`Rp ${fmtRibuan(form.amount)}`, gold:true },
+                  ].map(r=>(
+                    <div key={r.label} style={{ display:"flex", justifyContent:"space-between" }}>
+                      <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>{r.label}</span>
+                      <span style={{ color: r.gold ? "#D4AF37" : "#fff", fontWeight: r.gold ? 900 : 600, fontSize:".88rem" }}>{r.val}</span>
+                    </div>
+                  ))}
+                </div>
               )}
-            </div>
-          </div>
 
-          {/* Harga & Metode */}
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-            <div>
-              <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Harga/gram (Rp)</label>
-              <div style={{ position:"relative" }}>
-                <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".9rem", pointerEvents:"none" }}>Rp</span>
-                <input inputMode="numeric" value={fmtRibuan(form.price_per_gram)} onChange={e=>setForm(p=>({...p,price_per_gram:onlyDigits(e.target.value)}))} style={{ ...inp, paddingLeft:36 }} placeholder="0" />
+              <div>
+                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Metode Bayar</label>
+                <input value={form.payment_method} onChange={e=>setForm(p=>({...p,payment_method:e.target.value}))} style={inp} placeholder="Transfer, Tunai, dll" />
               </div>
-            </div>
-            <div>
-              <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Metode Bayar</label>
-              <input value={form.payment_method} onChange={e=>setForm(p=>({...p,payment_method:e.target.value}))} style={inp} placeholder="Transfer, Tunai, dll" />
-            </div>
-          </div>
+              <div>
+                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tanggal Transaksi</label>
+                <input type="datetime-local" value={form.created_at} onChange={e=>setForm(p=>({...p,created_at:e.target.value}))} style={inp} />
+              </div>
+              <div>
+                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Catatan</label>
+                <textarea rows={2} value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))}
+                  style={{ ...inp, resize:"vertical", fontFamily:"inherit" }} placeholder="Keterangan tambahan..." />
+              </div>
+            </>
+          )}
 
-          {/* Tanggal */}
-          <div>
-            <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tanggal Transaksi</label>
-            <input type="datetime-local" value={form.created_at} onChange={e=>setForm(p=>({...p,created_at:e.target.value}))} style={inp} />
-          </div>
+          {/* ─── TIPE LAIN (buyback / cicilan): form lengkap ─── */}
+          {form.type !== "buy" && (
+            <>
+              {/* Jumlah & Gram */}
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                <div>
+                  <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Jumlah (Rp) *</label>
+                  <div style={{ position:"relative" }}>
+                    <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".9rem", pointerEvents:"none" }}>Rp</span>
+                    <input inputMode="numeric" value={fmtRibuan(form.amount)} onChange={e=>setForm(p=>({...p,amount:onlyDigits(e.target.value)}))} style={{ ...inp, paddingLeft:36 }} placeholder="0" />
+                  </div>
+                </div>
+                <div>
+                  <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Berat (gram)</label>
+                  {gramOpts.length > 0 ? (
+                    <Select value={form.gram} onChange={v=>setForm(p=>({...p,gram:v,...autoFields(v,p.type,p.tenor)}))} options={gramOpts} placeholder="Pilih berat" />
+                  ) : (
+                    <input type="number" min={0} step={0.01} value={form.gram} onChange={e=>setForm(p=>({...p,gram:e.target.value}))} style={inp} placeholder="0.00" />
+                  )}
+                </div>
+              </div>
 
-          {/* Catatan */}
-          <div>
-            <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Catatan</label>
-            <textarea rows={2} value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))}
-              style={{ ...inp, resize:"vertical", fontFamily:"inherit" }} placeholder="Keterangan tambahan..." />
-          </div>
+              {/* Harga & Metode */}
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                <div>
+                  <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Harga/gram (Rp)</label>
+                  <div style={{ position:"relative" }}>
+                    <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".9rem", pointerEvents:"none" }}>Rp</span>
+                    <input inputMode="numeric" value={fmtRibuan(form.price_per_gram)} onChange={e=>setForm(p=>({...p,price_per_gram:onlyDigits(e.target.value)}))} style={{ ...inp, paddingLeft:36 }} placeholder="0" />
+                  </div>
+                </div>
+                <div>
+                  <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Metode Bayar</label>
+                  <input value={form.payment_method} onChange={e=>setForm(p=>({...p,payment_method:e.target.value}))} style={inp} placeholder="Transfer, Tunai, dll" />
+                </div>
+              </div>
+
+              {/* Tanggal */}
+              <div>
+                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tanggal Transaksi</label>
+                <input type="datetime-local" value={form.created_at} onChange={e=>setForm(p=>({...p,created_at:e.target.value}))} style={inp} />
+              </div>
+
+              {/* Catatan */}
+              <div>
+                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Catatan</label>
+                <textarea rows={2} value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))}
+                  style={{ ...inp, resize:"vertical", fontFamily:"inherit" }} placeholder="Keterangan tambahan..." />
+              </div>
+            </>
+          )}
 
           {/* Tenor & angsuran — khusus Cicilan Emas */}
           {form.type === "cicilan" && (
