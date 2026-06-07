@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { RefreshCw, Search, CreditCard, Coins, ArrowDownCircle, Landmark } from "lucide-react";
+import { RefreshCw, Search, CreditCard, Coins, ArrowDownCircle, Landmark, Wallet, LayoutGrid } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 const fmt = (n: number) =>
@@ -10,47 +10,83 @@ const fmt = (n: number) =>
 const fmtDate = (s: string) =>
   new Date(s).toLocaleString("id-ID", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
 
-type Tab = "cicilan" | "emas" | "buyback" | "gadai";
+// Status badge
+const STATUS_COLOR: Record<string,string> = {
+  pending:"#fbbf24", processing:"#60a5fa", completed:"#34d399", rejected:"#f87171",
+  active:"#34d399", active_installment:"#34d399", overdue:"#f87171", ditolak:"#f87171",
+  pengajuan:"#fbbf24", disetujui:"#60a5fa", aktif:"#34d399", lunas:"#a78bfa", gagal_bayar:"#f87171",
+};
+const STATUS_LABEL: Record<string,string> = {
+  pending:"Menunggu", processing:"Diproses", completed:"Selesai", rejected:"Ditolak",
+  active:"Aktif", overdue:"Terlambat", ditolak:"Ditolak",
+  pengajuan:"Pengajuan", disetujui:"Disetujui", aktif:"Aktif", lunas:"Lunas", gagal_bayar:"Gagal Bayar",
+};
+
+function StatusBadge({ status }: { status: string }) {
+  const color = STATUS_COLOR[status] || "rgba(255,255,255,0.5)";
+  return (
+    <span style={{ background:`${color}18`, border:`1px solid ${color}40`, color, borderRadius:20, padding:"2px 10px", fontSize:".72rem", fontWeight:700, whiteSpace:"nowrap" }}>
+      {STATUS_LABEL[status] || status}
+    </span>
+  );
+}
+
+const TX_LABEL: Record<string,string> = { buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan", tabungan:"Simpanan", transfer:"Transfer" };
+const SIM_LABEL: Record<string,string> = { pokok:"Simpanan Pokok", wajib:"Simpanan Wajib", sukarela:"Simpanan Sukarela" };
+
+type Tab = "all" | "beli" | "cicilan" | "gadai" | "buyback" | "simpanan";
+
 const TABS: { id: Tab; label: string; icon: any; color: string }[] = [
-  { id:"cicilan", label:"Bayar Cicilan",   icon:CreditCard,     color:"#34d399" },
-  { id:"emas",    label:"Penambahan Emas", icon:Coins,          color:"#D4AF37" },
-  { id:"buyback", label:"Buyback",         icon:ArrowDownCircle,color:"#60a5fa" },
-  { id:"gadai",   label:"Gadai (Konversi)",icon:Landmark,       color:"#a78bfa" },
+  { id:"all",      label:"Semua",        icon:LayoutGrid,     color:"#fff" },
+  { id:"beli",     label:"Beli Emas",    icon:Coins,          color:"#D4AF37" },
+  { id:"cicilan",  label:"Cicilan Emas", icon:CreditCard,     color:"#a78bfa" },
+  { id:"gadai",    label:"Gadai",        icon:Landmark,       color:"#60a5fa" },
+  { id:"buyback",  label:"Buyback",      icon:ArrowDownCircle,color:"#34d399" },
+  { id:"simpanan", label:"Simpanan",     icon:Wallet,         color:"#f59e0b" },
 ];
 
-const EMAS_LABEL: Record<string,string> = { buy:"Beli Emas", cicilan:"Cicilan", Simpanan:"Simpanan" };
-
 export default function AdminRiwayatPage() {
-  const [tab, setTab] = useState<Tab>("cicilan");
+  const [tab, setTab]     = useState<Tab>("all");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [cicilan, setCicilan] = useState<any[]>([]);
-  const [emas, setEmas]       = useState<any[]>([]);
-  const [buyback, setBuyback] = useState<any[]>([]);
-  const [gadai, setGadai]     = useState<any[]>([]);
+
+  // Data per kategori — SEMUA status
+  const [beliData, setBeliData]       = useState<any[]>([]);
+  const [cicilanData, setCicilanData] = useState<any[]>([]);
+  const [gadaiData, setGadaiData]     = useState<any[]>([]);
+  const [buybackData, setBuybackData] = useState<any[]>([]);
+  const [simpananData, setSimpananData] = useState<any[]>([]);
 
   async function load() {
     setLoading(true);
     try {
-      const [cRes, eRes, bRes, gRes] = await Promise.all([
-        (supabase.from("cicilan_pembayaran") as any)
-          .select("id, angsuran_ke, amount, paid_at, profiles:profiles!user_id(name), installments(product_name)")
-          .order("paid_at",{ascending:false}).limit(300),
+      const [bRes, cRes, gRes, bbRes, sRes] = await Promise.all([
+        // Beli Emas — semua status
         (supabase.from("transactions") as any)
-          .select("id, type, amount, gram, created_at, profiles:profiles!user_id(name)")
-          .in("type",["buy","cicilan","Simpanan"]).eq("status","completed")
-          .order("created_at",{ascending:false}).limit(300),
-        (supabase.from("transactions") as any)
-          .select("id, amount, gram, status, created_at, profiles:profiles!user_id(name)")
-          .eq("type","buyback").order("created_at",{ascending:false}).limit(300),
+          .select("id, user_id, type, amount, gram, status, payment_method, notes, created_at, profiles:profiles!user_id(name)")
+          .eq("type","buy").order("created_at",{ascending:false}).limit(500),
+        // Cicilan Emas — installments semua status
+        (supabase.from("installments") as any)
+          .select("id, user_id, product_name, total_amount, monthly_amount, down_payment, tenor, paid_installments, status, created_at, profiles:profiles!user_id(name)")
+          .order("created_at",{ascending:false}).limit(500),
+        // Gadai — semua status
         (supabase.from("gadai") as any)
-          .select("id, dana_cair, gram_setara, tenor, angsuran_per_bulan, sisa_tagihan, status, created_at, profiles:profiles!user_id(name)")
-          .order("created_at",{ascending:false}).limit(300),
+          .select("id, user_id, dana_cair, gram_setara, tenor, angsuran_per_bulan, sisa_tagihan, status, created_at, profiles:profiles!user_id(name)")
+          .order("created_at",{ascending:false}).limit(500),
+        // Buyback — semua status
+        (supabase.from("transactions") as any)
+          .select("id, user_id, type, amount, gram, status, payment_method, notes, created_at, profiles:profiles!user_id(name)")
+          .eq("type","buyback").order("created_at",{ascending:false}).limit(500),
+        // Simpanan — semua status
+        (supabase.from("simpanan") as any)
+          .select("id, user_id, type, amount, status, description, created_at, profiles:profiles!user_id(name)")
+          .order("created_at",{ascending:false}).limit(500),
       ]);
-      setCicilan(cRes.data || []);
-      setEmas(eRes.data || []);
-      setBuyback(bRes.data || []);
-      setGadai(gRes.data || []);
+      setBeliData(bRes.data || []);
+      setCicilanData(cRes.data || []);
+      setGadaiData(gRes.data || []);
+      setBuybackData(bbRes.data || []);
+      setSimpananData(sRes.data || []);
     } catch {}
     setLoading(false);
   }
@@ -59,22 +95,170 @@ export default function AdminRiwayatPage() {
   const q = search.toLowerCase();
   const byName = (rows: any[]) => q ? rows.filter(r => (r.profiles?.name||"").toLowerCase().includes(q)) : rows;
 
-  const counts: Record<Tab, number> = { cicilan:cicilan.length, emas:emas.length, buyback:buyback.length, gadai:gadai.length };
-
-  function Row({ children, color }: { children: React.ReactNode; color: string }) {
+  // Row components
+  function TxRow({ r, color, showGram = true }: { r: any; color: string; showGram?: boolean }) {
     return (
-      <div style={{ background:"rgba(255,255,255,0.03)", border:`1px solid ${color}22`, borderRadius:12, padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
-        {children}
-      </div>
+      <motion.div key={r.id} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}}>
+        <div style={{ background:"rgba(255,255,255,0.03)", border:`1px solid ${color}22`, borderRadius:12, padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+          <div style={{ flex:1, minWidth:140 }}>
+            <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:"0 0 2px" }}>
+              {r.profiles?.name || "-"}
+              <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400, fontSize:".82rem" }}> - {TX_LABEL[r.type]||r.type}</span>
+            </p>
+            <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".74rem", margin:0 }}>
+              {fmtDate(r.created_at)}{r.payment_method ? ` - ${r.payment_method}` : ""}
+            </p>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+            {showGram && r.gram > 0 && <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem" }}>{Number(r.gram).toFixed(3)} gr</span>}
+            <span style={{ color, fontWeight:800 }}>{fmt(r.amount)}</span>
+            <StatusBadge status={r.status} />
+          </div>
+        </div>
+      </motion.div>
     );
   }
+
+  function CicilanRow({ r }: { r: any }) {
+    const progPct = r.tenor > 0 ? Math.round((r.paid_installments / r.tenor) * 100) : 0;
+    return (
+      <motion.div key={r.id} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}}>
+        <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(167,139,250,0.2)", borderRadius:12, padding:"12px 16px" }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:6 }}>
+            <div style={{ flex:1, minWidth:140 }}>
+              <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:"0 0 2px" }}>
+                {r.profiles?.name || "-"}
+                <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400, fontSize:".82rem" }}> - {r.product_name}</span>
+              </p>
+              <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".74rem", margin:0 }}>
+                {fmtDate(r.created_at)} - Tenor {r.tenor} bln
+                {r.down_payment > 0 ? ` - DP ${fmt(r.down_payment)}` : ""}
+              </p>
+            </div>
+            <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+              <span style={{ color:"#a78bfa", fontWeight:800 }}>{fmt(r.total_amount)}</span>
+              <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem" }}>{fmt(r.monthly_amount)}/bln</span>
+              <StatusBadge status={r.status} />
+            </div>
+          </div>
+          <div style={{ height:4, background:"rgba(255,255,255,0.08)", borderRadius:3, overflow:"hidden" }}>
+            <div style={{ height:"100%", width:`${progPct}%`, background:"linear-gradient(90deg,#a78bfa,#c4b5fd)", borderRadius:3, transition:"width .4s" }} />
+          </div>
+          <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", margin:"4px 0 0" }}>
+            {r.paid_installments}/{r.tenor} angsuran ({progPct}%)
+          </p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  function GadaiRow({ r }: { r: any }) {
+    return (
+      <motion.div key={r.id} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}}>
+        <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:12, padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+          <div style={{ flex:1, minWidth:140 }}>
+            <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:"0 0 2px" }}>
+              {r.profiles?.name || "-"}
+              <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400, fontSize:".82rem" }}> - {Number(r.gram_setara||0).toFixed(2)} gr - Gadai {r.tenor} bln</span>
+            </p>
+            <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".74rem", margin:0 }}>
+              {fmtDate(r.created_at)} - Angsuran {fmt(r.angsuran_per_bulan)}/bln - Sisa {fmt(r.sisa_tagihan)}
+            </p>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+            <span style={{ color:"#60a5fa", fontWeight:800 }}>{fmt(r.dana_cair)}</span>
+            <StatusBadge status={r.status} />
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  function SimpananRow({ r }: { r: any }) {
+    return (
+      <motion.div key={r.id} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}}>
+        <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(245,158,11,0.2)", borderRadius:12, padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+          <div style={{ flex:1, minWidth:140 }}>
+            <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:"0 0 2px" }}>
+              {r.profiles?.name || "-"}
+              <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400, fontSize:".82rem" }}> - {SIM_LABEL[r.type]||r.type}</span>
+            </p>
+            <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".74rem", margin:0 }}>
+              {fmtDate(r.created_at)}{r.description ? ` - ${r.description}` : ""}
+            </p>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+            <span style={{ color:"#f59e0b", fontWeight:800 }}>{fmt(r.amount)}</span>
+            <StatusBadge status={r.status} />
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  const secHeader = (label: string, count: number, color: string) => (
+    <p key={label} style={{ color, fontSize:".72rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".08em", margin:"14px 0 6px", display:"flex", alignItems:"center", gap:6 }}>
+      {label} <span style={{ background:`${color}22`, borderRadius:20, padding:"1px 8px", fontSize:".68rem" }}>{count}</span>
+    </p>
+  );
+
+  function renderContent() {
+    if (tab === "all") {
+      const beli    = byName(beliData);
+      const cic     = byName(cicilanData);
+      const gad     = byName(gadaiData);
+      const bb      = byName(buybackData);
+      const sim     = byName(simpananData);
+      const total   = beli.length + cic.length + gad.length + bb.length + sim.length;
+      if (total === 0) return <p style={{ color:"rgba(255,255,255,0.3)", padding:"32px", textAlign:"center" }}>Tidak ada data.</p>;
+      return <>
+        {beli.length  > 0 && <>{secHeader("Beli Emas", beli.length, "#D4AF37")}{beli.map(r=><TxRow key={r.id} r={r} color="#D4AF37" />)}</>}
+        {cic.length   > 0 && <>{secHeader("Cicilan Emas", cic.length, "#a78bfa")}{cic.map(r=><CicilanRow key={r.id} r={r} />)}</>}
+        {gad.length   > 0 && <>{secHeader("Gadai", gad.length, "#60a5fa")}{gad.map(r=><GadaiRow key={r.id} r={r} />)}</>}
+        {bb.length    > 0 && <>{secHeader("Buyback", bb.length, "#34d399")}{bb.map(r=><TxRow key={r.id} r={r} color="#34d399" />)}</>}
+        {sim.length   > 0 && <>{secHeader("Simpanan", sim.length, "#f59e0b")}{sim.map(r=><SimpananRow key={r.id} r={r} />)}</>}
+      </>;
+    }
+    if (tab === "beli") {
+      const rows = byName(beliData);
+      return rows.length === 0 ? <p style={{ color:"rgba(255,255,255,0.3)", padding:"32px", textAlign:"center" }}>Belum ada data Beli Emas.</p>
+        : rows.map(r => <TxRow key={r.id} r={r} color="#D4AF37" />);
+    }
+    if (tab === "cicilan") {
+      const rows = byName(cicilanData);
+      return rows.length === 0 ? <p style={{ color:"rgba(255,255,255,0.3)", padding:"32px", textAlign:"center" }}>Belum ada data Cicilan Emas.</p>
+        : rows.map(r => <CicilanRow key={r.id} r={r} />);
+    }
+    if (tab === "gadai") {
+      const rows = byName(gadaiData);
+      return rows.length === 0 ? <p style={{ color:"rgba(255,255,255,0.3)", padding:"32px", textAlign:"center" }}>Belum ada data Gadai.</p>
+        : rows.map(r => <GadaiRow key={r.id} r={r} />);
+    }
+    if (tab === "buyback") {
+      const rows = byName(buybackData);
+      return rows.length === 0 ? <p style={{ color:"rgba(255,255,255,0.3)", padding:"32px", textAlign:"center" }}>Belum ada data Buyback.</p>
+        : rows.map(r => <TxRow key={r.id} r={r} color="#34d399" />);
+    }
+    if (tab === "simpanan") {
+      const rows = byName(simpananData);
+      return rows.length === 0 ? <p style={{ color:"rgba(255,255,255,0.3)", padding:"32px", textAlign:"center" }}>Belum ada data Simpanan.</p>
+        : rows.map(r => <SimpananRow key={r.id} r={r} />);
+    }
+    return null;
+  }
+
+  const totalCount = beliData.length + cicilanData.length + gadaiData.length + buybackData.length + simpananData.length;
+  const tabCount: Record<Tab, number> = {
+    all: totalCount, beli: beliData.length, cicilan: cicilanData.length,
+    gadai: gadaiData.length, buyback: buybackData.length, simpanan: simpananData.length,
+  };
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Riwayat</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Histori pembayaran cicilan, penambahan emas, buyback & gadai</p>
+          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Riwayat Transaksi</h1>
+          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Semua transaksi — pending, diproses, selesai, ditolak</p>
         </div>
         <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:13, height:13 }} /> Refresh
@@ -87,12 +271,12 @@ export default function AdminRiwayatPage() {
           const Icon = t.icon; const active = tab === t.id;
           return (
             <button key={t.id} onClick={()=>setTab(t.id)}
-              style={{ display:"flex", alignItems:"center", gap:8, padding:"9px 16px", borderRadius:10, fontSize:".86rem", fontWeight:600, cursor:"pointer",
+              style={{ display:"flex", alignItems:"center", gap:8, padding:"9px 14px", borderRadius:10, fontSize:".84rem", fontWeight:600, cursor:"pointer",
                 border: active ? `1px solid ${t.color}` : "1px solid rgba(255,255,255,0.1)",
                 background: active ? `${t.color}22` : "rgba(255,255,255,0.03)",
                 color: active ? t.color : "rgba(255,255,255,0.5)" }}>
-              <Icon style={{ width:15, height:15 }} /> {t.label}
-              {counts[t.id] > 0 && <span style={{ background:`${t.color}33`, color:t.color, borderRadius:20, padding:"1px 8px", fontSize:".72rem" }}>{counts[t.id]}</span>}
+              <Icon style={{ width:14, height:14 }} /> {t.label}
+              {tabCount[t.id] > 0 && <span style={{ background:`${t.color}33`, color:t.color, borderRadius:20, padding:"1px 7px", fontSize:".7rem" }}>{tabCount[t.id]}</span>}
             </button>
           );
         })}
@@ -107,79 +291,9 @@ export default function AdminRiwayatPage() {
 
       {loading ? <p style={{ color:"rgba(255,255,255,0.3)" }}>Memuat...</p> : (
         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-
-          {tab === "cicilan" && (byName(cicilan).length === 0
-            ? <p style={{ color:"rgba(255,255,255,0.3)", padding:"24px", textAlign:"center" }}>Belum ada pembayaran cicilan.</p>
-            : byName(cicilan).map((r,i)=>(
-                <motion.div key={r.id} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{delay:Math.min(i*.02,.3)}}>
-                  <Row color="#34d399">
-                    <div>
-                      <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:0 }}>{r.profiles?.name || "â€”"} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>Â· {r.installments?.product_name || "Cicilan"}</span></p>
-                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"2px 0 0" }}>Angsuran ke-{r.angsuran_ke} Â· {fmtDate(r.paid_at)}</p>
-                    </div>
-                    <span style={{ color:"#34d399", fontWeight:800 }}>{fmt(r.amount)}</span>
-                  </Row>
-                </motion.div>
-              ))
-          )}
-
-          {tab === "emas" && (byName(emas).length === 0
-            ? <p style={{ color:"rgba(255,255,255,0.3)", padding:"24px", textAlign:"center" }}>Belum ada penambahan emas.</p>
-            : byName(emas).map((r,i)=>(
-                <motion.div key={r.id} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{delay:Math.min(i*.02,.3)}}>
-                  <Row color="#D4AF37">
-                    <div>
-                      <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:0 }}>{r.profiles?.name || "â€”"} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>Â· {EMAS_LABEL[r.type]||r.type}</span></p>
-                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"2px 0 0" }}>{fmtDate(r.created_at)}</p>
-                    </div>
-                    <div style={{ textAlign:"right" }}>
-                      <p style={{ color:"#D4AF37", fontWeight:800, margin:0 }}>+ {Number(r.gram||0).toFixed(4)} gr</p>
-                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:0 }}>{fmt(r.amount)}</p>
-                    </div>
-                  </Row>
-                </motion.div>
-              ))
-          )}
-
-          {tab === "buyback" && (byName(buyback).length === 0
-            ? <p style={{ color:"rgba(255,255,255,0.3)", padding:"24px", textAlign:"center" }}>Belum ada buyback.</p>
-            : byName(buyback).map((r,i)=>(
-                <motion.div key={r.id} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{delay:Math.min(i*.02,.3)}}>
-                  <Row color="#60a5fa">
-                    <div>
-                      <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:0 }}>{r.profiles?.name || "â€”"}</p>
-                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"2px 0 0" }}>{fmtDate(r.created_at)} Â· {r.status==="completed"?"selesai":r.status}</p>
-                    </div>
-                    <div style={{ textAlign:"right" }}>
-                      <p style={{ color:"#60a5fa", fontWeight:800, margin:0 }}>âˆ’ {Number(r.gram||0).toFixed(4)} gr</p>
-                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:0 }}>{fmt(r.amount)}</p>
-                    </div>
-                  </Row>
-                </motion.div>
-              ))
-          )}
-
-          {tab === "gadai" && (byName(gadai).length === 0
-            ? <p style={{ color:"rgba(255,255,255,0.3)", padding:"24px", textAlign:"center" }}>Belum ada gadai.</p>
-            : byName(gadai).map((r,i)=>(
-                <motion.div key={r.id} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{delay:Math.min(i*.02,.3)}}>
-                  <Row color="#a78bfa">
-                    <div>
-                      <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:0 }}>{r.profiles?.name || "â€”"} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>Â· {Number(r.gram_setara||0).toFixed(4)} gr â†’ pinjaman</span></p>
-                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"2px 0 0" }}>{r.tenor} bln Â· angsuran {fmt(r.angsuran_per_bulan)} Â· sisa {fmt(r.sisa_tagihan)} Â· {fmtDate(r.created_at)}</p>
-                    </div>
-                    <div style={{ textAlign:"right" }}>
-                      <p style={{ color:"#a78bfa", fontWeight:800, margin:0 }}>{fmt(r.dana_cair)}</p>
-                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:0, textTransform:"capitalize" }}>{r.status}</p>
-                    </div>
-                  </Row>
-                </motion.div>
-              ))
-          )}
+          {renderContent()}
         </div>
       )}
     </div>
   );
 }
-
-
