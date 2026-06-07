@@ -1,10 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { RefreshCw, Check, X, Coins, Landmark, Wallet, CreditCard } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { RefreshCw, Check, X, Coins, Landmark, Wallet, CreditCard, Truck, Tag } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+
+const fmtRibuan = (v: string | number) => {
+  const d = String(v ?? "").replace(/\D/g, "");
+  return d ? new Intl.NumberFormat("id-ID").format(Number(d)) : "";
+};
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -28,6 +33,12 @@ export default function ApprovalPage() {
   const [loading, setLoading] = useState(true);
   const [acting, setActing]   = useState<string | null>(null);
   const [loadErr, setLoadErr] = useState("");
+
+  // Modal ongkir/diskon — hanya untuk approve "beli emas" (type=buy)
+  const [ongkirModal, setOngkirModal] = useState<{ row: any } | null>(null);
+  const [ongkir, setOngkir]   = useState("");   // digits only
+  const [diskon, setDiskon]   = useState("");   // digits only
+  const [savingOngkir, setSavingOngkir] = useState(false);
 
   async function load() {
     setLoading(true); setLoadErr("");
@@ -64,6 +75,12 @@ export default function ApprovalPage() {
 
   // ── Transaksi ──
   async function actTx(row: any, approve: boolean) {
+    // Khusus beli emas + approve → tampilkan modal ongkir/diskon dulu
+    if (approve && row.type === "buy") {
+      setOngkir(""); setDiskon("");
+      setOngkirModal({ row });
+      return;
+    }
     setActing(row.id);
     await (supabase.from("transactions") as any)
       .update({ status: approve ? "completed" : "rejected", updated_at: new Date().toISOString() })
@@ -72,6 +89,30 @@ export default function ApprovalPage() {
       `${TX_TYPE_LABEL[row.type]||row.type} ${fmt(row.amount)} telah ${approve?"disetujui":"ditolak"}.`,
       "/dashboard/member/histori");
     await load(); setActing(null);
+  }
+
+  // Konfirmasi approve beli emas dengan ongkir & diskon
+  async function confirmBuyApproval() {
+    if (!ongkirModal) return;
+    const row    = ongkirModal.row;
+    const ongkirVal = Number(ongkir) || 0;
+    const diskonVal = Number(diskon) || 0;
+    const finalAmount = Math.max(0, row.amount + ongkirVal - diskonVal);
+    setSavingOngkir(true);
+    await (supabase.from("transactions") as any)
+      .update({
+        status:     "completed",
+        amount:     finalAmount,
+        notes:      `Disetujui. Ongkir: ${fmt(ongkirVal)}, Diskon: ${fmt(diskonVal)}. Total final: ${fmt(finalAmount)}.`,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", row.id);
+    await notify(row.user_id, "Beli Emas Disetujui",
+      `Beli Emas ${fmt(row.amount)} → total ${fmt(finalAmount)} (ongkir ${fmt(ongkirVal)}, diskon ${fmt(diskonVal)}) telah disetujui.`,
+      "/dashboard/member/histori");
+    setSavingOngkir(false);
+    setOngkirModal(null);
+    await load();
   }
 
   // ── Simpanan ──
@@ -274,6 +315,104 @@ export default function ApprovalPage() {
           )}
         </motion.div>
       )}
+
+      {/* ── Modal Ongkir & Diskon (hanya untuk Beli Emas) ── */}
+      <AnimatePresence>
+        {ongkirModal && (() => {
+          const row = ongkirModal.row;
+          const ongkirVal = Number(ongkir) || 0;
+          const diskonVal = Number(diskon) || 0;
+          const finalAmount = Math.max(0, row.amount + ongkirVal - diskonVal);
+          const inp: React.CSSProperties = {
+            width:"100%", background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)",
+            borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".95rem", outline:"none", boxSizing:"border-box",
+          };
+          return (
+            <>
+              <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+                onClick={()=>!savingOngkir && setOngkirModal(null)}
+                style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:2000 }} />
+              <motion.div initial={{ opacity:0, scale:.93, y:16 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.93 }}
+                style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:2001,
+                  width:"min(420px,94vw)", background:"rgba(14,14,14,0.98)", border:"1px solid rgba(212,175,55,0.3)",
+                  borderRadius:20, padding:26 }}>
+
+                {/* Header */}
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
+                  <div>
+                    <h3 style={{ color:"#D4AF37", fontWeight:800, fontSize:"1.05rem", margin:0 }}>Setujui Beli Emas</h3>
+                    <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".8rem", margin:"4px 0 0" }}>
+                      {(row.profiles as any)?.name || "—"} · Harga emas {fmt(row.amount)}
+                    </p>
+                  </div>
+                  <button onClick={()=>!savingOngkir&&setOngkirModal(null)}
+                    style={{ background:"rgba(255,255,255,0.07)", border:"none", borderRadius:8, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>
+                    <X style={{ width:14, height:14 }} />
+                  </button>
+                </div>
+
+                <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+                  {/* Ongkir */}
+                  <div>
+                    <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"flex", alignItems:"center", gap:6, marginBottom:7 }}>
+                      <Truck style={{ width:14, height:14, color:"#f59e0b" }} /> Biaya Ongkir (Rp)
+                    </label>
+                    <div style={{ position:"relative" }}>
+                      <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".85rem", pointerEvents:"none" }}>Rp</span>
+                      <input inputMode="numeric" value={fmtRibuan(ongkir)}
+                        onChange={e=>setOngkir(e.target.value.replace(/\D/g,""))}
+                        style={{ ...inp, paddingLeft:36 }} placeholder="0 (kosong = tanpa ongkir)" />
+                    </div>
+                  </div>
+
+                  {/* Diskon */}
+                  <div>
+                    <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"flex", alignItems:"center", gap:6, marginBottom:7 }}>
+                      <Tag style={{ width:14, height:14, color:"#34d399" }} /> Diskon (Rp)
+                    </label>
+                    <div style={{ position:"relative" }}>
+                      <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".85rem", pointerEvents:"none" }}>Rp</span>
+                      <input inputMode="numeric" value={fmtRibuan(diskon)}
+                        onChange={e=>setDiskon(e.target.value.replace(/\D/g,""))}
+                        style={{ ...inp, paddingLeft:36 }} placeholder="0 (kosong = tanpa diskon)" />
+                    </div>
+                  </div>
+
+                  {/* Ringkasan */}
+                  <div style={{ background:"rgba(212,175,55,0.07)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:12, padding:"14px 16px" }}>
+                    {[
+                      { label:"Harga Emas",      val:fmt(row.amount),        color:"#fff" },
+                      { label:"+ Ongkir",         val:`+${fmt(ongkirVal)}`,   color:ongkirVal>0?"#f59e0b":"rgba(255,255,255,0.3)" },
+                      { label:"− Diskon",         val:`−${fmt(diskonVal)}`,   color:diskonVal>0?"#34d399":"rgba(255,255,255,0.3)" },
+                    ].map(r=>(
+                      <div key={r.label} style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                        <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>{r.label}</span>
+                        <span style={{ color:r.color, fontWeight:600, fontSize:".83rem" }}>{r.val}</span>
+                      </div>
+                    ))}
+                    <div style={{ display:"flex", justifyContent:"space-between", paddingTop:8, borderTop:"1px solid rgba(255,255,255,0.08)" }}>
+                      <span style={{ color:"rgba(255,255,255,0.8)", fontWeight:700 }}>Total Final</span>
+                      <span style={{ color:"#D4AF37", fontWeight:900, fontSize:"1.05rem" }}>{fmt(finalAmount)}</span>
+                    </div>
+                  </div>
+
+                  {/* Tombol */}
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginTop:4 }}>
+                    <button onClick={()=>!savingOngkir&&setOngkirModal(null)} disabled={savingOngkir}
+                      style={{ padding:"11px", borderRadius:10, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", color:"rgba(255,255,255,0.6)", fontWeight:600, fontSize:".9rem", cursor:"pointer" }}>
+                      Batal
+                    </button>
+                    <button onClick={confirmBuyApproval} disabled={savingOngkir}
+                      style={{ padding:"11px", borderRadius:10, background:"linear-gradient(135deg,#34d399,#6ee7b7)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".9rem", cursor:savingOngkir?"not-allowed":"pointer", opacity:savingOngkir?.7:1, display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+                      {savingOngkir ? <><RefreshCw style={{width:14,height:14}}/> Menyetujui...</> : <><Check style={{width:14,height:14}}/> Setujui</>}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          );
+        })()}
+      </AnimatePresence>
     </div>
   );
 }
