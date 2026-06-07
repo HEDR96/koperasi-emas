@@ -315,7 +315,7 @@ export default function HargaEmasPage() {
               <div style={{ overflowX:"auto" }}>
                 <table style={{ width:"100%", borderCollapse:"collapse" }}>
                   <thead><tr style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                    {["Berat", isAnggota ? "Harga Anggota" : "Harga Non-Anggota", ...CICILAN_TENORS.map(t=>`${t} bln`)].map(h=>(
+                    {["Berat", isAnggota ? "Harga Anggota" : "Harga Non-Anggota", ...CICILAN_TENORS.map(t=>`${t} bln (DP + angsuran)`)].map(h=>(
                       <th key={h} style={{ padding:"10px 16px", textAlign:"left", color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:600, textTransform:"uppercase", whiteSpace:"nowrap" }}>{h}</th>
                     ))}
                   </tr></thead>
@@ -325,8 +325,10 @@ export default function HargaEmasPage() {
                         <td style={{ padding:"11px 16px", color:"#fff", fontWeight:700, whiteSpace:"nowrap" }}>{r.gram} gram</td>
                         <td style={{ padding:"11px 16px", color:"#34d399", fontWeight:900, whiteSpace:"nowrap" }}>{fmt(r.hargaAnggota)}</td>
                         {r.tenors.map(t=>(
-                          <td key={t.tenor} style={{ padding:"11px 16px", color:"#D4AF37", fontWeight:900, whiteSpace:"nowrap" }}>
-                            {fmt(t.angsuran)}<span style={{ color:"rgba(255,255,255,0.3)", fontWeight:500, fontSize:".7rem" }}>/bln</span>
+                          <td key={t.tenor} style={{ padding:"11px 16px", whiteSpace:"nowrap" }}>
+                            {t.dp > 0 && <div style={{ color:"#60a5fa", fontSize:".72rem", fontWeight:600 }}>DP {fmt(t.dp)}</div>}
+                            <span style={{ color:"#D4AF37", fontWeight:900 }}>{fmt(t.angsuran)}</span>
+                            <span style={{ color:"rgba(255,255,255,0.3)", fontWeight:500, fontSize:".7rem" }}>/bln</span>
                           </td>
                         ))}
                       </tr>

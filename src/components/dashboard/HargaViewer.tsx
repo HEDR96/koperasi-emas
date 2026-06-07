@@ -137,7 +137,11 @@ export default function HargaViewer() {
                         <td style={{ padding:"11px 16px", color:"#fff", fontWeight:700, whiteSpace:"nowrap" }}>{r.gram}g</td>
                         <td style={{ padding:"11px 16px", color:"#a78bfa", fontWeight:700, whiteSpace:"nowrap" }}>{fmt(r.hargaAnggota)}</td>
                         {r.tenors.map(t=>(
-                          <td key={t.tenor} style={{ padding:"11px 16px", color:"#D4AF37", fontWeight:900, whiteSpace:"nowrap" }}>{fmt(t.angsuran)}<span style={{ color:"rgba(255,255,255,0.3)", fontWeight:500, fontSize:".7rem" }}>/bln</span></td>
+                          <td key={t.tenor} style={{ padding:"11px 16px", whiteSpace:"nowrap" }}>
+                            {t.dp > 0 && <div style={{ color:"#60a5fa", fontSize:".68rem", fontWeight:600, marginBottom:2 }}>DP {fmt(t.dp)}</div>}
+                            <span style={{ color:"#D4AF37", fontWeight:900 }}>{fmt(t.angsuran)}</span>
+                            <span style={{ color:"rgba(255,255,255,0.3)", fontWeight:500, fontSize:".7rem" }}>/bln</span>
+                          </td>
                         ))}
                       </tr>
                     ))}

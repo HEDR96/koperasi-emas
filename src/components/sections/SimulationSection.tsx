@@ -31,6 +31,8 @@ interface DerivedPlan {
   gram: number;
   tenor: number;
   hargaAnggota: number;
+  totalSebelumDp: number;
+  dp: number;
   total: number;
   angsuran: number;
 }
@@ -75,6 +77,8 @@ export default function SimulationSection() {
             key: `${d.gram}-${t.tenor}`,
             gram: d.gram, tenor: t.tenor,
             hargaAnggota: d.hargaAnggota,
+            totalSebelumDp: t.totalSebelumDp,
+            dp: t.dp,
             total: t.total,
             angsuran: t.angsuran,
           }))
@@ -133,10 +137,11 @@ export default function SimulationSection() {
     return encodeURIComponent([
       "Halo, saya ingin mengajukan cicilan emas:",
       `• Berat: ${plan.gram} gram`,
-      `• Harga (Non-Anggota): ${formatCurrency(plan.hargaAnggota)}`,
-      `• Total Cicilan: ${formatCurrency(plan.total)}`,
+      `• Harga: ${formatCurrency(plan.hargaAnggota)}`,
       `• Tenor: ${plan.tenor} bulan`,
-      `• Angsuran/bulan: ${formatCurrency(plan.angsuran)}`,
+      ...(plan.dp > 0 ? [`• DP (disetor awal): ${formatCurrency(plan.dp)}`] : []),
+      `• Angsuran/bulan (setelah DP): ${formatCurrency(plan.angsuran)}`,
+      `• Total keseluruhan: ${formatCurrency(plan.totalSebelumDp)}`,
       "",
       "Mohon info lebih lanjut. Terima kasih."
     ].join("\n"));
@@ -231,23 +236,43 @@ export default function SimulationSection() {
                 {selectedPlan ? (
                   <div className="space-y-4">
                     {[
-                      { label: "Berat Emas",      value: `${selectedPlan.gram} gram` },
+                      { label: "Berat Emas",         value: `${selectedPlan.gram} gram` },
                       { label: "Harga (Non-Anggota)", value: formatCurrency(selectedPlan.hargaAnggota) },
-                      { label: "Total Cicilan",   value: formatCurrency(selectedPlan.total), highlight: true },
-                      { label: "Tenor",           value: `${selectedPlan.tenor} bulan` },
+                      { label: "Tenor",              value: `${selectedPlan.tenor} bulan` },
                     ].map(row => (
                       <div key={row.label} className="flex justify-between py-3 border-b border-white/5">
                         <span className="text-white/80 text-sm">{row.label}</span>
-                        <span className={`font-bold text-sm ${row.highlight ? "text-yellow-400" : "text-white"}`}>{row.value}</span>
+                        <span className="font-bold text-sm text-white">{row.value}</span>
                       </div>
                     ))}
+
+                    {/* Alur DP → Angsuran */}
+                    <div style={{ background:"rgba(96,165,250,0.07)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:12, padding:"12px 14px", display:"flex", flexDirection:"column", gap:8 }}>
+                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".68rem", margin:0, textTransform:"uppercase", letterSpacing:".05em" }}>Alur Pembayaran</p>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                          <span style={{ background:"#60a5fa", color:"#0a0a0a", borderRadius:"50%", width:18, height:18, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:".65rem", fontWeight:900, flexShrink:0 }}>1</span>
+                          <span style={{ color:"rgba(255,255,255,0.65)", fontSize:".82rem" }}>DP disetor dulu</span>
+                        </div>
+                        <span style={{ color:"#60a5fa", fontWeight:800 }}>{selectedPlan.dp > 0 ? formatCurrency(selectedPlan.dp) : "—"}</span>
+                      </div>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                          <span style={{ background:"#D4AF37", color:"#0a0a0a", borderRadius:"50%", width:18, height:18, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:".65rem", fontWeight:900, flexShrink:0 }}>2</span>
+                          <span style={{ color:"rgba(255,255,255,0.65)", fontSize:".82rem" }}>Angsuran {selectedPlan.tenor}×</span>
+                        </div>
+                        <span style={{ color:"#D4AF37", fontWeight:800 }}>{formatCurrency(selectedPlan.angsuran)}<span style={{ color:"rgba(255,255,255,0.35)", fontWeight:400, fontSize:".7rem" }}>/bln</span></span>
+                      </div>
+                      <div style={{ borderTop:"1px dashed rgba(255,255,255,0.08)", paddingTop:8, display:"flex", justifyContent:"space-between" }}>
+                        <span style={{ color:"rgba(255,255,255,0.35)", fontSize:".72rem" }}>Total (DP + cicilan)</span>
+                        <span style={{ color:"rgba(255,255,255,0.55)", fontSize:".72rem", fontWeight:600 }}>{formatCurrency(selectedPlan.totalSebelumDp)}</span>
+                      </div>
+                    </div>
+
                     <div className="flex justify-between pt-2">
                       <span className="text-white font-semibold">Angsuran / Bulan</span>
                       <span className="text-2xl font-black text-gold-gradient">{formatCurrency(selectedPlan.angsuran)}</span>
                     </div>
-                    <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:0 }}>
-                      Angsuran/bln = harga cicilan (harga emas + admin + bunga {selectedPlan.tenor} bln − DP) ÷ {selectedPlan.tenor} bulan
-                    </p>
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginTop:4 }}>
                       <a href={`https://wa.me/${WA_ADMIN}?text=${buildMsg(selectedPlan)}`} target="_blank" rel="noopener noreferrer"
                         style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none" }}>

@@ -158,7 +158,13 @@ export type CicilanKind = "anggota" | "nonAnggota";
 export interface DerivedCicilan {
   gram: number;
   hargaAnggota: number; // harga emas (termasuk markup sesuai kind), sebelum admin/bunga/DP
-  tenors: { tenor: number; total: number; angsuran: number }[];
+  tenors: {
+    tenor: number;
+    totalSebelumDp: number; // a + b  (total harga sebelum dikurangi DP)
+    dp: number;             // c      (uang muka yang disetor di awal)
+    total: number;          // a+b-c  (sisa yang dicicil per bulan × tenor)
+    angsuran: number;       // (a+b-c) ÷ tenor
+  }[];
 }
 
 // Ambil tiga parameter (admin, % per bulan, % DP) sesuai jenis harga.
@@ -187,11 +193,19 @@ export function buildDerivedCicilan(
       return {
         gram,
         hargaAnggota: harga,
-        tenors: CICILAN_TENORS.map((t) => ({
-          tenor: t,
-          total:    cicilanHargaTenor(harga, t, admin, persenBulan, persenDp),
-          angsuran: cicilanAngsuranTenor(harga, t, admin, persenBulan, persenDp),
-        })),
+        tenors: CICILAN_TENORS.map((t) => {
+          const a = harga + admin;
+          const b = a * (persenBulan / 100) * t;
+          const c = Math.round((a + b) * (persenDp / 100));
+          const total = Math.round(a + b - c);   // sisa yang dicicil
+          return {
+            tenor: t,
+            totalSebelumDp: Math.round(a + b),
+            dp: c,
+            total,
+            angsuran: t > 0 ? Math.round(total / t) : 0,
+          };
+        }),
       };
     })
     .sort((a, b) => a.gram - b.gram);

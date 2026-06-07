@@ -13,7 +13,7 @@ import {
 // Paket cicilan diturunkan otomatis dari harga emas (harga anggota) — tanpa data manual.
 interface CicilanPlan {
   id: string; gram: number; tenor: number;
-  hargaAnggota: number; total: number; angsuran: number;
+  hargaAnggota: number; totalSebelumDp: number; dp: number; total: number; angsuran: number;
 }
 
 const fmt = (n: number) =>
@@ -60,7 +60,7 @@ export default function CicilanPage() {
       // Turunkan paket cicilan dari harga anggota (latest.harga sudah termasuk markup → markup map kosong).
       const derived = buildDerivedCicilan(latest, {}, params);
       const flat: CicilanPlan[] = derived.flatMap(d =>
-        d.tenors.map(t => ({ id:`${d.gram}-${t.tenor}`, gram:d.gram, tenor:t.tenor, hargaAnggota:d.hargaAnggota, total:t.total, angsuran:t.angsuran }))
+        d.tenors.map(t => ({ id:`${d.gram}-${t.tenor}`, gram:d.gram, tenor:t.tenor, hargaAnggota:d.hargaAnggota, totalSebelumDp:t.totalSebelumDp, dp:t.dp, total:t.total, angsuran:t.angsuran }))
       );
       setPlans(flat);
       setLoading(false);
@@ -97,8 +97,9 @@ export default function CicilanPage() {
       `• Berat: ${plan.gram} gram`,
       `• Harga Anggota: ${fmt(plan.hargaAnggota)}`,
       `• Tenor: ${plan.tenor} bulan`,
-      `• Total Cicilan: ${fmt(plan.total)}`,
-      `• Angsuran/bulan: ${fmt(plan.angsuran)}`,
+      ...(plan.dp > 0 ? [`• DP (disetor awal): ${fmt(plan.dp)}`] : []),
+      `• Angsuran/bulan (setelah DP): ${fmt(plan.angsuran)}`,
+      `• Total keseluruhan: ${fmt(plan.totalSebelumDp)}`,
       "",
       "Mohon info lebih lanjut. Terima kasih."
     ].join("\n"));
@@ -173,14 +174,34 @@ export default function CicilanPage() {
                       style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:13, padding:"16px 14px", display:"flex", flexDirection:"column", gap:8 }}>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                         <span style={{ color:"#fff", fontWeight:700, fontSize:".95rem" }}>{plan.tenor} Bulan</span>
-                        <span style={{ background:"rgba(52,211,153,0.15)", color:"#34d399", fontSize:".7rem", padding:"2px 8px", borderRadius:6, fontWeight:600 }}>0% bunga</span>
                       </div>
-                      <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
-                        <div style={{ display:"flex", justifyContent:"space-between", fontSize:".78rem" }}>
-                          <span style={{ color:"rgba(255,255,255,0.4)" }}>Angsuran/bln</span>
-                          <span style={{ color:"#fff", fontWeight:700 }}>{fmt(plan.angsuran)}</span>
+
+                      {/* Alur DP → Angsuran */}
+                      <div style={{ background:"rgba(96,165,250,0.07)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:10, padding:"10px 12px", display:"flex", flexDirection:"column", gap:6 }}>
+                        <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".68rem", margin:0, textTransform:"uppercase", letterSpacing:".05em" }}>Alur Pembayaran</p>
+                        {/* Step 1 — DP */}
+                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                            <span style={{ background:"#60a5fa", color:"#0a0a0a", borderRadius:"50%", width:18, height:18, display:"flex", alignItems:"center", justifyContent:"center", fontSize:".65rem", fontWeight:900, flexShrink:0 }}>1</span>
+                            <span style={{ color:"rgba(255,255,255,0.6)", fontSize:".78rem" }}>DP disetor dulu</span>
+                          </div>
+                          <span style={{ color:"#60a5fa", fontWeight:800, fontSize:".88rem" }}>{plan.dp > 0 ? fmt(plan.dp) : "—"}</span>
+                        </div>
+                        {/* Step 2 — Angsuran */}
+                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                            <span style={{ background:"#D4AF37", color:"#0a0a0a", borderRadius:"50%", width:18, height:18, display:"flex", alignItems:"center", justifyContent:"center", fontSize:".65rem", fontWeight:900, flexShrink:0 }}>2</span>
+                            <span style={{ color:"rgba(255,255,255,0.6)", fontSize:".78rem" }}>Angsuran {plan.tenor}×</span>
+                          </div>
+                          <span style={{ color:"#D4AF37", fontWeight:800, fontSize:".88rem" }}>{fmt(plan.angsuran)}<span style={{ color:"rgba(255,255,255,0.35)", fontWeight:400, fontSize:".68rem" }}>/bln</span></span>
+                        </div>
+                        <div style={{ borderTop:"1px dashed rgba(255,255,255,0.08)", paddingTop:6, display:"flex", justifyContent:"space-between" }}>
+                          <span style={{ color:"rgba(255,255,255,0.35)", fontSize:".72rem" }}>Total (DP + cicilan)</span>
+                          <span style={{ color:"rgba(255,255,255,0.55)", fontSize:".72rem", fontWeight:600 }}>{fmt(plan.totalSebelumDp)}</span>
                         </div>
                       </div>
+
+                      {/* Angsuran highlight */}
                       <div style={{ background:"rgba(212,175,55,0.08)", borderRadius:10, padding:"8px 10px", textAlign:"center" }}>
                         <span style={{ color:"#D4AF37", fontWeight:900, fontSize:"1rem" }}>{fmt(plan.angsuran)}</span>
                         <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".72rem" }}>/bulan</span>
