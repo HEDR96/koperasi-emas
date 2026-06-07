@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Megaphone, RefreshCw, Tag } from "lucide-react";
+import { Megaphone, RefreshCw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { gdriveImage } from "@/lib/utils";
 
-const fmtDate = (s: string | null) => s ? new Date(s).toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"}) : null;
+const fmtExp = (s: string | null) => s ? new Date(s).toLocaleString("id-ID",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}) : null;
+const fmtRp = (n: number) => new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n);
 
 export default function MemberPromoPage() {
   const [promos, setPromos] = useState<any[]>([]);
@@ -13,8 +15,11 @@ export default function MemberPromoPage() {
 
   async function load() {
     setLoading(true);
+    const nowIso = new Date().toISOString();
     const { data } = await (supabase.from("promos") as any)
-      .select("*").eq("is_active", true).order("created_at",{ascending:false});
+      .select("*").eq("is_active", true)
+      .or(`expired_at.is.null,expired_at.gt.${nowIso}`)
+      .order("created_at",{ascending:false});
     setPromos(data || []);
     setLoading(false);
   }
@@ -43,20 +48,21 @@ export default function MemberPromoPage() {
             {promos.map((p,i)=>(
               <motion.div key={p.id} initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay:i*.05 }}
                 style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:16, overflow:"hidden" }}>
-                {p.image_url && <img src={p.image_url} alt={p.title} style={{ width:"100%", height:140, objectFit:"cover" }} onError={e=>{(e.currentTarget as HTMLImageElement).style.display="none";}} />}
+                {p.image_url && <img src={gdriveImage(p.image_url)} alt={p.title} style={{ width:"100%", height:140, objectFit:"cover" }} onError={e=>{(e.currentTarget as HTMLImageElement).style.display="none";}} />}
                 <div style={{ padding:"16px 18px" }}>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10, marginBottom:8 }}>
                     <p style={{ color:"#fff", fontWeight:700, fontSize:"1rem", margin:0 }}>{p.title}</p>
-                    {p.discount_percent > 0 && (
-                      <span style={{ display:"flex", alignItems:"center", gap:4, background:"linear-gradient(135deg,#D4AF37,#F5D060)", color:"#0a0a0a", borderRadius:8, padding:"3px 10px", fontSize:".75rem", fontWeight:800, flexShrink:0 }}>
-                        <Tag style={{ width:11, height:11 }} /> {p.discount_percent}%
+                    {p.gram_weight != null && (
+                      <span style={{ background:"linear-gradient(135deg,#D4AF37,#F5D060)", color:"#0a0a0a", borderRadius:8, padding:"3px 10px", fontSize:".75rem", fontWeight:800, flexShrink:0 }}>
+                        {p.gram_weight} gram
                       </span>
                     )}
                   </div>
+                  {p.price != null && <p style={{ color:"#D4AF37", fontWeight:900, fontSize:"1.05rem", margin:"0 0 6px" }}>{fmtRp(p.price)}</p>}
                   {p.description && <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".85rem", margin:0, lineHeight:1.6 }}>{p.description}</p>}
-                  {(p.start_date || p.end_date) && (
+                  {p.expired_at && (
                     <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".74rem", margin:"10px 0 0" }}>
-                      Berlaku {fmtDate(p.start_date)||"—"} s/d {fmtDate(p.end_date)||"—"}
+                      Berlaku s/d {fmtExp(p.expired_at)}
                     </p>
                   )}
                 </div>

@@ -7,7 +7,8 @@ import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import {
   getMarkup, saveMarkup, type Markup,
-  buildDerivedCicilan, CICILAN_TENORS, CICILAN_ADMIN_FEE, CICILAN_MARGIN_PCT,
+  buildDerivedCicilan, CICILAN_TENORS,
+  getCicilanParams, type CicilanParams, CICILAN_PARAM_DEFAULTS,
 } from "@/lib/harga";
 import RupiahInput from "@/components/ui/RupiahInput";
 
@@ -51,7 +52,10 @@ export default function HargaEmasPage() {
   const [savingMarkup, setSavingMarkup] = useState(false);
   const [savedMarkup, setSavedMarkup] = useState(false);
 
-  // ─── Cicilan: diturunkan otomatis dari Harga Emas + markup anggota (tanpa input) ───
+  // ─── Cicilan: diturunkan otomatis dari Harga Emas + markup + parameter pengaturan ───
+  const [cicilanParams, setCicilanParams] = useState<CicilanParams>(CICILAN_PARAM_DEFAULTS);
+  // Master bisa melihat cicilan Anggota (yang tampil di login member) & Non-Anggota (yang tampil di landing).
+  const [cicilanView, setCicilanView] = useState<"anggota" | "nonAnggota">("anggota");
 
   // ─── Buyback (hanya 1 gram) ───
   const [hargaBuyback, setHargaBuyback]   = useState<HargaBerat[]>([]);
@@ -64,12 +68,14 @@ export default function HargaEmasPage() {
   async function load() {
     setLoading(true);
     try {
-      const [{ data: e }, { data: b }, mk] = await Promise.all([
+      const [{ data: e }, { data: b }, mk, cp] = await Promise.all([
         (supabase.from("harga_emas_berat") as any).select("*").eq("kategori","emas").order("gram").order("created_at", { ascending:false }).limit(100),
         (supabase.from("harga_emas_berat") as any).select("*").eq("kategori","buyback").order("gram").order("created_at", { ascending:false }).limit(100),
         getMarkup(),
+        getCicilanParams(),
       ]);
       setMarkup(mk);
+      setCicilanParams(cp);
       const toForm = (m: Record<string, number>) => {
         const o: Record<string, string> = {};
         Object.keys(m).forEach(k => { o[k] = String(m[k]); });
@@ -261,29 +267,55 @@ export default function HargaEmasPage() {
         </motion.div>
       )}
 
-      {/* ─── TAB: CICILAN (otomatis dari Harga Emas) ─── */}
+      {/* ─── TAB: CICILAN (otomatis dari Harga Emas + parameter pengaturan) ─── */}
       {tab === "cicilan" && (() => {
-        const derived = buildDerivedCicilan(hargaEmas, markup.anggota);
+        const isAnggota = cicilanView === "anggota";
+        const markupMap = isAnggota ? markup.anggota : markup.nonAnggota;
+        const derived = buildDerivedCicilan(hargaEmas, markupMap, cicilanParams, cicilanView);
+        const vAdmin  = isAnggota ? cicilanParams.adminAnggota      : cicilanParams.adminNonAnggota;
+        const vBulan  = isAnggota ? cicilanParams.persenBulanAnggota: cicilanParams.persenBulanNonAnggota;
+        const vDp     = isAnggota ? cicilanParams.persenDpAnggota   : cicilanParams.persenDpNonAnggota;
         return (
         <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} style={{ display:"flex", flexDirection:"column", gap:20 }}>
+          {/* Toggle Anggota / Non-Anggota (khusus master untuk verifikasi) */}
+          <div style={{ display:"flex", gap:8 }}>
+            {([
+              { id:"anggota",    label:"Anggota (login member)" },
+              { id:"nonAnggota", label:"Non-Anggota (landing page)" },
+            ] as const).map(v => (
+              <button key={v.id} onClick={()=>setCicilanView(v.id)}
+                style={{ padding:"7px 16px", borderRadius:9, fontSize:".82rem", fontWeight:600, cursor:"pointer",
+                  border: cicilanView===v.id ? "1px solid #a78bfa" : "1px solid rgba(255,255,255,0.1)",
+                  background: cicilanView===v.id ? "rgba(167,139,250,0.18)" : "rgba(255,255,255,0.03)",
+                  color: cicilanView===v.id ? "#a78bfa" : "rgba(255,255,255,0.5)" }}>
+                {v.label}
+              </button>
+            ))}
+          </div>
+
           <div style={{ background:"rgba(167,139,250,0.04)", border:"1px solid rgba(167,139,250,0.2)", borderRadius:14, padding:"14px 18px" }}>
-            <p style={{ color:"#a78bfa", fontWeight:700, fontSize:".85rem", margin:0 }}>Cicilan dihitung otomatis dari Harga Emas</p>
+            <p style={{ color:"#a78bfa", fontWeight:700, fontSize:".85rem", margin:0 }}>
+              Cicilan {isAnggota ? "Anggota" : "Non-Anggota"} dihitung otomatis dari Harga Emas
+            </p>
             <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".76rem", margin:"6px 0 0", lineHeight:1.6 }}>
-              Tidak ada input manual. Berat &amp; harga mengikuti tabel Harga Emas (kolom <b style={{color:"#34d399"}}>Harga Anggota</b>).
-              Total cicilan = harga anggota + biaya admin <b>{fmt(CICILAN_ADMIN_FEE)}</b> + margin <b>{CICILAN_MARGIN_PCT}%</b>,
-              lalu angsuran/bln = total ÷ tenor. Ubah angka di tab <b>Harga Emas</b> untuk memperbarui cicilan.
+              Berat &amp; harga mengikuti tabel Harga Emas (markup {isAnggota ? "anggota" : "non-anggota"}). Rumus per tenor:
+              {" "}<b>a</b> = harga + admin <b>{fmt(vAdmin)}</b>,
+              {" "}<b>b</b> = a × <b>{vBulan}%</b>/bln × tenor,
+              {" "}<b>c</b> = (a+b) × DP <b>{vDp}%</b>,
+              {" "}harga cicilan = a + b − c, lalu angsuran/bln = harga cicilan ÷ tenor.
+              {" "}Atur admin/%/DP di <b>Pengaturan → Cicilan</b>.
             </p>
           </div>
 
           <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(167,139,250,0.2)", borderRadius:16, overflow:"hidden" }}>
             <div style={{ padding:"14px 20px", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-              <p style={{ color:"#a78bfa", fontWeight:700, fontSize:".85rem", margin:0 }}>Angsuran per Tenor</p>
+              <p style={{ color:"#a78bfa", fontWeight:700, fontSize:".85rem", margin:0 }}>Angsuran per Tenor (harga {isAnggota ? "anggota" : "non-anggota"} / bulan)</p>
             </div>
             {derived.length === 0 ? <p style={{ padding:"20px", color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Belum ada data harga emas. Tambahkan harga di tab Harga Emas.</p> : (
               <div style={{ overflowX:"auto" }}>
                 <table style={{ width:"100%", borderCollapse:"collapse" }}>
                   <thead><tr style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                    {["Berat", "Harga Anggota", "Total Cicilan", ...CICILAN_TENORS.map(t=>`${t} bln`)].map(h=>(
+                    {["Berat", isAnggota ? "Harga Anggota" : "Harga Non-Anggota", ...CICILAN_TENORS.map(t=>`${t} bln`)].map(h=>(
                       <th key={h} style={{ padding:"10px 16px", textAlign:"left", color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:600, textTransform:"uppercase", whiteSpace:"nowrap" }}>{h}</th>
                     ))}
                   </tr></thead>
@@ -292,7 +324,6 @@ export default function HargaEmasPage() {
                       <tr key={r.gram} style={{ borderBottom: i<derived.length-1?"1px solid rgba(255,255,255,0.04)":"none" }}>
                         <td style={{ padding:"11px 16px", color:"#fff", fontWeight:700, whiteSpace:"nowrap" }}>{r.gram} gram</td>
                         <td style={{ padding:"11px 16px", color:"#34d399", fontWeight:900, whiteSpace:"nowrap" }}>{fmt(r.hargaAnggota)}</td>
-                        <td style={{ padding:"11px 16px", color:"#a78bfa", fontWeight:700, whiteSpace:"nowrap" }}>{fmt(r.total)}</td>
                         {r.tenors.map(t=>(
                           <td key={t.tenor} style={{ padding:"11px 16px", color:"#D4AF37", fontWeight:900, whiteSpace:"nowrap" }}>
                             {fmt(t.angsuran)}<span style={{ color:"rgba(255,255,255,0.3)", fontWeight:500, fontSize:".7rem" }}>/bln</span>
@@ -307,7 +338,7 @@ export default function HargaEmasPage() {
           </div>
           {isMaster && (
             <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".74rem", margin:0 }}>
-              Catatan: markup anggota yang dipakai adalah yang sudah <b>tersimpan</b>. Simpan markup di tab Harga Emas agar cicilan ikut berubah.
+              Catatan: markup anggota yang dipakai adalah yang sudah <b>tersimpan</b>. Simpan markup di tab Harga Emas &amp; atur parameter cicilan di Pengaturan agar tabel ikut berubah.
             </p>
           )}
         </motion.div>

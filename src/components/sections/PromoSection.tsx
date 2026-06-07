@@ -5,16 +5,19 @@ import { motion } from "framer-motion";
 import { ShoppingBag, Tag, RefreshCw, LogIn } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { gdriveImage } from "@/lib/utils";
+
+const fmtRp = (n: number) =>
+  new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
 
 interface PromoItem {
   id: string;
   title: string;
   description: string | null;
   image_url: string | null;
-  discount_percent: number;
-  start_date: string | null;
-  end_date: string | null;
-  is_active: boolean;
+  gram_weight: number | null;
+  price: number | null;
+  expired_at: string | null;
 }
 
 function PromoCard({ item, index }: { item: PromoItem; index: number }) {
@@ -50,7 +53,7 @@ function PromoCard({ item, index }: { item: PromoItem; index: number }) {
       <div style={{ position: "relative", width: "100%", paddingTop: "62%", background: "rgba(212,175,55,0.06)", flexShrink: 0 }}>
         {item.image_url && !imgError ? (
           <img
-            src={item.image_url}
+            src={gdriveImage(item.image_url)}
             alt={item.title}
             onError={() => setImgError(true)}
             style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
@@ -60,15 +63,15 @@ function PromoCard({ item, index }: { item: PromoItem; index: number }) {
             <ShoppingBag style={{ width: 40, height: 40, color: "rgba(212,175,55,0.25)" }} />
           </div>
         )}
-        {/* Discount badge */}
-        {item.discount_percent > 0 && (
+        {/* Gram badge */}
+        {item.gram_weight != null && (
           <div style={{
             position: "absolute", top: 12, right: 12,
             background: "linear-gradient(135deg,#D4AF37,#F5D060)",
             color: "#0a0a0a", borderRadius: 10, padding: "4px 10px",
             fontSize: ".75rem", fontWeight: 900,
           }}>
-            -{item.discount_percent}%
+            {item.gram_weight} gram
           </div>
         )}
       </div>
@@ -76,17 +79,18 @@ function PromoCard({ item, index }: { item: PromoItem; index: number }) {
       {/* Content */}
       <div style={{ padding: "16px 18px 20px", display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
         <h3 style={{ color: "#fff", fontWeight: 800, fontSize: ".95rem", lineHeight: 1.3 }}>{item.title}</h3>
+        {item.price != null && (
+          <p style={{ color: "#D4AF37", fontWeight: 900, fontSize: "1.05rem", margin: 0 }}>{fmtRp(item.price)}</p>
+        )}
         {item.description && (
           <p style={{ color: "rgba(255,255,255,0.65)", fontSize: ".8rem", lineHeight: 1.6, flex: 1 }}>
             {item.description}
           </p>
         )}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
-          {(item.start_date || item.end_date) && (
+          {item.expired_at && (
             <span style={{ color: "rgba(255,255,255,0.35)", fontSize: ".72rem" }}>
-              {item.end_date
-                ? `s/d ${new Date(item.end_date).toLocaleDateString("id-ID", { day: "2-digit", month: "short" })}`
-                : "Berlaku sekarang"}
+              s/d {new Date(item.expired_at).toLocaleString("id-ID", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
             </span>
           )}
           <span style={{ background: "rgba(212,175,55,0.1)", color: "#D4AF37", borderRadius: 8, padding: "3px 10px", fontSize: ".7rem", fontWeight: 700, marginLeft: "auto" }}>
@@ -100,10 +104,10 @@ function PromoCard({ item, index }: { item: PromoItem; index: number }) {
 }
 
 const PLACEHOLDER_ITEMS: PromoItem[] = [
-  { id: "1", title: "Tabungan Emas Perdana", description: "Mulai tabungan emas pertama Anda dengan harga spesial member. Nikmati kemudahan menabung emas dari Rp 10.000.", image_url: null, discount_percent: 5, start_date: null, end_date: null, is_active: true },
-  { id: "2", title: "Cicilan Emas 0% Bunga", description: "Beli emas impian dengan cicilan 3-36 bulan tanpa bunga khusus untuk anggota aktif koperasi.", image_url: null, discount_percent: 0, start_date: null, end_date: null, is_active: true },
-  { id: "3", title: "Buyback Harga Terbaik", description: "Jual kembali emas Anda dengan harga buyback terbaik di kelasnya. Dana cair dalam 1x24 jam.", image_url: null, discount_percent: 0, start_date: null, end_date: null, is_active: true },
-  { id: "4", title: "Bonus Referral Member", description: "Ajak teman bergabung dan dapatkan bonus emas untuk setiap referral yang berhasil mendaftar.", image_url: null, discount_percent: 10, start_date: null, end_date: null, is_active: true },
+  { id: "1", title: "Tabungan Emas Perdana", description: "Mulai tabungan emas pertama Anda dengan harga spesial member. Nikmati kemudahan menabung emas dari Rp 10.000.", image_url: null, gram_weight: null, price: null, expired_at: null },
+  { id: "2", title: "Cicilan Emas 0% Bunga", description: "Beli emas impian dengan cicilan tanpa bunga khusus untuk anggota aktif koperasi.", image_url: null, gram_weight: null, price: null, expired_at: null },
+  { id: "3", title: "Buyback Harga Terbaik", description: "Jual kembali emas Anda dengan harga buyback terbaik di kelasnya. Dana cair dalam 1x24 jam.", image_url: null, gram_weight: null, price: null, expired_at: null },
+  { id: "4", title: "Bonus Referral Member", description: "Ajak teman bergabung dan dapatkan bonus emas untuk setiap referral yang berhasil mendaftar.", image_url: null, gram_weight: null, price: null, expired_at: null },
 ];
 
 export default function PromoSection() {
@@ -113,9 +117,11 @@ export default function PromoSection() {
   useEffect(() => {
     async function load() {
       try {
+        const nowIso = new Date().toISOString();
         const { data } = await (supabase.from("promos") as any)
-          .select("id,title,description,image_url,discount_percent,start_date,end_date,is_active")
+          .select("id,title,description,image_url,gram_weight,price,expired_at,is_active")
           .eq("is_active", true)
+          .or(`expired_at.is.null,expired_at.gt.${nowIso}`)
           .order("created_at", { ascending: false });
         setItems(data?.length ? data : PLACEHOLDER_ITEMS);
       } catch {

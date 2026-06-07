@@ -69,3 +69,24 @@ export function getStatusColor(status: string): string {
 export function generateReferralCode(userId: string): string {
   return `KE${userId.slice(0, 4).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 }
+
+/**
+ * Ubah link Google Drive ("share link") menjadi URL gambar langsung yang bisa
+ * dipakai di <img src>. Mendukung beberapa format link Drive; jika bukan link
+ * Drive, kembalikan apa adanya.
+ *   https://drive.google.com/file/d/<ID>/view?usp=...  →  thumbnail langsung
+ *   https://drive.google.com/open?id=<ID>
+ *   https://drive.google.com/uc?id=<ID>
+ */
+export function gdriveImage(url: string | null | undefined): string {
+  if (!url) return "";
+  const u = String(url).trim();
+  let id = "";
+  const m1 = u.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  const m2 = u.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (m1) id = m1[1];
+  else if (m2) id = m2[1];
+  if (!id) return u; // bukan link Drive — pakai langsung
+  // Endpoint thumbnail paling andal untuk ditampilkan di <img>.
+  return `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
+}

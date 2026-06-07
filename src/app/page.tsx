@@ -3,6 +3,7 @@ import Footer from "@/components/layout/Footer";
 import FloatingCTA from "@/components/layout/FloatingCTA";
 import HeroSection from "@/components/sections/HeroSection";
 import GoldPriceSection from "@/components/sections/GoldPriceSection";
+import PromoSection from "@/components/sections/PromoSection";
 import SimulationSection from "@/components/sections/SimulationSection";
 import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import FAQSection from "@/components/sections/FAQSection";
@@ -14,6 +15,7 @@ export default function HomePage() {
       <Navbar />
       <HeroSection />
       <GoldPriceSection />
+      <PromoSection />
       <SimulationSection />
       <TestimonialsSection />
       <FAQSection />

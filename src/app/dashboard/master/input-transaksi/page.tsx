@@ -8,6 +8,10 @@ import { useAuthStore } from "@/store/useAuthStore";
 import Select from "@/components/ui/Select";
 import MemberPicker from "@/components/ui/MemberPicker";
 import { getStaffMap, fmtTgl, fmtTglJam } from "@/lib/staff";
+import {
+  getMarkup, withMarkup, getCicilanParams, cicilanHargaTenor,
+  type CicilanParams, CICILAN_PARAM_DEFAULTS,
+} from "@/lib/harga";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -32,15 +36,17 @@ const TYPE_OPTS = [
 ];
 
 const STATUS_OPTS = [
+  { value:"pending",    label:"Menunggu / ke Approval (Pending)" },
   { value:"completed",  label:"Selesai (Completed)" },
-  { value:"pending",    label:"Menunggu (Pending)" },
   { value:"processing", label:"Diproses (Processing)" },
   { value:"rejected",   label:"Ditolak (Rejected)" },
 ];
 
 const EMPTY = {
   user_id:"", type:"buy", gram:"", amount:"", price_per_gram:"",
-  payment_method:"", notes:"", status:"completed", tenor:"6",
+  // Default "pending" supaya transaksi yang diinput masuk ke Pusat Approval.
+  // Admin bisa memilih "Selesai" untuk mencatat transaksi historis tanpa approval.
+  payment_method:"", notes:"", status:"pending", tenor:"6",
   created_at: new Date().toISOString().slice(0,16),
 };
 
@@ -52,6 +58,11 @@ export default function InputTransaksiPage() {
   const [error, setError]       = useState("");
   const [recent, setRecent]     = useState<any[]>([]);
   const [staff, setStaff]       = useState<Record<string,string>>({});
+
+  // Data harga untuk dropdown gram + auto-isi nominal.
+  const [goldRows, setGoldRows]           = useState<{ gram:number; harga:number }[]>([]);
+  const [buybackPerGram, setBuybackPerGram] = useState(0);
+  const [cicilanParams, setCicilanParams] = useState<CicilanParams>(CICILAN_PARAM_DEFAULTS);
 
   async function loadRecent() {
     const [{ data }, staffMap] = await Promise.all([
@@ -65,18 +76,66 @@ export default function InputTransaksiPage() {
     setStaff(staffMap);
   }
 
-  useEffect(() => { loadRecent(); }, []);
+  async function loadGold() {
+    const [{ data: e }, { data: b }, markup, params] = await Promise.all([
+      (supabase.from("harga_emas_berat") as any).select("gram,harga,created_at").eq("kategori","emas").order("created_at",{ascending:false}).limit(200),
+      (supabase.from("harga_emas_berat") as any).select("gram,harga,created_at").eq("kategori","buyback").order("created_at",{ascending:false}).limit(20),
+      getMarkup(),
+      getCicilanParams(),
+    ]);
+    // Harga emas jual = harga dasar + markup anggota (per berat). Ambil terbaru per gram.
+    const seen = new Set<number>();
+    const rows = (e||[])
+      .filter((r:any)=>{ const g=Number(r.gram); if(seen.has(g)) return false; seen.add(g); return true; })
+      .map((r:any)=>({ gram:Number(r.gram), harga: withMarkup(r.harga, Number(r.gram), markup.anggota) }))
+      .sort((a:any,bb:any)=>a.gram-bb.gram);
+    setGoldRows(rows);
+    // Buyback per gram dari baris 1 gram (acuan).
+    if (b?.length) {
+      const one = b.find((r:any)=>Number(r.gram)===1) || b[0];
+      setBuybackPerGram(Number(one.harga) / Number(one.gram));
+    }
+    setCicilanParams(params);
+  }
+
+  useEffect(() => { loadRecent(); loadGold(); }, []);
 
   const cicilanTenor   = Number(form.tenor) || 1;
   const cicilanAngsuran = form.amount ? Math.ceil(Number(form.amount) / cicilanTenor) : 0;
+
+  // Opsi gram dari daftar harga emas.
+  const gramOpts = goldRows.map(r => ({ value:String(r.gram), label:`${r.gram} gram` }));
+
+  // Hitung nominal & harga/gram otomatis sesuai berat + tipe transaksi.
+  //  • Beli Emas  → nominal = harga emas jual berat tsb.
+  //  • Buyback    → nominal = harga buyback × berat.
+  //  • Cicilan    → nominal = harga cicilan (a+b−c) untuk tenor terpilih; angsuran dihitung dari nominal÷tenor.
+  function autoFields(gram: string, type: string, tenor: string): Partial<typeof EMPTY> {
+    const g = Number(gram) || 0;
+    const row = goldRows.find(r => r.gram === g);
+    if (!g || !row) return {};
+    if (type === "buyback") {
+      const ppg = Math.round(buybackPerGram);
+      return { amount: String(Math.round(buybackPerGram * g)), price_per_gram: String(ppg) };
+    }
+    if (type === "cicilan") {
+      const total = cicilanHargaTenor(row.harga, Number(tenor) || 1, cicilanParams.adminAnggota, cicilanParams.persenBulanAnggota, cicilanParams.persenDpAnggota);
+      return { amount: String(total), price_per_gram: String(Math.round(row.harga / g)) };
+    }
+    // buy (default) — harga emas jual
+    return { amount: String(Math.round(row.harga)), price_per_gram: String(Math.round(row.harga / g)) };
+  }
 
   async function handleSave() {
     if (!form.user_id || !form.amount) { setError("Pilih anggota dan isi jumlah."); return; }
     setSaving(true); setError("");
     try {
       if (form.type === "cicilan") {
-        // Buat cicilan (installment) yang bisa dilacak di Kelola Cicilan
+        // Buat cicilan (installment) yang bisa dilacak di Kelola Cicilan.
+        // Status "completed" pada form → cicilan langsung "active"; selain itu "pending"
+        // supaya muncul di Pusat Approval untuk disetujui dulu.
         const total = Number(form.amount);
+        const langsungAktif = form.status === "completed";
         const due = new Date(form.created_at); due.setMonth(due.getMonth() + 1);
         const { error: err } = await (supabase.from("installments") as any).insert({
           user_id:        form.user_id,
@@ -86,11 +145,21 @@ export default function InputTransaksiPage() {
           monthly_amount: cicilanAngsuran,
           tenor:          cicilanTenor,
           paid_installments: 0,
-          status:         "active",
-          next_due_date:  due.toISOString().slice(0,10),
+          status:         langsungAktif ? "active" : "pending",
+          ...(langsungAktif ? { next_due_date: due.toISOString().slice(0,10) } : {}),
         });
         if (err) { setError(err.message); setSaving(false); return; }
-        try { await (supabase.from("notifications") as any).insert({ user_id:form.user_id, title:"Cicilan Baru", body:`Cicilan ${form.notes||"Emas"} ${new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(total)} (${cicilanTenor}x) dibuat.`, type:"cicilan", is_read:false, link:"/dashboard/member/cicilan" }); } catch {}
+        // Notifikasi: kalau pending → beri tahu admin/master untuk approve; kalau aktif → beri tahu anggota.
+        try {
+          if (langsungAktif) {
+            await (supabase.from("notifications") as any).insert({ user_id:form.user_id, title:"Cicilan Baru", body:`Cicilan ${form.notes||"Emas"} ${fmt(total)} (${cicilanTenor}x) dibuat.`, type:"cicilan", is_read:false, link:"/dashboard/member/cicilan" });
+          } else {
+            const { data: staff } = await (supabase.from("profiles") as any).select("id").in("role",["admin","master"]);
+            if (staff?.length) await (supabase.from("notifications") as any).insert(
+              staff.map((s:any)=>({ user_id:s.id, title:"Pengajuan Cicilan Baru", body:`Cicilan ${form.notes||"Emas"} ${fmt(total)} (${cicilanTenor}x) menunggu persetujuan.`, type:"cicilan", is_read:false, link:"/dashboard/admin/cicilan" }))
+            );
+          }
+        } catch {}
         setSaved(true); setTimeout(() => setSaved(false), 2500); setForm(EMPTY); loadRecent();
         setSaving(false); return;
       }
@@ -136,7 +205,7 @@ export default function InputTransaksiPage() {
         <div>
           <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Input Transaksi Manual</h1>
           <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>
-            Catat transaksi historis atau transaksi yang belum terinput
+            Status <b style={{color:"#D4AF37"}}>Menunggu</b> akan masuk ke Pusat Approval; pilih <b style={{color:"#34d399"}}>Selesai</b> untuk mencatat transaksi historis langsung.
           </p>
         </div>
         <button onClick={() => { loadRecent(); }}
@@ -168,7 +237,7 @@ export default function InputTransaksiPage() {
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
               <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tipe Transaksi *</label>
-              <Select value={form.type} onChange={v=>setForm(p=>({...p,type:v}))} options={TYPE_OPTS} />
+              <Select value={form.type} onChange={v=>setForm(p=>({...p,type:v, ...autoFields(p.gram, v, p.tenor)}))} options={TYPE_OPTS} />
             </div>
             <div>
               <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Status</label>
@@ -187,7 +256,11 @@ export default function InputTransaksiPage() {
             </div>
             <div>
               <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Berat (gram)</label>
-              <input type="number" min={0} step={0.01} value={form.gram} onChange={e=>setForm(p=>({...p,gram:e.target.value}))} style={inp} placeholder="0.00" />
+              {gramOpts.length > 0 ? (
+                <Select value={form.gram} onChange={v=>setForm(p=>({...p,gram:v, ...autoFields(v, p.type, p.tenor)}))} options={gramOpts} placeholder="Pilih berat" />
+              ) : (
+                <input type="number" min={0} step={0.01} value={form.gram} onChange={e=>setForm(p=>({...p,gram:e.target.value}))} style={inp} placeholder="0.00" />
+              )}
             </div>
           </div>
 
@@ -225,8 +298,8 @@ export default function InputTransaksiPage() {
               <div>
                 <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tenor (bulan)</label>
                 <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-                  {[3,6,9,12,18,24].map(t => (
-                    <button key={t} type="button" onClick={()=>setForm(p=>({...p,tenor:String(t)}))}
+                  {[3,6,12,24,36,48,60].map(t => (
+                    <button key={t} type="button" onClick={()=>setForm(p=>({...p,tenor:String(t), ...autoFields(p.gram, p.type, String(t))}))}
                       style={{ flex:"1 0 auto", minWidth:48, padding:"8px", borderRadius:8, fontWeight:700, fontSize:".85rem", cursor:"pointer",
                         border: cicilanTenor===t ? "1px solid #a78bfa" : "1px solid rgba(255,255,255,0.1)",
                         background: cicilanTenor===t ? "rgba(167,139,250,0.15)" : "rgba(255,255,255,0.04)",

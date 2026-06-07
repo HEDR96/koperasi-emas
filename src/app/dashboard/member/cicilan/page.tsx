@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import {
   getMarkup, withMarkup,
-  buildDerivedCicilan, CICILAN_ADMIN_FEE, CICILAN_MARGIN_PCT,
+  buildDerivedCicilan, getCicilanParams,
 } from "@/lib/harga";
 
 // Paket cicilan diturunkan otomatis dari harga emas (harga anggota) — tanpa data manual.
@@ -45,11 +45,12 @@ export default function CicilanPage() {
 
   useEffect(() => {
     (async () => {
-      const [{ data: e }, markup] = await Promise.all([
+      const [{ data: e }, markup, params] = await Promise.all([
         (supabase.from("harga_emas_berat") as any)
           .select("gram,harga,created_at").eq("kategori","emas")
           .order("created_at",{ ascending:false }).limit(200),
         getMarkup(),
+        getCicilanParams(),
       ]);
       // Ambil harga terbaru per berat, lalu terapkan markup anggota.
       const seen = new Set<number>();
@@ -57,9 +58,9 @@ export default function CicilanPage() {
         .filter((r:any) => { const g = Number(r.gram); if (seen.has(g)) return false; seen.add(g); return true; })
         .map((r:any) => ({ gram: Number(r.gram), harga: withMarkup(r.harga, Number(r.gram), markup.anggota) }));
       // Turunkan paket cicilan dari harga anggota (latest.harga sudah termasuk markup → markup map kosong).
-      const derived = buildDerivedCicilan(latest, {});
+      const derived = buildDerivedCicilan(latest, {}, params);
       const flat: CicilanPlan[] = derived.flatMap(d =>
-        d.tenors.map(t => ({ id:`${d.gram}-${t.tenor}`, gram:d.gram, tenor:t.tenor, hargaAnggota:d.hargaAnggota, total:d.total, angsuran:t.angsuran }))
+        d.tenors.map(t => ({ id:`${d.gram}-${t.tenor}`, gram:d.gram, tenor:t.tenor, hargaAnggota:d.hargaAnggota, total:t.total, angsuran:t.angsuran }))
       );
       setPlans(flat);
       setLoading(false);
@@ -109,7 +110,7 @@ export default function CicilanPage() {
         <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Cicilan Emas</h1>
         <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Pilih paket lalu Ajukan Cicilan — admin akan menyetujui</p>
         <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".75rem", margin:"4px 0 0" }}>
-          Total cicilan = harga anggota + biaya admin {fmt(CICILAN_ADMIN_FEE)} + margin {CICILAN_MARGIN_PCT}%. Angsuran/bln = total ÷ tenor.
+          Angsuran/bln dihitung otomatis dari harga emas anggota + admin, bunga per bulan, dan potongan DP sesuai pengaturan koperasi.
         </p>
       </div>
 
@@ -175,10 +176,6 @@ export default function CicilanPage() {
                         <span style={{ background:"rgba(52,211,153,0.15)", color:"#34d399", fontSize:".7rem", padding:"2px 8px", borderRadius:6, fontWeight:600 }}>0% bunga</span>
                       </div>
                       <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
-                        <div style={{ display:"flex", justifyContent:"space-between", fontSize:".78rem" }}>
-                          <span style={{ color:"rgba(255,255,255,0.4)" }}>Total Cicilan</span>
-                          <span style={{ color:"#D4AF37", fontWeight:600 }}>{fmt(plan.total)}</span>
-                        </div>
                         <div style={{ display:"flex", justifyContent:"space-between", fontSize:".78rem" }}>
                           <span style={{ color:"rgba(255,255,255,0.4)" }}>Angsuran/bln</span>
                           <span style={{ color:"#fff", fontWeight:700 }}>{fmt(plan.angsuran)}</span>

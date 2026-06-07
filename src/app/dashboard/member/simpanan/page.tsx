@@ -9,6 +9,11 @@ import { useAuthStore } from "@/store/useAuthStore";
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
 const fmtGram = (n: number) => `${n.toFixed(4)} gram`;
+// Gadai: emas dikonversi hanya 1 angka di belakang koma (dibulatkan ke bawah). Cth 7,891 → 7,8.
+const truncGram1 = (n: number | string) => Math.floor((Number(n) || 0) * 10) / 10;
+const fmtGram1 = (n: number) => `${truncGram1(n).toFixed(1)} gram`;
+// Hanya 80% dari nilai simpanan (setara emas) yang bisa dikonversi ke gadai.
+const GADAI_RATIO = 0.8;
 
 interface SimpananRow { type: string; amount: number; status: string; }
 
@@ -78,16 +83,17 @@ export default function SimpananPage() {
 
   useEffect(() => { load(); }, [user]);
 
-  const maxPinjaman = totalSimpanan;
-  const maxGram     = gramSetara;                              // gram maksimal yang bisa digadai
-  const gramNum     = Number(gram) || 0;
+  // Hanya 80% nilai simpanan (setara emas) yang bisa digadai, dibulatkan ke bawah ke 1 desimal.
+  const maxGram     = truncGram1(gramSetara * GADAI_RATIO);    // gram maksimal yang bisa digadai
+  const maxPinjaman = Math.round(maxGram * buybackHarga);
+  const gramNum     = truncGram1(gram);                        // gram digadai (1 desimal)
   const pinjamanRp  = Math.round(gramNum * buybackHarga);      // gram × harga buyback
   const angsuran    = pinjamanRp ? Math.ceil(pinjamanRp / tenor) : 0;
 
   async function submitGadai() {
     if (!user || !gram) return;
     if (gramNum <= 0 || gramNum > maxGram + 1e-6) {
-      setGadaiErr(`Maksimal ${fmtGram(maxGram)}`);
+      setGadaiErr(`Maksimal ${fmtGram1(maxGram)}`);
       return;
     }
     if (buybackHarga <= 0) { setGadaiErr("Harga buyback belum tersedia."); return; }
@@ -198,7 +204,7 @@ export default function SimpananPage() {
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:14, fontSize:".82rem" }}>
                   {[
                     { label:"Maks. Pinjaman", value:fmt(maxPinjaman), color:"#60a5fa" },
-                    { label:"Jaminan (gram)", value:fmtGram(gramSetara), color:"#D4AF37" },
+                    { label:"Jaminan (gram, 80%)", value:fmtGram1(maxGram), color:"#D4AF37" },
                     { label:"Tenor Tersedia", value:"1 - 4 bulan", color:"#34d399" },
                   ].map(i => (
                     <div key={i.label} style={{ background:"rgba(255,255,255,0.03)", borderRadius:10, padding:"12px 14px" }}>
@@ -246,15 +252,15 @@ export default function SimpananPage() {
               <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
                 <div>
                   <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"flex", justifyContent:"space-between", marginBottom:7 }}>
-                    <span>Gram emas digadai (maks. {fmtGram(maxGram)})</span>
-                    <button type="button" onClick={() => setGram(maxGram.toFixed(4))} style={{ background:"none", border:"none", color:"#D4AF37", cursor:"pointer", fontSize:".76rem" }}>Maks</button>
+                    <span>Gram emas digadai (maks. {fmtGram1(maxGram)})</span>
+                    <button type="button" onClick={() => setGram(maxGram.toFixed(1))} style={{ background:"none", border:"none", color:"#D4AF37", cursor:"pointer", fontSize:".76rem" }}>Maks</button>
                   </label>
                   <div style={{ position:"relative" }}>
                     <span style={{ position:"absolute", right:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.35)", fontSize:".85rem" }}>gram</span>
-                    <input type="number" min={0} step={0.0001} max={maxGram} value={gram}
+                    <input type="number" min={0} step={0.1} max={maxGram} value={gram}
                       onChange={e => setGram(e.target.value)}
                       style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, padding:"11px 50px 11px 14px", color:"#fff", fontSize:"1rem", outline:"none", boxSizing:"border-box" }}
-                      placeholder="0.0000" />
+                      placeholder="0.0" />
                   </div>
                 </div>
 
@@ -277,7 +283,7 @@ export default function SimpananPage() {
                   <div style={{ background:"rgba(96,165,250,0.07)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:12, padding:"14px 16px" }}>
                     <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
                       <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".82rem" }}>Emas digadai</span>
-                      <span style={{ color:"#fff", fontWeight:700 }}>{fmtGram(gramNum)}</span>
+                      <span style={{ color:"#fff", fontWeight:700 }}>{fmtGram1(gramNum)}</span>
                     </div>
                     <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
                       <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".82rem" }}>Dana cair ({fmt(buybackHarga)}/gr)</span>

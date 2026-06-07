@@ -6,7 +6,7 @@ import { RefreshCw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import {
   getMarkup, withMarkup,
-  buildDerivedCicilan, type DerivedCicilan, CICILAN_TENORS, CICILAN_ADMIN_FEE, CICILAN_MARGIN_PCT,
+  buildDerivedCicilan, type DerivedCicilan, CICILAN_TENORS, getCicilanParams,
 } from "@/lib/harga";
 
 const fmt = (n: number) =>
@@ -28,10 +28,11 @@ export default function HargaViewer() {
   async function load() {
     setLoading(true);
     try {
-      const [{ data: e }, { data: b }, markup] = await Promise.all([
+      const [{ data: e }, { data: b }, markup, params] = await Promise.all([
         (supabase.from("harga_emas_berat") as any).select("gram,harga,created_at").eq("kategori","emas").order("created_at",{ ascending:false }).limit(200),
         (supabase.from("harga_emas_berat") as any).select("gram,harga,created_at").eq("kategori","buyback").order("created_at",{ ascending:false }).limit(200),
         getMarkup(),
+        getCicilanParams(),
       ]);
       const latestPerGram = (rows: any[], markupMap: Record<string, number>) => {
         const seen = new Set<number>();
@@ -44,7 +45,7 @@ export default function HargaViewer() {
       setHargaEmas(emasAnggota);
       setHargaBuyback(latestPerGram(b||[], {})); // buyback ditampilkan apa adanya
       // Cicilan diturunkan otomatis dari harga anggota (emasAnggota.harga sudah termasuk markup).
-      setCicilan(buildDerivedCicilan(emasAnggota, {}));
+      setCicilan(buildDerivedCicilan(emasAnggota, {}, params));
     } catch {}
     setLoading(false);
   }
@@ -119,7 +120,7 @@ export default function HargaViewer() {
             <div style={{ padding:"14px 20px", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
               <p style={{ color:"#a78bfa", fontWeight:700, fontSize:".85rem", margin:0 }}>Paket Cicilan Tersedia</p>
               <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".74rem", margin:"4px 0 0" }}>
-                Angsuran/bln otomatis dari harga emas. Total = harga + biaya admin {fmt(CICILAN_ADMIN_FEE)} + margin {CICILAN_MARGIN_PCT}%, lalu dibagi tenor.
+                Angsuran/bln otomatis dari harga emas anggota + admin, bunga per bulan, dan potongan DP sesuai pengaturan koperasi.
               </p>
             </div>
             {cicilan.length === 0 ? <p style={{ padding:"20px", color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Belum ada data harga emas</p> : (

@@ -33,9 +33,16 @@ const DEFAULTS: Setting[] = [
   { key:"address",        value:"",  label:"Alamat",            type:"textarea", group_name:"Lokasi" },
   { key:"map_url",        value:"",  label:"URL Google Maps",   type:"url",      group_name:"Lokasi" },
   { key:"map_embed",      value:"",  label:"Embed Maps (iframe src)", type:"url", group_name:"Lokasi" },
+  // Cicilan — parameter rumus cicilan (a + b − c)
+  { key:"cicilan_admin_anggota",          value:"0", label:"Admin Anggota (Rp)",          type:"number", group_name:"Cicilan" },
+  { key:"cicilan_admin_non_anggota",      value:"0", label:"Admin Non-Anggota (Rp)",      type:"number", group_name:"Cicilan" },
+  { key:"cicilan_persen_bulan_anggota",   value:"0", label:"Persen per Bulan Anggota (%)",     type:"number", group_name:"Cicilan" },
+  { key:"cicilan_persen_bulan_non_anggota", value:"0", label:"Persen per Bulan Non-Anggota (%)", type:"number", group_name:"Cicilan" },
+  { key:"cicilan_persen_dp_anggota",      value:"0", label:"Persen DP Anggota (%)",       type:"number", group_name:"Cicilan" },
+  { key:"cicilan_persen_dp_non_anggota",  value:"0", label:"Persen DP Non-Anggota (%)",   type:"number", group_name:"Cicilan" },
 ];
 
-const GROUPS = ["Informasi Umum","Bisnis","Kontak","Lokasi"];
+const GROUPS = ["Informasi Umum","Bisnis","Kontak","Lokasi","Cicilan"];
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string,string>>({});
@@ -164,6 +171,7 @@ export default function SettingsPage() {
                         style={{ ...inputStyle, resize:"vertical", fontFamily:"inherit" }} />
                     ) : (
                       <input type={f.type === "url" ? "text" : f.type}
+                        {...(f.type === "number" ? { step: "any", min: 0 } : {})}
                         value={settings[f.key]??""}
                         onChange={e=>setSettings(s=>({...s,[f.key]:e.target.value}))}
                         placeholder={f.label}

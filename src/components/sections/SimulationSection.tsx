@@ -10,7 +10,7 @@ import { formatCurrency } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import {
   getMarkup, withMarkup,
-  buildDerivedCicilan, CICILAN_ADMIN_FEE, CICILAN_MARGIN_PCT,
+  buildDerivedCicilan, getCicilanParams,
 } from "@/lib/harga";
 import { Calculator, ArrowLeftRight, MessageCircle } from "lucide-react";
 
@@ -53,27 +53,28 @@ export default function SimulationSection() {
     (async () => {
       setLoadingCicilan(true);
       try {
-        const [{ data: e }, markup] = await Promise.all([
+        const [{ data: e }, markup, params] = await Promise.all([
           (supabase.from("harga_emas_berat") as any)
             .select("gram,harga")
             .eq("kategori", "emas")
             .order("created_at", { ascending: false })
             .limit(200),
           getMarkup(),
+          getCicilanParams(),
         ]);
-        // Deduplicate — latest per gram
+        // Deduplicate — latest per gram. Landing page = harga NON-ANGGOTA (publik).
         const seen = new Set<number>();
         const latest = (e || [])
           .filter((r: any) => { const g = Number(r.gram); if (seen.has(g)) return false; seen.add(g); return true; })
-          .map((r: any) => ({ gram: Number(r.gram), harga: withMarkup(r.harga, Number(r.gram), markup.anggota) }));
-        // Flatten derived cicilan into per-(gram×tenor) entries
-        const derived = buildDerivedCicilan(latest, {});
+          .map((r: any) => ({ gram: Number(r.gram), harga: withMarkup(r.harga, Number(r.gram), markup.nonAnggota) }));
+        // Flatten derived cicilan into per-(gram×tenor) entries — parameter non-anggota.
+        const derived = buildDerivedCicilan(latest, {}, params, "nonAnggota");
         const flat: DerivedPlan[] = derived.flatMap(d =>
           d.tenors.map(t => ({
             key: `${d.gram}-${t.tenor}`,
             gram: d.gram, tenor: t.tenor,
             hargaAnggota: d.hargaAnggota,
-            total: d.total,
+            total: t.total,
             angsuran: t.angsuran,
           }))
         );
@@ -131,7 +132,7 @@ export default function SimulationSection() {
     return encodeURIComponent([
       "Halo, saya ingin mengajukan cicilan emas:",
       `• Berat: ${plan.gram} gram`,
-      `• Harga Anggota: ${formatCurrency(plan.hargaAnggota)}`,
+      `• Harga (Non-Anggota): ${formatCurrency(plan.hargaAnggota)}`,
       `• Total Cicilan: ${formatCurrency(plan.total)}`,
       `• Tenor: ${plan.tenor} bulan`,
       `• Angsuran/bulan: ${formatCurrency(plan.angsuran)}`,
@@ -223,7 +224,7 @@ export default function SimulationSection() {
                   <div className="space-y-4">
                     {[
                       { label: "Berat Emas",      value: `${selectedPlan.gram} gram` },
-                      { label: "Harga Anggota",   value: formatCurrency(selectedPlan.hargaAnggota) },
+                      { label: "Harga (Non-Anggota)", value: formatCurrency(selectedPlan.hargaAnggota) },
                       { label: "Total Cicilan",   value: formatCurrency(selectedPlan.total), highlight: true },
                       { label: "Tenor",           value: `${selectedPlan.tenor} bulan` },
                     ].map(row => (
@@ -237,7 +238,7 @@ export default function SimulationSection() {
                       <span className="text-2xl font-black text-gold-gradient">{formatCurrency(selectedPlan.angsuran)}</span>
                     </div>
                     <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:0 }}>
-                      Total = harga + biaya admin {formatCurrency(CICILAN_ADMIN_FEE)} + margin {CICILAN_MARGIN_PCT}% ÷ {selectedPlan.tenor} bulan
+                      Angsuran/bln = harga cicilan (harga emas + admin + bunga {selectedPlan.tenor} bln − DP) ÷ {selectedPlan.tenor} bulan
                     </p>
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginTop:4 }}>
                       <a href={`https://wa.me/${WA_ADMIN}?text=${buildMsg(selectedPlan)}`} target="_blank" rel="noopener noreferrer"

@@ -143,6 +143,9 @@ export interface Database {
           discount_percent: number;
           start_date: string | null;
           end_date: string | null;
+          gram_weight: number | null;
+          price: number | null;
+          expired_at: string | null;
           is_active: boolean;
           created_at: string;
         };

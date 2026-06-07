@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, RefreshCw, TrendingUp } from "lucide-react";
+import { Clock, RefreshCw, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { getMarkup, withMarkup } from "@/lib/harga";
 
@@ -11,6 +11,7 @@ interface HargaBerat {
   gram: number;
   harga: number;
   created_at: string;
+  prevHarga: number | null; // harga sebelum perubahan terbaru (untuk tren naik/turun)
 }
 
 const fmt = (n: number) =>
@@ -34,13 +35,23 @@ export default function GoldPriceSection() {
       ]);
 
       if (all?.length) {
-        const seen = new Set<number>();
+        // Rows sudah urut created_at desc. Per berat: baris pertama = harga terbaru,
+        // baris kedua = harga sebelumnya (sebelum perubahan terbaru) untuk tren naik/turun.
+        const count = new Map<number, number>();
         const latest: HargaBerat[] = [];
+        const prevBase = new Map<number, number>();
         for (const row of all) {
           const g = Number(row.gram);
-          // Harga publik (non-anggota) = harga dasar + markup non-anggota per gram.
-          if (!seen.has(g)) { seen.add(g); latest.push({ ...row, gram: g, harga: withMarkup(row.harga, g, markup.nonAnggota) }); }
+          const n = count.get(g) || 0;
+          if (n === 0) {
+            // Harga publik (non-anggota) = harga dasar + markup non-anggota per gram.
+            latest.push({ ...row, gram: g, harga: withMarkup(row.harga, g, markup.nonAnggota), prevHarga: null });
+          } else if (n === 1) {
+            prevBase.set(g, withMarkup(row.harga, g, markup.nonAnggota));
+          }
+          count.set(g, n + 1);
         }
+        latest.forEach(p => { p.prevHarga = prevBase.has(p.gram) ? prevBase.get(p.gram)! : null; });
         latest.sort((a, b) => a.gram - b.gram);
         setPrices(latest);
         if (latest[0]) setLastUpdate(latest[0].created_at);
@@ -111,9 +122,32 @@ export default function GoldPriceSection() {
                         <span style={{ color:"#D4AF37", fontWeight:900, fontSize:"1.05rem" }}>{fmt(p.harga)}</span>
                       </td>
                       <td style={{ padding:"14px 24px" }}>
-                        <span style={{ display:"inline-flex", alignItems:"center", gap:4, color:"#4ade80", fontSize:".8rem" }}>
-                          <TrendingUp style={{ width:14, height:14 }} /> Aktif
-                        </span>
+                        {(() => {
+                          if (p.prevHarga == null) {
+                            return <span style={{ color:"rgba(255,255,255,0.35)", fontSize:".8rem" }}>—</span>;
+                          }
+                          const delta = p.harga - p.prevHarga;
+                          const pct = p.prevHarga ? (delta / p.prevHarga) * 100 : 0;
+                          if (delta > 0) {
+                            return (
+                              <span style={{ display:"inline-flex", alignItems:"center", gap:5, color:"#4ade80", fontSize:".8rem", fontWeight:700 }}>
+                                <TrendingUp style={{ width:14, height:14 }} /> +{fmt(delta)} ({pct.toFixed(2)}%)
+                              </span>
+                            );
+                          }
+                          if (delta < 0) {
+                            return (
+                              <span style={{ display:"inline-flex", alignItems:"center", gap:5, color:"#f87171", fontSize:".8rem", fontWeight:700 }}>
+                                <TrendingDown style={{ width:14, height:14 }} /> −{fmt(Math.abs(delta))} ({pct.toFixed(2)}%)
+                              </span>
+                            );
+                          }
+                          return (
+                            <span style={{ display:"inline-flex", alignItems:"center", gap:5, color:"rgba(255,255,255,0.5)", fontSize:".8rem" }}>
+                              <Minus style={{ width:14, height:14 }} /> Tetap
+                            </span>
+                          );
+                        })()}
                       </td>
                     </tr>
                   ))}

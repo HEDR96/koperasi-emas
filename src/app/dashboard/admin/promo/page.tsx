@@ -2,18 +2,23 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Megaphone, RefreshCw, Plus, Eye, EyeOff, Trash2 } from "lucide-react";
+import { RefreshCw, Plus, Eye, EyeOff, Trash2, ImageOff } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+import { gdriveImage } from "@/lib/utils";
+import RupiahInput from "@/components/ui/RupiahInput";
 
-const fmtDate = (s: string | null) => s ? new Date(s).toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"}) : "—";
+const fmt = (n: number) =>
+  new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
+const fmtExp = (s: string | null) => s ? new Date(s).toLocaleString("id-ID",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}) : "—";
 
 const inp: React.CSSProperties = {
   width:"100%", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)",
   borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".9rem", outline:"none", boxSizing:"border-box",
 };
+const lbl: React.CSSProperties = { color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 };
 
-const EMPTY = { title:"", description:"", image_url:"", discount_percent:"0", start_date:"", end_date:"" };
+const EMPTY = { title:"", description:"", image_url:"", gram_weight:"", price:"", expired_at:"" };
 
 export default function AdminPromoPage() {
   const { user } = useAuthStore();
@@ -33,15 +38,16 @@ export default function AdminPromoPage() {
   useEffect(() => { load(); }, []);
 
   async function save() {
-    if (!form.title) { setError("Judul wajib diisi."); return; }
+    if (!form.title) { setError("Nama promo wajib diisi."); return; }
     setSaving(true); setError("");
     const { error: err } = await (supabase.from("promos") as any).insert({
       title: form.title,
       description: form.description || null,
       image_url: form.image_url || null,
-      discount_percent: Number(form.discount_percent) || 0,
-      start_date: form.start_date || null,
-      end_date: form.end_date || null,
+      gram_weight: form.gram_weight ? Number(form.gram_weight) : null,
+      price: form.price ? Number(form.price) : null,
+      expired_at: form.expired_at ? new Date(form.expired_at).toISOString() : null,
+      discount_percent: 0,
       is_active: true,
     });
     if (err) setError(err.message);
@@ -59,12 +65,14 @@ export default function AdminPromoPage() {
     load();
   }
 
+  const previewSrc = gdriveImage(form.image_url);
+
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:24, maxWidth:960 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
           <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Kelola Promo</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Buat & atur promo yang tampil di landing page</p>
+          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Buat & atur promo yang tampil di landing page (di bawah harga emas)</p>
         </div>
         <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:13, height:13 }} /> Refresh
@@ -77,18 +85,43 @@ export default function AdminPromoPage() {
           <Plus style={{ width:14, height:14 }} /> Tambah Promo Baru
         </p>
         {error && <p style={{ color:"#f87171", fontSize:".82rem", marginBottom:10 }}>{error}</p>}
+
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:12, marginBottom:12 }}>
-          <input value={form.title} onChange={e=>setForm(p=>({...p,title:e.target.value}))} style={inp} placeholder="Judul promo *" />
-          <input type="number" min={0} max={100} value={form.discount_percent} onChange={e=>setForm(p=>({...p,discount_percent:e.target.value}))} style={inp} placeholder="Diskon %" />
-          <input type="date" value={form.start_date} onChange={e=>setForm(p=>({...p,start_date:e.target.value}))} style={inp} />
-          <input type="date" value={form.end_date} onChange={e=>setForm(p=>({...p,end_date:e.target.value}))} style={inp} />
+          <div>
+            <label style={lbl}>Nama Promo *</label>
+            <input value={form.title} onChange={e=>setForm(p=>({...p,title:e.target.value}))} style={inp} placeholder="cth: Emas 5gr Spesial" />
+          </div>
+          <div>
+            <label style={lbl}>Berat (gram)</label>
+            <input type="number" min={0} step={0.01} value={form.gram_weight} onChange={e=>setForm(p=>({...p,gram_weight:e.target.value}))} style={inp} placeholder="5" />
+          </div>
+          <div>
+            <label style={lbl}>Harga (Rp)</label>
+            <RupiahInput value={form.price} onValueChange={v=>setForm(p=>({...p,price:v}))} style={inp} placeholder="8.000.000" />
+          </div>
+          <div>
+            <label style={lbl}>Kadaluarsa (tanggal & jam)</label>
+            <input type="datetime-local" value={form.expired_at} onChange={e=>setForm(p=>({...p,expired_at:e.target.value}))} style={inp} />
+          </div>
         </div>
-        <input value={form.image_url} onChange={e=>setForm(p=>({...p,image_url:e.target.value}))} style={{ ...inp, marginBottom:12 }} placeholder="URL gambar (opsional)" />
-        <textarea rows={2} value={form.description} onChange={e=>setForm(p=>({...p,description:e.target.value}))} style={{ ...inp, resize:"vertical", fontFamily:"inherit", marginBottom:12 }} placeholder="Deskripsi promo" />
+
+        <label style={lbl}>Link Gambar (Google Drive)</label>
+        <input value={form.image_url} onChange={e=>setForm(p=>({...p,image_url:e.target.value}))} style={{ ...inp, marginBottom:8 }} placeholder="https://drive.google.com/file/d/..../view?usp=drive_link" />
+        {form.image_url && (
+          <div style={{ marginBottom:12, borderRadius:12, overflow:"hidden", border:"1px solid rgba(255,255,255,0.08)", maxWidth:280, background:"rgba(255,255,255,0.03)" }}>
+            <img src={previewSrc} alt="Preview" style={{ width:"100%", height:160, objectFit:"cover", display:"block" }}
+              onError={e=>{ (e.currentTarget as HTMLImageElement).style.display="none"; }} />
+          </div>
+        )}
+
+        <label style={lbl}>Deskripsi (opsional)</label>
+        <textarea rows={2} value={form.description} onChange={e=>setForm(p=>({...p,description:e.target.value}))} style={{ ...inp, resize:"vertical", fontFamily:"inherit", marginBottom:12 }} placeholder="Keterangan tambahan promo" />
+
         <button onClick={save} disabled={saving || !form.title}
           style={{ display:"flex", alignItems:"center", gap:8, padding:"11px 20px", borderRadius:10, background:"linear-gradient(135deg,#D4AF37,#F5D060)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".88rem", cursor:saving||!form.title?"not-allowed":"pointer", opacity:saving?.7:1 }}>
           {saving ? "Menyimpan..." : "Simpan Promo"}
         </button>
+        <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", marginTop:8 }}>Setelah disimpan, atur Aktif/Nonaktif di bawah. Hanya promo Aktif yang tampil di landing page.</p>
       </div>
 
       {/* List */}
@@ -96,17 +129,22 @@ export default function AdminPromoPage() {
         : promos.length === 0 ? <p style={{ color:"rgba(255,255,255,0.3)" }}>Belum ada promo.</p>
         : (
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))", gap:14 }}>
-            {promos.map(p=>(
+            {promos.map(p=>{
+              const src = gdriveImage(p.image_url);
+              return (
               <motion.div key={p.id} initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }}
                 style={{ background:"rgba(255,255,255,0.03)", border:`1px solid ${p.is_active?"rgba(52,211,153,0.25)":"rgba(255,255,255,0.07)"}`, borderRadius:14, overflow:"hidden" }}>
-                {p.image_url && <img src={p.image_url} alt={p.title} style={{ width:"100%", height:120, objectFit:"cover" }} onError={e=>{(e.currentTarget as HTMLImageElement).style.display="none";}} />}
+                {p.image_url
+                  ? <img src={src} alt={p.title} style={{ width:"100%", height:140, objectFit:"cover" }} onError={e=>{(e.currentTarget as HTMLImageElement).style.display="none";}} />
+                  : <div style={{ width:"100%", height:140, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(212,175,55,0.06)" }}><ImageOff style={{ width:28, height:28, color:"rgba(255,255,255,0.2)" }} /></div>}
                 <div style={{ padding:"14px 16px" }}>
-                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8 }}>
-                    <p style={{ color:"#fff", fontWeight:700, fontSize:".92rem", margin:0 }}>{p.title}</p>
-                    {p.discount_percent > 0 && <span style={{ background:"rgba(212,175,55,0.15)", color:"#D4AF37", borderRadius:6, padding:"2px 8px", fontSize:".72rem", fontWeight:700, flexShrink:0 }}>{p.discount_percent}%</span>}
+                  <p style={{ color:"#fff", fontWeight:700, fontSize:".92rem", margin:0 }}>{p.title}</p>
+                  <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginTop:8 }}>
+                    {p.gram_weight != null && <span style={{ background:"rgba(212,175,55,0.12)", color:"#D4AF37", borderRadius:6, padding:"2px 8px", fontSize:".72rem", fontWeight:700 }}>{p.gram_weight} gram</span>}
+                    {p.price != null && <span style={{ background:"rgba(52,211,153,0.12)", color:"#34d399", borderRadius:6, padding:"2px 8px", fontSize:".72rem", fontWeight:700 }}>{fmt(p.price)}</span>}
                   </div>
-                  {p.description && <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", margin:"6px 0 0", lineHeight:1.5 }}>{p.description}</p>}
-                  <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:"8px 0 0" }}>{fmtDate(p.start_date)} — {fmtDate(p.end_date)}</p>
+                  {p.description && <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", margin:"8px 0 0", lineHeight:1.5 }}>{p.description}</p>}
+                  <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:"8px 0 0" }}>Kadaluarsa: {fmtExp(p.expired_at)}</p>
                   <div style={{ display:"flex", gap:8, marginTop:12 }}>
                     <button onClick={()=>toggle(p)}
                       style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:5, background: p.is_active?"rgba(52,211,153,0.1)":"rgba(255,255,255,0.05)", border:`1px solid ${p.is_active?"rgba(52,211,153,0.25)":"rgba(255,255,255,0.1)"}`, borderRadius:8, padding:"7px", color:p.is_active?"#34d399":"rgba(255,255,255,0.5)", cursor:"pointer", fontSize:".78rem", fontWeight:600 }}>
@@ -121,7 +159,7 @@ export default function AdminPromoPage() {
                   </div>
                 </div>
               </motion.div>
-            ))}
+            );})}
           </div>
         )}
     </div>
