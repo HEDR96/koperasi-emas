@@ -48,9 +48,12 @@ const DEFAULTS: Setting[] = [
   { key:"cicilan_persen_bulan_non_anggota", value:"0", label:"Persen per Bulan Non-Anggota (%)", type:"percent", group_name:"Cicilan" },
   { key:"cicilan_persen_dp_anggota",      value:"0", label:"Persen DP Anggota (%)",       type:"percent", group_name:"Cicilan" },
   { key:"cicilan_persen_dp_non_anggota",  value:"0", label:"Persen DP Non-Anggota (%)",   type:"percent", group_name:"Cicilan" },
+  // Gadai — parameter rumus gadai simpanan
+  { key:"gadai_admin_anggota",   value:"0", label:"Biaya Admin Gadai Anggota (Rp)", type:"rupiah",  group_name:"Gadai" },
+  { key:"gadai_persen_anggota",  value:"0", label:"Persen Gadai Anggota (%)",       type:"percent", group_name:"Gadai" },
 ];
 
-const GROUPS = ["Informasi Umum","Bisnis","Kontak","Lokasi","Cicilan"];
+const GROUPS = ["Informasi Umum","Bisnis","Kontak","Lokasi","Cicilan","Gadai"];
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string,string>>({});
@@ -59,6 +62,8 @@ export default function SettingsPage() {
   const [saved, setSaved]           = useState(false);
   const [savingCicilan, setSavingCicilan] = useState(false);
   const [savedCicilan, setSavedCicilan]   = useState(false);
+  const [savingGadai, setSavingGadai]     = useState(false);
+  const [savedGadai, setSavedGadai]       = useState(false);
   const [error, setError]           = useState("");
 
   async function load() {
@@ -119,6 +124,31 @@ export default function SettingsPage() {
       setError(e.message || "Terjadi kesalahan.");
     }
     setSaving(false);
+  }
+
+  // Simpan hanya parameter gadai (2 key)
+  async function handleSaveGadai() {
+    setSavingGadai(true); setError(""); setSavedGadai(false);
+    try {
+      const gadaiKeys = DEFAULTS.filter(d => d.group_name === "Gadai");
+      const rows = gadaiKeys.map(d => ({ key:d.key, value:settings[d.key]??"0", label:d.label, type:d.type, group_name:d.group_name }));
+      const { error: err } = await (supabase.from("site_settings") as any).upsert(rows, { onConflict:"key" });
+      if (err) setError("Gagal menyimpan gadai: " + err.message);
+      else { setSavedGadai(true); setTimeout(()=>setSavedGadai(false), 3000); }
+    } catch (e:any) { setError(e?.message||"Terjadi kesalahan."); }
+    setSavingGadai(false);
+  }
+
+  // Preview kalkulasi gadai (contoh simpanan Rp 10.000.000)
+  function previewGadai() {
+    const admin  = Number(settings["gadai_admin_anggota"])  || 0;
+    const persen = Number(settings["gadai_persen_anggota"]) || 0;
+    const contoh = 10_000_000;
+    const nilaiMax = Math.max(0, Math.round(contoh * 0.8 - admin));
+    return [1,2,3,4].map(t => ({
+      tenor: t,
+      angsuran: t > 0 ? Math.ceil(nilaiMax * (1 + persen/100) / t) : 0,
+    }));
   }
 
   // Simpan hanya parameter cicilan (6 key)
@@ -233,6 +263,69 @@ export default function SettingsPage() {
                     )}
                   </div>
                 ))}
+
+                {/* Gadai: preview kalkulasi + tombol simpan sendiri */}
+                {group === "Gadai" && (() => {
+                  const fmt = (n:number) => new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n);
+                  const prev = previewGadai();
+                  const admin  = Number(settings["gadai_admin_anggota"])  || 0;
+                  const persen = Number(settings["gadai_persen_anggota"]) || 0;
+                  const hasVal = admin > 0 || persen > 0;
+                  const nilaiMax = Math.max(0, Math.round(10_000_000 * 0.8 - admin));
+                  return (
+                    <>
+                      <div style={{ background:"rgba(96,165,250,0.06)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:12, padding:"14px 16px" }}>
+                        <p style={{ color:"#60a5fa", fontWeight:700, fontSize:".8rem", margin:"0 0 6px" }}>
+                          Rumus: Nilai Gadai Maks = Simpanan × 80% − Admin · Angsuran/bln = Nilai × (1 + {persen}%) ÷ Tenor
+                        </p>
+                        {hasVal ? (
+                          <>
+                            <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"0 0 10px" }}>
+                              Contoh simpanan Rp 10.000.000 → Nilai gadai maks: <strong style={{color:"#60a5fa"}}>{fmt(nilaiMax)}</strong>
+                            </p>
+                            <div style={{ overflowX:"auto" }}>
+                              <table style={{ width:"100%", borderCollapse:"collapse", fontSize:".78rem" }}>
+                                <thead>
+                                  <tr style={{ borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
+                                    {["Tenor","Angsuran/bln"].map(h=>(
+                                      <th key={h} style={{ padding:"6px 10px", textAlign:"left", color:"rgba(255,255,255,0.35)", fontWeight:600, textTransform:"uppercase", fontSize:".68rem" }}>{h}</th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {prev.map(p=>(
+                                    <tr key={p.tenor} style={{ borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
+                                      <td style={{ padding:"7px 10px", color:"#fff", fontWeight:600 }}>{p.tenor} bln</td>
+                                      <td style={{ padding:"7px 10px", color:"#60a5fa", fontWeight:700 }}>{fmt(p.angsuran)}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </>
+                        ) : (
+                          <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".78rem", margin:0 }}>Isi nilai admin dan persen di atas untuk melihat preview.</p>
+                        )}
+                      </div>
+                      <button onClick={handleSaveGadai} disabled={savingGadai}
+                        style={{ display:"flex", alignItems:"center", gap:8, padding:"11px 22px", borderRadius:11,
+                          background: savedGadai ? "rgba(52,211,153,0.15)" : "linear-gradient(135deg,#60a5fa,#93c5fd)",
+                          border: savedGadai ? "1px solid #34d399" : "none",
+                          color: savedGadai ? "#34d399" : "#0a0a0a",
+                          fontWeight:700, fontSize:".88rem", cursor:savingGadai?"not-allowed":"pointer",
+                          opacity:savingGadai?.7:1, transition:"all .3s", width:"fit-content" }}>
+                        {savingGadai ? <><RefreshCw style={{width:14,height:14}}/> Menyimpan...</>
+                          : savedGadai ? <><CheckCircle style={{width:14,height:14}}/> Parameter Gadai Tersimpan!</>
+                          : <><Save style={{width:14,height:14}}/> Simpan Parameter Gadai</>}
+                      </button>
+                      {savedGadai && (
+                        <p style={{ color:"#34d399", fontSize:".78rem", margin:0 }}>
+                          ✓ Tersimpan. Halaman Simpanan anggota akan langsung menggunakan nilai baru.
+                        </p>
+                      )}
+                    </>
+                  );
+                })()}
 
                 {/* Cicilan: preview kalkulasi + tombol simpan sendiri */}
                 {group === "Cicilan" && (() => {

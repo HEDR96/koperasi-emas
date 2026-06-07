@@ -6,6 +6,10 @@ import { Search, X, RefreshCw, UserPlus, Eye } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import RupiahInput from "@/components/ui/RupiahInput";
+import {
+  getGadaiParams, nilaiGadaiMax, angsuranGadai,
+  type GadaiParams, GADAI_PARAM_DEFAULTS,
+} from "@/lib/harga";
 
 interface MemberRow {
   id: string;
@@ -51,9 +55,10 @@ export default function MemberManagementPage() {
   const [success, setSuccess]       = useState("");
   const [detail, setDetail]         = useState<MemberDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [buybackHarga, setBuybackHarga] = useState(0);
-  // Form aksi di profil
-  const [gForm, setGForm] = useState({ open:false, gram:"", tenor:1, saving:false, err:"" });
+  const [buybackHarga, setBuybackHarga]     = useState(0);
+  const [gadaiParams, setGadaiParams]       = useState<GadaiParams>(GADAI_PARAM_DEFAULTS);
+  // Form aksi di profil — pinjaman sekarang dalam Rupiah
+  const [gForm, setGForm] = useState({ open:false, pinjaman:"", tenor:1, saving:false, err:"" });
   const [cForm, setCForm] = useState({ open:false, product:"", total:"", tenor:"6", monthly:"", saving:false, err:"" });
 
   useEffect(() => {
@@ -67,6 +72,8 @@ export default function MemberManagementPage() {
         if (gp) hb = Number(gp.buyback_member);
       }
       setBuybackHarga(hb);
+      const gp = await getGadaiParams();
+      setGadaiParams(gp);
     })();
   }, []);
 
@@ -118,27 +125,26 @@ export default function MemberManagementPage() {
     load();
   }
 
-  // ── Aksi: Ajukan Gadai EMAS dari profil (admin atas nama anggota) ──
-  // Yang digadai = gram emas (hasil konversi simpanan). Dana = gram × harga buyback.
+  // ── Aksi: Ajukan Gadai dari profil (admin atas nama anggota) ──
+  // Nilai gadai = total simpanan × 80% − admin gadai
   async function submitGadai(m: MemberDetail, totalSim: number) {
-    const gramNum = Number(gForm.gram);
-    const totalGram = buybackHarga > 0 ? totalSim / buybackHarga : 0;
-    if (!gramNum || gramNum <= 0)        { setGForm(f=>({...f,err:"Isi jumlah gram yang digadai."})); return; }
-    if (gramNum > totalGram + 1e-6)      { setGForm(f=>({...f,err:`Maksimal ${totalGram.toFixed(4)} gram`})); return; }
-    if (buybackHarga <= 0)               { setGForm(f=>({...f,err:"Harga buyback belum tersedia."})); return; }
+    const maxPin = nilaiGadaiMax(totalSim, gadaiParams.adminAnggota);
+    const dana   = Math.min(Number(gForm.pinjaman) || 0, maxPin);
+    if (dana <= 0)          { setGForm(f=>({...f,err:"Masukkan jumlah pinjaman."})); return; }
+    if (dana > maxPin)      { setGForm(f=>({...f,err:`Maksimal ${fmt(maxPin)}`})); return; }
     setGForm(f=>({...f,saving:true,err:""}));
-    const dana = Math.round(gramNum * buybackHarga);
-    const angsuran = Math.ceil(dana / gForm.tenor);
+    const angsuran = angsuranGadai(dana, gadaiParams.persenAnggota, gForm.tenor);
+    const gramSetaraGadai = buybackHarga > 0 ? dana / buybackHarga : 0;
     const { error } = await (supabase.from("gadai") as any).insert({
       user_id: m.id, nilai_jaminan: dana, harga_buyback: Math.round(buybackHarga),
-      gram_setara: gramNum, dana_cair: dana, sisa_tagihan: dana, tenor: gForm.tenor,
+      gram_setara: gramSetaraGadai, dana_cair: dana, sisa_tagihan: dana, tenor: gForm.tenor,
       angsuran_per_bulan: angsuran, status: "aktif", tanggal_cair: new Date().toISOString(),
-      keterangan: `Gadai ${gramNum} gram emas (admin dari profil)`,
+      keterangan: `Gadai simpanan ${fmt(dana)}, tenor ${gForm.tenor} bulan (dari profil admin)`,
       recorded_by: user?.id, transaction_date: new Date().toISOString(),
     });
     if (error) { setGForm(f=>({...f,saving:false,err:error.message})); return; }
-    try { await (supabase.from("notifications") as any).insert({ user_id:m.id, title:"Gadai Emas Disetujui", body:`Gadai ${gramNum} gram (cair ${fmt(dana)}, tenor ${gForm.tenor} bln, angsuran ${fmt(angsuran)}) telah aktif.`, type:"gadai", is_read:false, link:"/dashboard/member/gadai" }); } catch {}
-    setGForm({ open:false, gram:"", tenor:1, saving:false, err:"" });
+    try { await (supabase.from("notifications") as any).insert({ user_id:m.id, title:"Gadai Disetujui", body:`Gadai ${fmt(dana)} (tenor ${gForm.tenor} bln, angsuran ${fmt(angsuran)}/bln) telah aktif.`, type:"gadai", is_read:false, link:"/dashboard/member/gadai" }); } catch {}
+    setGForm({ open:false, pinjaman:"", tenor:1, saving:false, err:"" });
     await openDetail(m); load();
   }
 
@@ -349,6 +355,7 @@ export default function MemberManagementPage() {
                 const totalSim = simDone.reduce((a:number,s:any)=>a+(s.amount||0),0);
                 const activeGadai = detail.gadai.find((g:any)=>["pengajuan","disetujui","aktif"].includes(g.status));
                 const gram = buybackHarga > 0 ? totalSim / buybackHarga : 0;
+                const maxPin = nilaiGadaiMax(totalSim, gadaiParams.adminAnggota);
                 return (
                   <>
                     <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4 }}>
@@ -358,7 +365,7 @@ export default function MemberManagementPage() {
                     {buybackHarga > 0 && totalSim > 0 && (
                       <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".76rem", margin:"0 0 10px", textAlign:"right" }}>
                         Setara <strong style={{ color:"#D4AF37" }}>{gram.toFixed(4)} gram</strong>
-                        <span style={{ color:"rgba(255,255,255,0.3)" }}> · buyback {fmt(buybackHarga)}/gr</span>
+                        <span style={{ color:"rgba(255,255,255,0.3)" }}> · harga gadai {fmt(buybackHarga)}/gr</span>
                       </p>
                     )}
                     {totalSim > 0 && (
@@ -371,29 +378,32 @@ export default function MemberManagementPage() {
                         <div style={{ background:"rgba(52,211,153,0.06)", border:"1px solid rgba(52,211,153,0.2)", borderRadius:10, padding:"10px 14px", marginBottom:10 }}>
                           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, flexWrap:"wrap" }}>
                             <div>
-                              <p style={{ color:"#34d399", fontSize:".8rem", fontWeight:600, margin:0 }}>Dapat digadai hingga {fmt(totalSim)}</p>
+                              <p style={{ color:"#34d399", fontSize:".8rem", fontWeight:600, margin:0 }}>Dapat digadai hingga {fmt(maxPin)}</p>
                               <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".75rem", margin:"3px 0 0" }}>≈ {gram.toFixed(4)} gram · tenor 1-4 bulan</p>
                             </div>
                             {!gForm.open && (
-                              <button onClick={()=>setGForm({ open:true, gram:"", tenor:1, saving:false, err:"" })}
+                              <button onClick={()=>setGForm({ open:true, pinjaman:"", tenor:1, saving:false, err:"" })}
                                 style={{ background:"rgba(96,165,250,0.15)", border:"1px solid rgba(96,165,250,0.35)", borderRadius:8, padding:"7px 14px", color:"#60a5fa", cursor:"pointer", fontSize:".8rem", fontWeight:600 }}>
                                 Ajukan Gadai
                               </button>
                             )}
                           </div>
                           {gForm.open && (() => {
-                            const gNum = Number(gForm.gram) || 0;
-                            const dana = Math.round(gNum * buybackHarga);
-                            const angs = gForm.tenor > 0 ? Math.ceil(dana / gForm.tenor) : 0;
+                            const pinRp = Math.min(Number(gForm.pinjaman)||0, maxPin);
+                            const angs  = angsuranGadai(pinRp, gadaiParams.persenAnggota, gForm.tenor);
+                            const fmtR  = (v:string|number) => { const d=String(v??"").replace(/\D/g,""); return d?new Intl.NumberFormat("id-ID").format(Number(d)):""; };
                             return (
                             <div style={{ marginTop:12, display:"flex", flexDirection:"column", gap:10 }}>
                               {gForm.err && <p style={{ color:"#f87171", fontSize:".78rem", margin:0 }}>{gForm.err}</p>}
                               <div>
                                 <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".75rem", display:"flex", justifyContent:"space-between", marginBottom:5 }}>
-                                  <span>Gram emas digadai (maks {gram.toFixed(4)} gr)</span>
-                                  <button onClick={()=>setGForm(f=>({...f,gram:gram.toFixed(4)}))} style={{ background:"none", border:"none", color:"#D4AF37", cursor:"pointer", fontSize:".74rem" }}>Maks</button>
+                                  <span>Jumlah Pinjaman (maks {fmt(maxPin)})</span>
+                                  <button onClick={()=>setGForm(f=>({...f,pinjaman:String(maxPin)}))} style={{ background:"none", border:"none", color:"#D4AF37", cursor:"pointer", fontSize:".74rem" }}>Maks</button>
                                 </label>
-                                <input type="number" min={0} step={0.0001} max={gram} value={gForm.gram} onChange={e=>setGForm(f=>({...f,gram:e.target.value}))} style={inputStyle} placeholder="0.0000" />
+                                <div style={{ position:"relative" }}>
+                                  <span style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".8rem", pointerEvents:"none" }}>Rp</span>
+                                  <input inputMode="numeric" value={fmtR(gForm.pinjaman)} onChange={e=>setGForm(f=>({...f,pinjaman:e.target.value.replace(/\D/g,"")}))} style={{ ...inputStyle, paddingLeft:30 }} placeholder="0" />
+                                </div>
                               </div>
                               <div>
                                 <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".75rem", display:"block", marginBottom:5 }}>Tenor (bulan)</label>
@@ -404,14 +414,14 @@ export default function MemberManagementPage() {
                                   ))}
                                 </div>
                               </div>
-                              {gNum > 0 && (
+                              {pinRp > 0 && (
                                 <div style={{ background:"rgba(96,165,250,0.07)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:9, padding:"10px 12px", fontSize:".8rem" }}>
                                   <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-                                    <span style={{ color:"rgba(255,255,255,0.5)" }}>Dana cair ({gNum} gr × {fmt(buybackHarga)})</span>
-                                    <strong style={{ color:"#fff" }}>{fmt(dana)}</strong>
+                                    <span style={{ color:"rgba(255,255,255,0.5)" }}>Dana cair</span>
+                                    <strong style={{ color:"#fff" }}>{fmt(pinRp)}</strong>
                                   </div>
                                   <div style={{ display:"flex", justifyContent:"space-between" }}>
-                                    <span style={{ color:"rgba(255,255,255,0.5)" }}>Angsuran/bln (dana ÷ {gForm.tenor})</span>
+                                    <span style={{ color:"rgba(255,255,255,0.5)" }}>Angsuran/bln ({fmt(pinRp)} × (1+{gadaiParams.persenAnggota}%) ÷ {gForm.tenor})</span>
                                     <strong style={{ color:"#60a5fa" }}>{fmt(angs)}</strong>
                                   </div>
                                 </div>

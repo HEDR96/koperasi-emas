@@ -5,15 +5,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Landmark, Coins, RefreshCw, ArrowRight, X, AlertCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+import {
+  getGadaiParams, nilaiGadaiMax, angsuranGadai,
+  type GadaiParams, GADAI_PARAM_DEFAULTS,
+} from "@/lib/harga";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
 const fmtGram = (n: number) => `${n.toFixed(4)} gram`;
-// Gadai: emas dikonversi hanya 1 angka di belakang koma (dibulatkan ke bawah). Cth 7,891 → 7,8.
-const truncGram1 = (n: number | string) => Math.floor((Number(n) || 0) * 10) / 10;
-const fmtGram1 = (n: number) => `${truncGram1(n).toFixed(1)} gram`;
-// Hanya 80% dari nilai simpanan (setara emas) yang bisa dikonversi ke gadai.
-const GADAI_RATIO = 0.8;
+const fmtRibuan = (v: string | number) => {
+  const digits = String(v ?? "").replace(/\D/g, "");
+  return digits ? new Intl.NumberFormat("id-ID").format(Number(digits)) : "";
+};
 
 interface SimpananRow { type: string; amount: number; status: string; }
 
@@ -28,12 +31,14 @@ export default function SimpananPage() {
   const [loading, setLoading] = useState(true);
 
   // Gadai form
-  const [showGadai, setShowGadai] = useState(false);
-  const [tenor, setTenor]         = useState(1);
-  const [gram, setGram]           = useState("");   // gram emas yang digadai
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted]   = useState(false);
-  const [gadaiErr, setGadaiErr]     = useState("");
+  const [gadaiParams, setGadaiParams] = useState<GadaiParams>(GADAI_PARAM_DEFAULTS);
+
+  const [showGadai, setShowGadai]     = useState(false);
+  const [tenor, setTenor]             = useState(1);
+  const [pinjamanInput, setPinjamanInput] = useState(""); // Rp yang ingin dipinjam
+  const [submitting, setSubmitting]   = useState(false);
+  const [submitted, setSubmitted]     = useState(false);
+  const [gadaiErr, setGadaiErr]       = useState("");
 
   async function load() {
     if (!user) return;
@@ -69,6 +74,10 @@ export default function SimpananPage() {
       setBuybackHarga(harga);
       if (harga > 0) setGramSetara(total / harga);
 
+      // Gadai params
+      const gp = await getGadaiParams();
+      setGadaiParams(gp);
+
       // Active gadai
       const { data: gadai } = await (supabase.from("gadai") as any)
         .select("*")
@@ -83,33 +92,29 @@ export default function SimpananPage() {
 
   useEffect(() => { load(); }, [user]);
 
-  // Hanya 80% nilai simpanan (setara emas) yang bisa digadai, dibulatkan ke bawah ke 1 desimal.
-  const maxGram     = truncGram1(gramSetara * GADAI_RATIO);    // gram maksimal yang bisa digadai
-  const maxPinjaman = Math.round(maxGram * buybackHarga);
-  const gramNum     = truncGram1(gram);                        // gram digadai (1 desimal)
-  const pinjamanRp  = Math.round(gramNum * buybackHarga);      // gram × harga buyback
-  const angsuran    = pinjamanRp ? Math.ceil(pinjamanRp / tenor) : 0;
+  // Nilai gadai maks = total simpanan × 80% − admin gadai
+  const maxPinjaman  = nilaiGadaiMax(totalSimpanan, gadaiParams.adminAnggota);
+  const pinjamanRp   = Math.min(Number(pinjamanInput) || 0, maxPinjaman);
+  const angsuran     = angsuranGadai(pinjamanRp, gadaiParams.persenAnggota, tenor);
 
   async function submitGadai() {
-    if (!user || !gram) return;
-    if (gramNum <= 0 || gramNum > maxGram + 1e-6) {
-      setGadaiErr(`Maksimal ${fmtGram1(maxGram)}`);
-      return;
-    }
-    if (buybackHarga <= 0) { setGadaiErr("Harga buyback belum tersedia."); return; }
+    if (!user) return;
+    if (pinjamanRp <= 0) { setGadaiErr("Masukkan jumlah pinjaman."); return; }
+    if (pinjamanRp > maxPinjaman) { setGadaiErr(`Maksimal ${fmt(maxPinjaman)}`); return; }
     setGadaiErr(""); setSubmitting(true);
     try {
+      const gramSetaraGadai = buybackHarga > 0 ? pinjamanRp / buybackHarga : 0;
       const { error } = await (supabase.from("gadai") as any).insert({
         user_id:             user.id,
         nilai_jaminan:       pinjamanRp,
         harga_buyback:       Math.round(buybackHarga),
-        gram_setara:         gramNum,
+        gram_setara:         gramSetaraGadai,
         dana_cair:           pinjamanRp,
         sisa_tagihan:        pinjamanRp,
         tenor:               tenor,
         angsuran_per_bulan:  angsuran,
         status:              "pengajuan",
-        keterangan:          `Pengajuan gadai ${gramNum} gram emas, tenor ${tenor} bulan`,
+        keterangan:          `Pengajuan gadai simpanan ${fmt(pinjamanRp)}, tenor ${tenor} bulan`,
         recorded_by:         user.id,
         transaction_date:    new Date().toISOString(),
       });
@@ -157,7 +162,7 @@ export default function SimpananPage() {
               <div style={{ marginTop:14, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
                 <Coins style={{ width:15, height:15, color:"#D4AF37" }} />
                 <span style={{ color:"rgba(255,255,255,0.6)", fontSize:".85rem" }}>
-                  Setara <strong style={{ color:"#D4AF37" }}>{fmtGram(gramSetara)}</strong> · Harga buyback {fmt(buybackHarga)}/gram
+                  Setara <strong style={{ color:"#D4AF37" }}>{fmtGram(gramSetara)}</strong> · harga gadai {fmt(buybackHarga)}/gram
                 </span>
               </div>
             )}
@@ -204,7 +209,7 @@ export default function SimpananPage() {
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:14, fontSize:".82rem" }}>
                   {[
                     { label:"Maks. Pinjaman", value:fmt(maxPinjaman), color:"#60a5fa" },
-                    { label:"Jaminan (gram, 80%)", value:fmtGram1(maxGram), color:"#D4AF37" },
+                    { label:"Jaminan (setara gram)", value:fmtGram(gramSetara), color:"#D4AF37" },
                     { label:"Tenor Tersedia", value:"1 - 4 bulan", color:"#34d399" },
                   ].map(i => (
                     <div key={i.label} style={{ background:"rgba(255,255,255,0.03)", borderRadius:10, padding:"12px 14px" }}>
@@ -213,7 +218,7 @@ export default function SimpananPage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={() => { setShowGadai(true); setSubmitted(false); setGadaiErr(""); setGram(""); setTenor(1); }}
+                <button onClick={() => { setShowGadai(true); setSubmitted(false); setGadaiErr(""); setPinjamanInput(""); setTenor(1); }}
                   style={{ display:"flex", alignItems:"center", gap:8, padding:"11px 22px", borderRadius:10, background:"rgba(96,165,250,0.15)", border:"1px solid rgba(96,165,250,0.35)", color:"#60a5fa", fontWeight:700, fontSize:".9rem", cursor:"pointer" }}>
                   <ArrowRight style={{ width:16, height:16 }} /> Ajukan Gadai
                 </button>
@@ -250,20 +255,31 @@ export default function SimpananPage() {
               )}
 
               <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+                {/* Info maks pinjaman */}
+                <div style={{ background:"rgba(96,165,250,0.06)", border:"1px solid rgba(96,165,250,0.18)", borderRadius:10, padding:"10px 14px" }}>
+                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"0 0 2px" }}>Maksimal Pinjaman</p>
+                  <p style={{ color:"#60a5fa", fontWeight:900, fontSize:"1.1rem", margin:0 }}>{fmt(maxPinjaman)}</p>
+                  <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".7rem", margin:"2px 0 0" }}>
+                    = Simpanan {fmt(totalSimpanan)} × 80%{gadaiParams.adminAnggota > 0 ? ` − admin ${fmt(gadaiParams.adminAnggota)}` : ""}
+                  </p>
+                </div>
+
+                {/* Input pinjaman (Rupiah) */}
                 <div>
                   <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"flex", justifyContent:"space-between", marginBottom:7 }}>
-                    <span>Gram emas digadai (maks. {fmtGram1(maxGram)})</span>
-                    <button type="button" onClick={() => setGram(maxGram.toFixed(1))} style={{ background:"none", border:"none", color:"#D4AF37", cursor:"pointer", fontSize:".76rem" }}>Maks</button>
+                    <span>Jumlah Pinjaman (Rp)</span>
+                    <button type="button" onClick={() => setPinjamanInput(String(maxPinjaman))} style={{ background:"none", border:"none", color:"#D4AF37", cursor:"pointer", fontSize:".76rem" }}>Maks</button>
                   </label>
                   <div style={{ position:"relative" }}>
-                    <span style={{ position:"absolute", right:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.35)", fontSize:".85rem" }}>gram</span>
-                    <input type="number" min={0} step={0.1} max={maxGram} value={gram}
-                      onChange={e => setGram(e.target.value)}
-                      style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, padding:"11px 50px 11px 14px", color:"#fff", fontSize:"1rem", outline:"none", boxSizing:"border-box" }}
-                      placeholder="0.0" />
+                    <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.35)", fontSize:".85rem", pointerEvents:"none" }}>Rp</span>
+                    <input inputMode="numeric" value={fmtRibuan(pinjamanInput)}
+                      onChange={e => setPinjamanInput(e.target.value.replace(/\D/g,""))}
+                      style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, padding:"11px 14px 11px 40px", color:"#fff", fontSize:"1rem", outline:"none", boxSizing:"border-box" }}
+                      placeholder="0" />
                   </div>
                 </div>
 
+                {/* Tenor */}
                 <div>
                   <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Tenor (bulan)</label>
                   <div style={{ display:"flex", gap:8 }}>
@@ -279,14 +295,11 @@ export default function SimpananPage() {
                   </div>
                 </div>
 
-                {gramNum > 0 && (
+                {/* Preview */}
+                {pinjamanRp > 0 && (
                   <div style={{ background:"rgba(96,165,250,0.07)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:12, padding:"14px 16px" }}>
                     <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
-                      <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".82rem" }}>Emas digadai</span>
-                      <span style={{ color:"#fff", fontWeight:700 }}>{fmtGram1(gramNum)}</span>
-                    </div>
-                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
-                      <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".82rem" }}>Dana cair ({fmt(buybackHarga)}/gr)</span>
+                      <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".82rem" }}>Pinjaman (dana cair)</span>
                       <span style={{ color:"#fff", fontWeight:700 }}>{fmt(pinjamanRp)}</span>
                     </div>
                     <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
@@ -298,12 +311,12 @@ export default function SimpananPage() {
                       <span style={{ color:"#60a5fa", fontSize:"1.1rem", fontWeight:900 }}>{fmt(angsuran)}</span>
                     </div>
                     <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".72rem", marginTop:6, marginBottom:0 }}>
-                      Dana ÷ Tenor = {fmt(pinjamanRp)} ÷ {tenor} = {fmt(angsuran)}/bln
+                      {fmt(pinjamanRp)} × (1 + {gadaiParams.persenAnggota}%) ÷ {tenor} = {fmt(angsuran)}/bln
                     </p>
                   </div>
                 )}
 
-                <button onClick={submitGadai} disabled={submitting || gramNum <= 0}
+                <button onClick={submitGadai} disabled={submitting || pinjamanRp <= 0}
                   style={{ padding:"13px", borderRadius:11, background:"linear-gradient(135deg,#60a5fa,#93c5fd)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:"1rem", cursor:submitting?"not-allowed":"pointer", opacity:submitting?0.7:1 }}>
                   {submitting ? "Mengajukan..." : "Ajukan Gadai"}
                 </button>

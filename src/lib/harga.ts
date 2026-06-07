@@ -153,6 +153,45 @@ export function cicilanDpTenor(
   return Math.round(c);
 }
 
+// ─────────────────────────────────────────────────────────────
+// GADAI — parameter pinjaman gadai simpanan
+// Rumus:
+//   nilai_gadai_max = total_simpanan × 80% − admin_gadai
+//   angsuran/bln    = nilai_gadai × (1 + persen_gadai/100) ÷ tenor
+// ─────────────────────────────────────────────────────────────
+export const GADAI_KEYS = {
+  adminAnggota:  "gadai_admin_anggota",
+  persenAnggota: "gadai_persen_anggota",
+} as const;
+
+export interface GadaiParams {
+  adminAnggota:  number;   // Rp — biaya admin dipotong dari nilai gadai
+  persenAnggota: number;   // % — bunga flat gadai
+}
+export const GADAI_PARAM_DEFAULTS: GadaiParams = { adminAnggota: 0, persenAnggota: 0 };
+
+export async function getGadaiParams(): Promise<GadaiParams> {
+  try {
+    const { data } = await (supabase.from("site_settings") as any)
+      .select("key,value").in("key", Object.values(GADAI_KEYS));
+    const map: Record<string, string> = {};
+    (data || []).forEach((r: any) => { map[r.key] = r.value; });
+    const num = (k: string) => Number(map[k]) || 0;
+    return { adminAnggota: num(GADAI_KEYS.adminAnggota), persenAnggota: num(GADAI_KEYS.persenAnggota) };
+  } catch { return { ...GADAI_PARAM_DEFAULTS }; }
+}
+
+// Nilai gadai maksimal (Rp) = totalSimpanan × 80% − admin
+export function nilaiGadaiMax(totalSimpanan: number, admin: number): number {
+  return Math.max(0, Math.round(totalSimpanan * 0.8 - admin));
+}
+
+// Angsuran per bulan = nilai_gadai × (1 + persen/100) ÷ tenor
+export function angsuranGadai(nilaiGadai: number, persenGadai: number, tenor: number): number {
+  if (!tenor || !nilaiGadai) return 0;
+  return Math.ceil(nilaiGadai * (1 + persenGadai / 100) / tenor);
+}
+
 export type CicilanKind = "anggota" | "nonAnggota";
 
 export interface DerivedCicilan {
