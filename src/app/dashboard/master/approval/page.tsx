@@ -14,7 +14,7 @@ const fmtDate = (s: string) =>
 const TX_TYPE_LABEL: Record<string,string> = {
   buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan", tabungan:"Tabungan", transfer:"Transfer", referral_bonus:"Bonus Referral",
 };
-const SIM_LABEL: Record<string,string> = { pokok:"Simpanan Pokok", wajib:"Simpanan Wajib", sukarela:"Simpanan Sukarela" };
+const SIM_LABEL: Record<string,string> = { pokok:"Tabungan Pokok", wajib:"Tabungan Wajib", sukarela:"Tabungan Sukarela" };
 
 type Tab = "transaksi" | "simpanan" | "gadai" | "cicilan";
 
@@ -117,7 +117,7 @@ export default function ApprovalPage() {
 
   const TABS: { id: Tab; label: string; count: number; icon: any; color: string }[] = [
     { id:"transaksi", label:"Transaksi", count:txs.length,    icon:Coins,    color:"#D4AF37" },
-    { id:"simpanan",  label:"Simpanan",  count:sims.length,   icon:Wallet,   color:"#a78bfa" },
+    { id:"simpanan",  label:"Tabungan",  count:sims.length,   icon:Wallet,   color:"#a78bfa" },
     { id:"cicilan",   label:"Cicilan",   count:cics.length,   icon:CreditCard, color:"#f59e0b" },
     { id:"gadai",     label:"Gadai",     count:gadais.length, icon:Landmark, color:"#60a5fa" },
   ];

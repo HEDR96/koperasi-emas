@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import Select from "@/components/ui/Select";
 import RupiahInput from "@/components/ui/RupiahInput";
+import { getMarkup, withMarkup } from "@/lib/harga";
 
 const TX_TYPES = [
   { value: "buy",      label: "Beli Emas",       desc: "Beli emas dengan pembayaran ke koperasi",    color: "#D4AF37" },
@@ -58,6 +59,9 @@ const DEFAULT_FORM = {
   notes: "",
 };
 
+interface GoldRow { gram: number; harga: number; }
+interface BuybackRow { gram: number; harga: number; }
+
 const inputStyle: React.CSSProperties = {
   width: "100%", background: "rgba(255,255,255,0.05)",
   border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10,
@@ -73,6 +77,11 @@ export default function MemberRequestPage() {
   const [error, setError]  = useState("");
   const [myRequests, setMyRequests] = useState<TxRow[]>([]);
   const [loadingReq, setLoadingReq] = useState(true);
+
+  // Harga emas (anggota) & buyback untuk dropdown otomatis
+  const [goldRows, setGoldRows]     = useState<GoldRow[]>([]);
+  const [buybackRows, setBuybackRows] = useState<BuybackRow[]>([]);
+  const [loadingPrices, setLoadingPrices] = useState(true);
 
   const selectedType = TX_TYPES.find(t => t.value === form.type)!;
 
@@ -90,13 +99,51 @@ export default function MemberRequestPage() {
     setLoadingReq(false);
   }
 
-  useEffect(() => { loadRequests(); }, [user?.id]);
+  useEffect(() => {
+    loadRequests();
+    (async () => {
+      setLoadingPrices(true);
+      try {
+        const [{ data: e }, { data: b }, markup] = await Promise.all([
+          (supabase.from("harga_emas_berat") as any).select("gram,harga,created_at").eq("kategori","emas").order("created_at",{ascending:false}).limit(200),
+          (supabase.from("harga_emas_berat") as any).select("gram,harga,created_at").eq("kategori","buyback").order("created_at",{ascending:false}).limit(200),
+          getMarkup(),
+        ]);
+        const dedupe = (rows: any[], mapFn: (r:any)=>GoldRow) => {
+          const seen = new Set<number>();
+          return (rows||[]).filter((r:any)=>{ const g=Number(r.gram); if(seen.has(g)) return false; seen.add(g); return true; }).map(mapFn).sort((a,b)=>a.gram-b.gram);
+        };
+        setGoldRows(dedupe(e, r => ({ gram:Number(r.gram), harga:withMarkup(r.harga,Number(r.gram),markup.anggota) })));
+        setBuybackRows(dedupe(b, r => ({ gram:Number(r.gram), harga:Number(r.harga) })));
+      } catch {}
+      setLoadingPrices(false);
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  // Opsi dropdown gram
+  const gramBuyOpts  = goldRows.map(r=>({ value:String(r.gram), label:`${r.gram % 1 === 0 ? r.gram : r.gram.toFixed(1)} gram — ${fmt(r.harga)}` }));
+  const gramSellOpts = buybackRows.map(r=>({ value:String(r.gram), label:`${r.gram % 1 === 0 ? r.gram : r.gram.toFixed(1)} gram — ${fmt(r.harga)}` }));
+
+  // Auto-fill amount ketika gram dipilih
+  function onGramChange(gramStr: string) {
+    const g = Number(gramStr);
+    let autoAmount = "";
+    if (form.type === "buy") {
+      const row = goldRows.find(r => r.gram === g);
+      if (row) autoAmount = String(Math.round(row.harga));
+    } else if (form.type === "buyback") {
+      const row = buybackRows.find(r => r.gram === g);
+      if (row) autoAmount = String(Math.round(row.harga));
+    }
+    setForm(f => ({ ...f, gram: gramStr, amount: autoAmount }));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(""); setSuccess("");
-    if (!form.amount || Number(form.amount) <= 0) { setError("Jumlah rupiah harus diisi."); return; }
-    if (form.type === "buyback" && !form.gram) { setError("Jumlah gram wajib diisi untuk Jual Kembali."); return; }
+    if (!form.amount || Number(form.amount) <= 0) { setError("Pilih berat emas atau isi jumlah setoran."); return; }
+    if ((form.type === "buy" || form.type === "buyback") && !form.gram) { setError("Pilih berat emas terlebih dahulu."); return; }
 
     setSubmitting(true);
     try {
@@ -155,7 +202,7 @@ export default function MemberRequestPage() {
       {/* Type Selector */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
         {TX_TYPES.map(t => (
-          <button key={t.value} onClick={() => setForm(f => ({ ...f, type: t.value }))}
+          <button key={t.value} onClick={() => setForm(f => ({ ...f, type:t.value, gram:"", amount:"" }))}
             style={{ background: form.type === t.value ? `${t.color}18` : "rgba(255,255,255,0.03)", border: `1px solid ${form.type === t.value ? t.color+"55" : "rgba(255,255,255,0.07)"}`, borderRadius: 14, padding: "14px 12px", cursor: "pointer", textAlign: "left", transition: "all .2s" }}>
             <p style={{ color: form.type === t.value ? t.color : "rgba(255,255,255,0.7)", fontWeight: 700, fontSize: ".88rem", margin: "0 0 4px" }}>{t.label}</p>
             <p style={{ color: "rgba(255,255,255,0.35)", fontSize: ".74rem", margin: 0, lineHeight: 1.4 }}>{t.desc}</p>
@@ -177,32 +224,53 @@ export default function MemberRequestPage() {
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
-          {/* Gram — untuk buy dan buyback */}
-          {(form.type === "buy" || form.type === "buyback") && (
+          {/* Beli Emas — dropdown gram → harga otomatis */}
+          {form.type === "buy" && (
             <div>
-              <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 6 }}>
-                Jumlah Gram {form.type === "buyback" ? "*" : "(opsional)"}
-              </label>
-              <input type="number" min="0" step="0.001"
-                value={form.gram}
-                onChange={e => setForm(f => ({ ...f, gram: e.target.value }))}
-                placeholder="Contoh: 1.5"
-                style={inputStyle} />
+              <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:6 }}>Pilih Berat Emas *</label>
+              {loadingPrices ? (
+                <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".8rem" }}>Memuat harga...</p>
+              ) : gramBuyOpts.length === 0 ? (
+                <p style={{ color:"#f87171", fontSize:".8rem" }}>Harga emas belum tersedia.</p>
+              ) : (
+                <Select value={form.gram} onChange={onGramChange} options={gramBuyOpts} placeholder="Pilih berat emas" />
+              )}
+              {form.gram && form.amount && (
+                <div style={{ marginTop:10, background:"rgba(212,175,55,0.07)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:10, padding:"10px 14px", display:"flex", justifyContent:"space-between" }}>
+                  <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>Total Bayar</span>
+                  <span style={{ color:"#D4AF37", fontWeight:900, fontSize:".95rem" }}>{fmt(Number(form.amount))}</span>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Amount */}
-          <div>
-            <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 6 }}>
-              Total Rupiah *
-            </label>
-            <RupiahInput value={form.amount}
-              onValueChange={v => setForm(f => ({ ...f, amount: v }))}
-              style={inputStyle} />
-            {form.amount && Number(form.amount) > 0 && (
-              <p style={{ color: "rgba(255,255,255,0.3)", fontSize: ".78rem", marginTop: 5 }}>{fmt(Number(form.amount))}</p>
-            )}
-          </div>
+          {/* Buyback — dropdown gram → dana diterima otomatis */}
+          {form.type === "buyback" && (
+            <div>
+              <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:6 }}>Pilih Berat Emas yang Dijual *</label>
+              {loadingPrices ? (
+                <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".8rem" }}>Memuat harga...</p>
+              ) : gramSellOpts.length === 0 ? (
+                <p style={{ color:"#f87171", fontSize:".8rem" }}>Harga buyback belum tersedia.</p>
+              ) : (
+                <Select value={form.gram} onChange={onGramChange} options={gramSellOpts} placeholder="Pilih berat emas" />
+              )}
+              {form.gram && form.amount && (
+                <div style={{ marginTop:10, background:"rgba(96,165,250,0.07)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:10, padding:"10px 14px", display:"flex", justifyContent:"space-between" }}>
+                  <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>Dana Diterima</span>
+                  <span style={{ color:"#60a5fa", fontWeight:900, fontSize:".95rem" }}>{fmt(Number(form.amount))}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Setor Tabungan — input manual */}
+          {form.type === "tabungan" && (
+            <div>
+              <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:6 }}>Jumlah Setoran (Rp) *</label>
+              <RupiahInput value={form.amount} onValueChange={v=>setForm(f=>({...f,amount:v}))} style={inputStyle} />
+            </div>
+          )}
 
           {/* Payment method — tidak untuk buyback */}
           {form.type !== "buyback" && (

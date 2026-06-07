@@ -34,7 +34,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
     { group:"Transaksi", items:[
       { label:"Approval",           href:"/dashboard/master/approval",         icon:CheckSquare },
       { label:"Input Transaksi",    href:"/dashboard/master/input-transaksi",  icon:PlusCircle },
-      { label:"Input Simpanan",     href:"/dashboard/master/simpanan",         icon:Wallet },
+      { label:"Input Tabungan",      href:"/dashboard/master/simpanan",         icon:Wallet },
       { label:"Kelola Cicilan",     href:"/dashboard/master/cicilan",          icon:CreditCard },
       { label:"Riwayat",            href:"/dashboard/master/riwayat",          icon:History },
     ]},
@@ -63,7 +63,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Verifikasi Anggota",href:"/dashboard/admin/verifikasi",icon:UserCheck },
     ]},
     { group:"Keuangan", items:[
-      { label:"Input Simpanan", href:"/dashboard/admin/simpanan", icon:Wallet },
+      { label:"Input Tabungan", href:"/dashboard/admin/simpanan", icon:Wallet },
       { label:"Kelola Cicilan", href:"/dashboard/admin/cicilan",  icon:CreditCard },
       { label:"Kelola Gadai",   href:"/dashboard/admin/gadai",    icon:Landmark },
     ]},
@@ -82,7 +82,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Harga Emas", href:"/dashboard/member/harga",    icon:Coins },
     ]},
     { group:"Keuangan", items:[
-      { label:"Simpanan",    href:"/dashboard/member/simpanan", icon:Landmark },
+      { label:"Tabungan",    href:"/dashboard/member/simpanan", icon:Wallet },
       { label:"Buyback Emas",href:"/dashboard/member/buyback",  icon:Coins },
       { label:"Gadai",       href:"/dashboard/member/gadai",    icon:Landmark },
       { label:"Cicilan",     href:"/dashboard/member/cicilan",  icon:CreditCard },

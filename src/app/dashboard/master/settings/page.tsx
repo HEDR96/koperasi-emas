@@ -30,8 +30,8 @@ const DEFAULTS: Setting[] = [
   { key:"total_anggota",  value:"150.000+",                     label:"Jumlah Anggota (tampil)", type:"text",     group_name:"Informasi Umum" },
   // Bisnis
   { key:"jam_operasional",value:"Senin – Sabtu: 08.00 – 17.00 WIB", label:"Jam Operasional",   type:"text",     group_name:"Bisnis" },
-  { key:"simpanan_pokok", value:"Rp 5.000.000",                 label:"Simpanan Pokok",          type:"text",     group_name:"Bisnis" },
-  { key:"simpanan_wajib", value:"Rp 200.000/bulan",             label:"Simpanan Wajib",          type:"text",     group_name:"Bisnis" },
+  { key:"simpanan_pokok", value:"Rp 5.000.000",                 label:"Tabungan Pokok",          type:"text",     group_name:"Bisnis" },
+  { key:"simpanan_wajib", value:"Rp 200.000/bulan",             label:"Tabungan Wajib",          type:"text",     group_name:"Bisnis" },
   // Kontak
   { key:"wa_number",      value:"",  label:"Nomor WhatsApp",    type:"text",     group_name:"Kontak" },
   { key:"email",          value:"",  label:"Email",             type:"email",    group_name:"Kontak" },

@@ -18,9 +18,9 @@ const inp: React.CSSProperties = {
 };
 
 const TYPE_OPTS = [
-  { value:"pokok",    label:"Simpanan Pokok" },
-  { value:"wajib",    label:"Simpanan Wajib" },
-  { value:"sukarela", label:"Simpanan Sukarela" },
+  { value:"pokok",    label:"Tabungan Pokok" },
+  { value:"wajib",    label:"Tabungan Wajib" },
+  { value:"sukarela", label:"Tabungan Sukarela" },
 ];
 const TYPE_LABEL: Record<string,string> = { pokok:"Pokok", wajib:"Wajib", sukarela:"Sukarela" };
 const STATUS_COLOR: Record<string,string> = { pending:"#fbbf24", completed:"#34d399", rejected:"#f87171" };
@@ -69,8 +69,8 @@ export default function AdminSimpananPage() {
         setSaved(true); setTimeout(()=>setSaved(false), 2500);
         try {
           await (supabase.from("notifications") as any).insert({
-            user_id: form.user_id, title:"Simpanan Ditambahkan",
-            body:`Admin menambahkan ${TYPE_LABEL[form.type]} ${fmt(Number(form.amount))} ke simpanan Anda.`,
+            user_id: form.user_id, title:"Tabungan Ditambahkan",
+            body:`Admin menambahkan ${TYPE_LABEL[form.type]} ${fmt(Number(form.amount))} ke tabungan Anda.`,
             type:"simpanan", is_read:false, link:"/dashboard/member/simpanan",
           });
         } catch {}
@@ -85,8 +85,8 @@ export default function AdminSimpananPage() {
     <div style={{ display:"flex", flexDirection:"column", gap:24, maxWidth:900 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Input Simpanan Anggota</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Catat setoran simpanan pokok / wajib / sukarela anggota</p>
+          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Input Tabungan Anggota</h1>
+          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Catat setoran tabungan pokok / wajib / sukarela anggota</p>
         </div>
         <button onClick={loadRecent} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:13, height:13 }} /> Refresh
@@ -99,10 +99,10 @@ export default function AdminSimpananPage() {
           style={{ background:"rgba(167,139,250,0.04)", border:"1px solid rgba(167,139,250,0.2)", borderRadius:16, padding:22, display:"flex", flexDirection:"column", gap:16 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <Wallet style={{ width:16, height:16, color:"#a78bfa" }} />
-            <p style={{ color:"#a78bfa", fontWeight:700, fontSize:".9rem", margin:0 }}>Form Simpanan</p>
+            <p style={{ color:"#a78bfa", fontWeight:700, fontSize:".9rem", margin:0 }}>Form Tabungan</p>
           </div>
           {error && <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:10, padding:"10px 14px", color:"#f87171", fontSize:".82rem" }}>{error}</div>}
-          {saved && <div style={{ background:"rgba(52,211,153,0.1)", border:"1px solid rgba(52,211,153,0.2)", borderRadius:10, padding:"10px 14px", color:"#34d399", fontSize:".82rem", display:"flex", alignItems:"center", gap:8 }}><CheckCircle style={{width:14,height:14}}/> Simpanan tersimpan!</div>}
+          {saved && <div style={{ background:"rgba(52,211,153,0.1)", border:"1px solid rgba(52,211,153,0.2)", borderRadius:10, padding:"10px 14px", color:"#34d399", fontSize:".82rem", display:"flex", alignItems:"center", gap:8 }}><CheckCircle style={{width:14,height:14}}/> Tabungan tersimpan!</div>}
 
           {/* Member */}
           <div>
@@ -134,7 +134,7 @@ export default function AdminSimpananPage() {
 
           <button onClick={save} disabled={saving || !form.user_id || !form.amount}
             style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px", borderRadius:11, background: saved ? "rgba(52,211,153,0.2)" : "linear-gradient(135deg,#a78bfa,#c4b5fd)", border:"none", color: saved ? "#34d399" : "#0a0a0a", fontWeight:700, fontSize:".95rem", cursor: saving||!form.user_id||!form.amount ? "not-allowed" : "pointer", opacity: saving?.7:1 }}>
-            {saving ? "Menyimpan..." : saved ? "✓ Tersimpan" : <><Save style={{ width:15, height:15 }} /> Simpan Simpanan</>}
+            {saving ? "Menyimpan..." : saved ? "✓ Tersimpan" : <><Save style={{ width:15, height:15 }} /> Simpan Tabungan</>}
           </button>
         </motion.div>
 

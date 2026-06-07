@@ -124,7 +124,7 @@ export default function SimpananPage() {
     setSubmitting(false);
   }
 
-  const typeLabel: Record<string,string> = { pokok:"Simpanan Pokok", wajib:"Simpanan Wajib", sukarela:"Simpanan Sukarela" };
+  const typeLabel: Record<string,string> = { pokok:"Tabungan Pokok", wajib:"Tabungan Wajib", sukarela:"Tabungan Sukarela" };
   const simpananByType = ["pokok","wajib","sukarela"].map(type => ({
     type,
     label: typeLabel[type],
@@ -136,8 +136,8 @@ export default function SimpananPage() {
     <div style={{ display:"flex", flexDirection:"column", gap:24, maxWidth:800 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Simpanan Koperasi</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Rincian simpanan dan konversi ke emas</p>
+          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Tabungan Koperasi</h1>
+          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Rincian tabungan dan konversi ke emas</p>
         </div>
         <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:13, height:13 }} /> Refresh
@@ -156,7 +156,7 @@ export default function SimpananPage() {
           {/* Total card */}
           <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }}
             style={{ background:"linear-gradient(135deg,rgba(212,175,55,0.12),rgba(212,175,55,0.04))", border:"1px solid rgba(212,175,55,0.3)", borderRadius:20, padding:24 }}>
-            <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".82rem", marginBottom:6 }}>Total Simpanan</p>
+            <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".82rem", marginBottom:6 }}>Total Tabungan</p>
             <p style={{ color:"#D4AF37", fontSize:"2.2rem", fontWeight:900, margin:0, lineHeight:1 }}>{fmt(totalSimpanan)}</p>
             {buybackHarga > 0 && (
               <div style={{ marginTop:14, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
@@ -167,7 +167,7 @@ export default function SimpananPage() {
               </div>
             )}
             <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".75rem", marginTop:8 }}>
-              Nilai simpanan dapat digunakan sebagai jaminan gadai pinjaman
+              Nilai tabungan dapat digunakan sebagai jaminan gadai pinjaman
             </p>
           </motion.div>
 
@@ -177,7 +177,7 @@ export default function SimpananPage() {
               <div key={s.type} style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:14, padding:"16px 18px" }}>
                 <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", marginBottom:8 }}>{s.label}</p>
                 <p style={{ color:"#fff", fontWeight:900, fontSize:"1.1rem", margin:0 }}>{fmt(s.total)}</p>
-                <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".72rem", marginTop:4 }}>{s.count} transaksi verified</p>
+                <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".72rem", marginTop:4 }}>{s.count} setoran verified</p>
               </div>
             ))}
           </div>
