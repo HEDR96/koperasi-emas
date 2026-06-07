@@ -27,29 +27,30 @@ export default function ApprovalPage() {
   const [cics, setCics]     = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [acting, setActing]   = useState<string | null>(null);
+  const [loadErr, setLoadErr] = useState("");
 
   async function load() {
-    setLoading(true);
-    try {
-      const [txRes, simRes, gadaiRes, cicRes] = await Promise.all([
-        (supabase.from("transactions") as any)
-          .select("id, user_id, type, amount, gram, payment_method, created_at, profiles(name)")
-          .eq("status","pending").order("created_at",{ascending:false}),
-        (supabase.from("simpanan") as any)
-          .select("id, user_id, type, amount, description, created_at, profiles:profiles!user_id(name)")
-          .eq("status","pending").order("created_at",{ascending:false}),
-        (supabase.from("gadai") as any)
-          .select("id, user_id, dana_cair, sisa_tagihan, tenor, angsuran_per_bulan, gram_setara, keterangan, created_at, profiles:profiles!user_id(name)")
-          .eq("status","pengajuan").order("created_at",{ascending:false}),
-        (supabase.from("installments") as any)
-          .select("id, user_id, product_name, total_amount, monthly_amount, tenor, created_at, profiles(name)")
-          .eq("status","pending").order("created_at",{ascending:false}),
-      ]);
-      setTxs(txRes.data || []);
-      setSims(simRes.data || []);
-      setGadais(gadaiRes.data || []);
-      setCics(cicRes.data || []);
-    } catch {}
+    setLoading(true); setLoadErr("");
+    const [txRes, simRes, gadaiRes, cicRes] = await Promise.all([
+      (supabase.from("transactions") as any)
+        .select("id, user_id, type, amount, gram, payment_method, created_at, profiles(name)")
+        .eq("status","pending").order("created_at",{ascending:false}),
+      (supabase.from("simpanan") as any)
+        .select("id, user_id, type, amount, description, created_at, profiles:profiles!user_id(name)")
+        .eq("status","pending").order("created_at",{ascending:false}),
+      (supabase.from("gadai") as any)
+        .select("id, user_id, dana_cair, sisa_tagihan, tenor, angsuran_per_bulan, gram_setara, keterangan, created_at, profiles:profiles!user_id(name)")
+        .eq("status","pengajuan").order("created_at",{ascending:false}),
+      (supabase.from("installments") as any)
+        .select("id, user_id, product_name, total_amount, monthly_amount, tenor, created_at, profiles(name)")
+        .eq("status","pending").order("created_at",{ascending:false}),
+    ]);
+    const errs = [txRes.error, simRes.error, gadaiRes.error, cicRes.error].filter(Boolean);
+    if (errs.length) setLoadErr(errs.map((e:any)=>e.message).join(" | "));
+    setTxs(txRes.data || []);
+    setSims(simRes.data || []);
+    setGadais(gadaiRes.data || []);
+    setCics(cicRes.data || []);
     setLoading(false);
   }
 
@@ -174,6 +175,15 @@ export default function ApprovalPage() {
         })}
       </div>
 
+      {loadErr && (
+        <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.25)", borderRadius:12, padding:"12px 16px" }}>
+          <p style={{ color:"#f87171", fontWeight:600, fontSize:".85rem", margin:"0 0 4px" }}>⚠ Error memuat data approval:</p>
+          <p style={{ color:"rgba(248,113,113,0.8)", fontSize:".8rem", margin:0 }}>{loadErr}</p>
+          <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".75rem", margin:"6px 0 0" }}>
+            Jalankan <strong>supabase/fix-approval-master.sql</strong> di Supabase SQL Editor untuk memperbaiki RLS dan constraint.
+          </p>
+        </div>
+      )}
       {loading ? (
         <p style={{ color:"rgba(255,255,255,0.3)" }}>Memuat...</p>
       ) : (
