@@ -130,7 +130,7 @@ export default function InputTransaksiPage() {
   }
 
   async function handleSave() {
-    if (!form.user_id || !form.amount) { setError("Pilih anggota dan isi jumlah."); return; }
+    if (!form.user_id || !form.amount) { setError("Pilih anggota dan pilih berat emas."); return; }
     setSaving(true); setError("");
     try {
       if (form.type === "cicilan") {
@@ -297,24 +297,23 @@ export default function InputTransaksiPage() {
           {/* ─── TIPE LAIN (buyback / cicilan): form lengkap ─── */}
           {form.type !== "buy" && (
             <>
-              {/* Jumlah & Gram */}
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                <div>
-                  <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Jumlah (Rp) *</label>
-                  <div style={{ position:"relative" }}>
-                    <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".9rem", pointerEvents:"none" }}>Rp</span>
-                    <input inputMode="numeric" value={fmtRibuan(form.amount)} onChange={e=>setForm(p=>({...p,amount:onlyDigits(e.target.value)}))} style={{ ...inp, paddingLeft:36 }} placeholder="0" />
-                  </div>
-                </div>
-                <div>
-                  <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Berat (gram)</label>
-                  {gramOpts.length > 0 ? (
-                    <Select value={form.gram} onChange={v=>setForm(p=>({...p,gram:v,...autoFields(v,p.type,p.tenor)}))} options={gramOpts} placeholder="Pilih berat" />
-                  ) : (
-                    <input type="number" min={0} step={0.01} value={form.gram} onChange={e=>setForm(p=>({...p,gram:e.target.value}))} style={inp} placeholder="0.00" />
-                  )}
-                </div>
+              {/* Berat */}
+              <div>
+                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Berat (gram)</label>
+                {gramOpts.length > 0 ? (
+                  <Select value={form.gram} onChange={v=>setForm(p=>({...p,gram:v,...autoFields(v,p.type,p.tenor)}))} options={gramOpts} placeholder="Pilih berat" />
+                ) : (
+                  <input type="number" min={0} step={0.01} value={form.gram} onChange={e=>setForm(p=>({...p,gram:e.target.value}))} style={inp} placeholder="0.00" />
+                )}
               </div>
+
+              {/* Jumlah otomatis (read-only) */}
+              {form.amount && (
+                <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:10, padding:"10px 14px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".82rem" }}>Jumlah (otomatis)</span>
+                  <span style={{ color:"#D4AF37", fontWeight:700, fontSize:".92rem" }}>Rp {fmtRibuan(form.amount)}</span>
+                </div>
+              )}
 
               {/* Harga & Metode */}
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
