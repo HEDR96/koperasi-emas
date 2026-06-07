@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -32,7 +32,7 @@ export default function MasterAuditPage() {
     setLoading(true);
     try {
       const [txRes, gadaiRes, simRes, memRes] = await Promise.all([
-        (supabase.from("transactions") as any).select("id, type, amount, status, updated_at, created_at, profiles(name)").order("created_at",{ascending:false}).limit(40),
+        (supabase.from("transactions") as any).select("id, type, amount, status, updated_at, created_at, profiles:profiles!user_id(name)").order("created_at",{ascending:false}).limit(40),
         (supabase.from("gadai") as any).select("id, dana_cair, status, updated_at, created_at, profiles:profiles!user_id(name)").order("updated_at",{ascending:false}).limit(30),
         (supabase.from("simpanan") as any).select("id, type, amount, status, created_at, profiles:profiles!user_id(name)").order("created_at",{ascending:false}).limit(30),
         (supabase.from("profiles") as any).select("id, name, status, created_at").eq("role","member").order("created_at",{ascending:false}).limit(20),
@@ -40,19 +40,19 @@ export default function MasterAuditPage() {
 
       const merged: Item[] = [];
       (txRes.data||[]).forEach((t: any) => merged.push({
-        id:`tx-${t.id}`, ts:t.created_at, kind:"transaksi", who:t.profiles?.name||"—",
+        id:`tx-${t.id}`, ts:t.created_at, kind:"transaksi", who:t.profiles?.name||"â€”",
         detail:`${TX_LABEL[t.type]||t.type}`, amount:t.amount, status:t.status,
       }));
       (gadaiRes.data||[]).forEach((g: any) => merged.push({
-        id:`gd-${g.id}`, ts:g.updated_at||g.created_at, kind:"gadai", who:g.profiles?.name||"—",
+        id:`gd-${g.id}`, ts:g.updated_at||g.created_at, kind:"gadai", who:g.profiles?.name||"â€”",
         detail:"Gadai simpanan", amount:g.dana_cair, status:g.status,
       }));
       (simRes.data||[]).forEach((s: any) => merged.push({
-        id:`sm-${s.id}`, ts:s.created_at, kind:"simpanan", who:s.profiles?.name||"—",
+        id:`sm-${s.id}`, ts:s.created_at, kind:"simpanan", who:s.profiles?.name||"â€”",
         detail:`Simpanan ${s.type}`, amount:s.amount, status:s.status,
       }));
       (memRes.data||[]).forEach((m: any) => merged.push({
-        id:`mb-${m.id}`, ts:m.created_at, kind:"member", who:m.name||"—",
+        id:`mb-${m.id}`, ts:m.created_at, kind:"member", who:m.name||"â€”",
         detail:"Pendaftaran anggota", status:m.status,
       }));
 
@@ -105,7 +105,7 @@ export default function MasterAuditPage() {
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <p style={{ color:"#fff", fontWeight:600, fontSize:".86rem", margin:0 }}>
-                      {it.who} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>· {it.detail}</span>
+                      {it.who} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>Â· {it.detail}</span>
                     </p>
                     <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".73rem", margin:"2px 0 0" }}>{fmtDate(it.ts)}</p>
                   </div>
@@ -119,3 +119,4 @@ export default function MasterAuditPage() {
     </div>
   );
 }
+

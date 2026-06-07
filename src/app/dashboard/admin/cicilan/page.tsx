@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -73,7 +73,7 @@ export default function AdminCicilanPage() {
   function normCicilan(r: any): Item {
     return {
       id:r.id, kind:"cicilan", user_id:r.user_id, name:r.product_name || "Cicilan Emas",
-      memberName:r.profiles?.name || "—", total:r.total_amount, monthly:r.monthly_amount,
+      memberName:r.profiles?.name || "â€”", total:r.total_amount, monthly:r.monthly_amount,
       downPayment: r.down_payment || 0,
       tenor:r.tenor, paid:r.paid_installments, sisa:Math.max(0,(r.tenor-r.paid_installments)*r.monthly_amount),
       status: r.status === "completed" ? "lunas" : (r.status === "overdue" ? "terlambat" : r.status === "pending" ? "pending" : "berjalan"),
@@ -84,7 +84,7 @@ export default function AdminCicilanPage() {
   async function load() {
     setLoading(true);
     const { data } = await (supabase.from("installments") as any)
-      .select("id, user_id, product_name, total_amount, monthly_amount, down_payment, tenor, paid_installments, status, created_at, profiles(name)")
+      .select("id, user_id, product_name, total_amount, monthly_amount, down_payment, tenor, paid_installments, status, created_at, profiles:profiles!user_id(name)")
       .order("created_at",{ascending:false}).limit(300);
     setRows((data||[]).map(normCicilan));
     setLoading(false);
@@ -156,7 +156,7 @@ export default function AdminCicilanPage() {
     }).eq("id", it.id);
     try {
       await (supabase.from("notifications") as any).insert({
-        user_id: it.user_id, title: done ? `${it.name} Lunas 🎉` : "Pembayaran Diterima",
+        user_id: it.user_id, title: done ? `${it.name} Lunas ðŸŽ‰` : "Pembayaran Diterima",
         body: done ? `${it.name} telah LUNAS.` : `Angsuran ke-${ke} ${fmt(it.monthly)} untuk ${it.name} tercatat.`,
         type:"cicilan", is_read:false, link:"/dashboard/member/cicilan",
       });
@@ -238,10 +238,10 @@ export default function AdminCicilanPage() {
                     <div style={{ minWidth:180 }}>
                       <p style={{ color:"#fff", fontWeight:700, fontSize:".92rem", margin:0, display:"flex", alignItems:"center", gap:6 }}>
                         <CreditCard style={{ width:13, height:13, color:"#a78bfa" }} />
-                        {r.memberName} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>· {r.name}</span>
+                        {r.memberName} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>Â· {r.name}</span>
                       </p>
                       <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".76rem", margin:"3px 0 0" }}>
-                        {fmt(r.monthly)}/bln · Total {fmt(r.total)}
+                        {fmt(r.monthly)}/bln Â· Total {fmt(r.total)}
                       </p>
                     </div>
                     <div style={{ display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" }}>
@@ -286,7 +286,7 @@ export default function AdminCicilanPage() {
                   <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Berat Emas *</label>
                   {goldRows.length > 0 ? (
                     <Select value={form.gram} placeholder="Pilih berat emas"
-                      options={goldRows.map(r=>({ value:String(r.gram), label:`${r.gram % 1 === 0 ? r.gram : r.gram.toFixed(1)} gram — ${fmt(r.harga)}` }))}
+                      options={goldRows.map(r=>({ value:String(r.gram), label:`${r.gram % 1 === 0 ? r.gram : r.gram.toFixed(1)} gram â€” ${fmt(r.harga)}` }))}
                       onChange={v=>setForm(p=>({...p,gram:v}))} />
                   ) : (
                     <p style={{ color:"#f87171", fontSize:".8rem", margin:0 }}>Harga emas belum tersedia. Tambahkan di menu Harga.</p>
@@ -321,13 +321,13 @@ export default function AdminCicilanPage() {
                           <span style={{ background:"#60a5fa", color:"#0a0a0a", borderRadius:"50%", width:18, height:18, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:".65rem", fontWeight:900 }}>1</span>
                           <span style={{ color:"rgba(255,255,255,0.65)", fontSize:".83rem" }}>DP disetor dulu</span>
                         </div>
-                        <span style={{ color:"#60a5fa", fontWeight:800, fontSize:".9rem" }}>{calcDp > 0 ? fmt(calcDp) : "—"}</span>
+                        <span style={{ color:"#60a5fa", fontWeight:800, fontSize:".9rem" }}>{calcDp > 0 ? fmt(calcDp) : "â€”"}</span>
                       </div>
                       {/* Step 2 Angsuran */}
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:7 }}>
                           <span style={{ background:"#D4AF37", color:"#0a0a0a", borderRadius:"50%", width:18, height:18, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:".65rem", fontWeight:900 }}>2</span>
-                          <span style={{ color:"rgba(255,255,255,0.65)", fontSize:".83rem" }}>Angsuran {tenor}×</span>
+                          <span style={{ color:"rgba(255,255,255,0.65)", fontSize:".83rem" }}>Angsuran {tenor}Ã—</span>
                         </div>
                         <span style={{ color:"#D4AF37", fontWeight:800, fontSize:".9rem" }}>
                           {fmt(calcAngsuran)}<span style={{ color:"rgba(255,255,255,0.4)", fontSize:".72rem", fontWeight:400 }}>/bln</span>
@@ -362,7 +362,7 @@ export default function AdminCicilanPage() {
               <div style={{ padding:"20px 22px 16px", borderBottom:"1px solid rgba(255,255,255,0.06)", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12 }}>
                 <div>
                   <h2 style={{ color:"#fff", fontWeight:700, fontSize:"1.05rem", margin:0 }}>{detail.name}</h2>
-                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".8rem", margin:"2px 0 0" }}>{detail.memberName} · Cicilan</p>
+                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".8rem", margin:"2px 0 0" }}>{detail.memberName} Â· Cicilan</p>
                 </div>
                 <div style={{ display:"flex", gap:8, flexShrink:0 }}>
                   {isMaster && (
@@ -456,3 +456,4 @@ export default function AdminCicilanPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -56,11 +56,11 @@ export default function AdminTransaksiPage() {
     try {
       const [pRes, hRes] = await Promise.all([
         (supabase.from("transactions") as any)
-          .select("id,type,amount,gram,status,payment_method,notes,created_at,updated_at,profiles(name)")
+          .select("id,type,amount,gram,status,payment_method,notes,created_at,updated_at,profiles:profiles!user_id(name)")
           .eq("status","pending")
           .order("created_at",{ascending:false}),
         (supabase.from("transactions") as any)
-          .select("id,type,amount,gram,status,payment_method,notes,created_at,updated_at,profiles(name)")
+          .select("id,type,amount,gram,status,payment_method,notes,created_at,updated_at,profiles:profiles!user_id(name)")
           .in("status",["completed","rejected","processing"])
           .order("updated_at",{ascending:false})
           .limit(100),
@@ -170,19 +170,19 @@ export default function AdminTransaksiPage() {
                     onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background="transparent"}
                   >
                     <td style={{ padding:"13px 18px", color:"#fff", fontWeight:600, fontSize:".88rem" }}>
-                      {(tx.profiles as any)?.name || "—"}
+                      {(tx.profiles as any)?.name || "â€”"}
                     </td>
                     <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.6)", fontSize:".85rem" }}>
                       {TYPE_LABEL[tx.type]||tx.type}
                     </td>
                     <td style={{ padding:"13px 18px", color:"#D4AF37", fontSize:".85rem" }}>
-                      {tx.gram ? tx.gram+" gr" : "—"}
+                      {tx.gram ? tx.gram+" gr" : "â€”"}
                     </td>
                     <td style={{ padding:"13px 18px", color:"#D4AF37", fontWeight:600, fontSize:".85rem" }}>
                       {fmt(tx.amount)}
                     </td>
                     <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.45)", fontSize:".82rem" }}>
-                      {tx.payment_method || "—"}
+                      {tx.payment_method || "â€”"}
                     </td>
                     <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.4)", fontSize:".8rem", whiteSpace:"nowrap" }}>
                       {fmtDate(tx.created_at)}
@@ -240,7 +240,7 @@ export default function AdminTransaksiPage() {
                       onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background="transparent"}
                     >
                       <td style={{ padding:"13px 18px", color:"#fff", fontWeight:600, fontSize:".88rem" }}>
-                        {(tx.profiles as any)?.name || "—"}
+                        {(tx.profiles as any)?.name || "â€”"}
                       </td>
                       <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.6)", fontSize:".85rem" }}>
                         {TYPE_LABEL[tx.type]||tx.type}
@@ -254,7 +254,7 @@ export default function AdminTransaksiPage() {
                         </span>
                       </td>
                       <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.4)", fontSize:".8rem", maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                        {tx.notes || "—"}
+                        {tx.notes || "â€”"}
                       </td>
                       <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.4)", fontSize:".8rem", whiteSpace:"nowrap" }}>
                         {fmtDate(tx.updated_at)}
@@ -310,3 +310,4 @@ export default function AdminTransaksiPage() {
     </div>
   );
 }
+

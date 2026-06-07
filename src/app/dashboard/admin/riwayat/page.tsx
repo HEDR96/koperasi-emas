@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -37,11 +37,11 @@ export default function AdminRiwayatPage() {
           .select("id, angsuran_ke, amount, paid_at, profiles:profiles!user_id(name), installments(product_name)")
           .order("paid_at",{ascending:false}).limit(300),
         (supabase.from("transactions") as any)
-          .select("id, type, amount, gram, created_at, profiles(name)")
+          .select("id, type, amount, gram, created_at, profiles:profiles!user_id(name)")
           .in("type",["buy","cicilan","tabungan"]).eq("status","completed")
           .order("created_at",{ascending:false}).limit(300),
         (supabase.from("transactions") as any)
-          .select("id, amount, gram, status, created_at, profiles(name)")
+          .select("id, amount, gram, status, created_at, profiles:profiles!user_id(name)")
           .eq("type","buyback").order("created_at",{ascending:false}).limit(300),
         (supabase.from("gadai") as any)
           .select("id, dana_cair, gram_setara, tenor, angsuran_per_bulan, sisa_tagihan, status, created_at, profiles:profiles!user_id(name)")
@@ -114,8 +114,8 @@ export default function AdminRiwayatPage() {
                 <motion.div key={r.id} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{delay:Math.min(i*.02,.3)}}>
                   <Row color="#34d399">
                     <div>
-                      <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:0 }}>{r.profiles?.name || "—"} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>· {r.installments?.product_name || "Cicilan"}</span></p>
-                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"2px 0 0" }}>Angsuran ke-{r.angsuran_ke} · {fmtDate(r.paid_at)}</p>
+                      <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:0 }}>{r.profiles?.name || "â€”"} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>Â· {r.installments?.product_name || "Cicilan"}</span></p>
+                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"2px 0 0" }}>Angsuran ke-{r.angsuran_ke} Â· {fmtDate(r.paid_at)}</p>
                     </div>
                     <span style={{ color:"#34d399", fontWeight:800 }}>{fmt(r.amount)}</span>
                   </Row>
@@ -129,7 +129,7 @@ export default function AdminRiwayatPage() {
                 <motion.div key={r.id} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{delay:Math.min(i*.02,.3)}}>
                   <Row color="#D4AF37">
                     <div>
-                      <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:0 }}>{r.profiles?.name || "—"} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>· {EMAS_LABEL[r.type]||r.type}</span></p>
+                      <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:0 }}>{r.profiles?.name || "â€”"} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>Â· {EMAS_LABEL[r.type]||r.type}</span></p>
                       <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"2px 0 0" }}>{fmtDate(r.created_at)}</p>
                     </div>
                     <div style={{ textAlign:"right" }}>
@@ -147,11 +147,11 @@ export default function AdminRiwayatPage() {
                 <motion.div key={r.id} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{delay:Math.min(i*.02,.3)}}>
                   <Row color="#60a5fa">
                     <div>
-                      <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:0 }}>{r.profiles?.name || "—"}</p>
-                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"2px 0 0" }}>{fmtDate(r.created_at)} · {r.status==="completed"?"selesai":r.status}</p>
+                      <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:0 }}>{r.profiles?.name || "â€”"}</p>
+                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"2px 0 0" }}>{fmtDate(r.created_at)} Â· {r.status==="completed"?"selesai":r.status}</p>
                     </div>
                     <div style={{ textAlign:"right" }}>
-                      <p style={{ color:"#60a5fa", fontWeight:800, margin:0 }}>− {Number(r.gram||0).toFixed(4)} gr</p>
+                      <p style={{ color:"#60a5fa", fontWeight:800, margin:0 }}>âˆ’ {Number(r.gram||0).toFixed(4)} gr</p>
                       <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:0 }}>{fmt(r.amount)}</p>
                     </div>
                   </Row>
@@ -165,8 +165,8 @@ export default function AdminRiwayatPage() {
                 <motion.div key={r.id} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{delay:Math.min(i*.02,.3)}}>
                   <Row color="#a78bfa">
                     <div>
-                      <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:0 }}>{r.profiles?.name || "—"} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>· {Number(r.gram_setara||0).toFixed(4)} gr → pinjaman</span></p>
-                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"2px 0 0" }}>{r.tenor} bln · angsuran {fmt(r.angsuran_per_bulan)} · sisa {fmt(r.sisa_tagihan)} · {fmtDate(r.created_at)}</p>
+                      <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:0 }}>{r.profiles?.name || "â€”"} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>Â· {Number(r.gram_setara||0).toFixed(4)} gr â†’ pinjaman</span></p>
+                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"2px 0 0" }}>{r.tenor} bln Â· angsuran {fmt(r.angsuran_per_bulan)} Â· sisa {fmt(r.sisa_tagihan)} Â· {fmtDate(r.created_at)}</p>
                     </div>
                     <div style={{ textAlign:"right" }}>
                       <p style={{ color:"#a78bfa", fontWeight:800, margin:0 }}>{fmt(r.dana_cair)}</p>
@@ -181,3 +181,4 @@ export default function AdminRiwayatPage() {
     </div>
   );
 }
+

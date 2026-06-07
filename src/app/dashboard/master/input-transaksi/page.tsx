@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -67,7 +67,7 @@ export default function InputTransaksiPage() {
   async function loadRecent() {
     const [{ data }, staffMap] = await Promise.all([
       (supabase.from("transactions") as any)
-        .select("id, type, amount, gram, status, created_at, transaction_date, recorded_by, profiles(name)")
+        .select("id, type, amount, gram, status, created_at, transaction_date, recorded_by, profiles:profiles!user_id(name)")
         .order("created_at", { ascending: false })
         .limit(10),
       getStaffMap(),
@@ -107,9 +107,9 @@ export default function InputTransaksiPage() {
   const gramOpts = goldRows.map(r => ({ value:String(r.gram), label:`${r.gram} gram` }));
 
   // Hitung nominal & harga/gram otomatis sesuai berat + tipe transaksi.
-  //  • Beli Emas  → nominal = harga emas jual berat tsb.
-  //  • Buyback    → nominal = harga buyback × berat.
-  //  • Cicilan    → nominal = harga cicilan (a+b−c) untuk tenor terpilih; angsuran dihitung dari nominal÷tenor.
+  //  â€¢ Beli Emas  â†’ nominal = harga emas jual berat tsb.
+  //  â€¢ Buyback    â†’ nominal = harga buyback Ã— berat.
+  //  â€¢ Cicilan    â†’ nominal = harga cicilan (a+bâˆ’c) untuk tenor terpilih; angsuran dihitung dari nominalÃ·tenor.
   function autoFields(gram: string, type: string, tenor: string): Partial<typeof EMPTY> {
     const g = Number(gram) || 0;
     const row = goldRows.find(r => r.gram === g);
@@ -121,11 +121,11 @@ export default function InputTransaksiPage() {
     if (type === "cicilan") {
       const t = Number(tenor) || 1;
       const total = cicilanHargaTenor(row.harga, t, cicilanParams.adminAnggota, cicilanParams.persenBulanAnggota, cicilanParams.persenDpAnggota);
-      // DP otomatis = c = (a+b) × %DP anggota (DP yang disetujui).
+      // DP otomatis = c = (a+b) Ã— %DP anggota (DP yang disetujui).
       const dp = cicilanDpTenor(row.harga, t, cicilanParams.adminAnggota, cicilanParams.persenBulanAnggota, cicilanParams.persenDpAnggota);
       return { amount: String(total), price_per_gram: String(Math.round(row.harga / g)), dp: String(dp) };
     }
-    // buy (default) — harga emas jual
+    // buy (default) â€” harga emas jual
     return { amount: String(Math.round(row.harga)), price_per_gram: String(Math.round(row.harga / g)) };
   }
 
@@ -135,7 +135,7 @@ export default function InputTransaksiPage() {
     try {
       if (form.type === "cicilan") {
         // Buat cicilan (installment) yang bisa dilacak di Kelola Cicilan.
-        // Status "completed" pada form → cicilan langsung "active"; selain itu "pending"
+        // Status "completed" pada form â†’ cicilan langsung "active"; selain itu "pending"
         // supaya muncul di Pusat Approval untuk disetujui dulu.
         const total = Number(form.amount);
         const langsungAktif = form.status === "completed";
@@ -153,7 +153,7 @@ export default function InputTransaksiPage() {
           ...(langsungAktif ? { next_due_date: due.toISOString().slice(0,10) } : {}),
         });
         if (err) { setError(err.message); setSaving(false); return; }
-        // Notifikasi: kalau pending → beri tahu admin/master untuk approve; kalau aktif → beri tahu anggota.
+        // Notifikasi: kalau pending â†’ beri tahu admin/master untuk approve; kalau aktif â†’ beri tahu anggota.
         try {
           if (langsungAktif) {
             await (supabase.from("notifications") as any).insert({ user_id:form.user_id, title:"Cicilan Baru", body:`Cicilan ${form.notes||"Emas"} ${fmt(total)} (${cicilanTenor}x) dibuat.`, type:"cicilan", is_read:false, link:"/dashboard/member/cicilan" });
@@ -249,7 +249,7 @@ export default function InputTransaksiPage() {
             </div>
           </div>
 
-          {/* ─── BELI EMAS: form sederhana — pilih gram → harga otomatis ─── */}
+          {/* â”€â”€â”€ BELI EMAS: form sederhana â€” pilih gram â†’ harga otomatis â”€â”€â”€ */}
           {form.type === "buy" && (
             <>
               <div>
@@ -294,7 +294,7 @@ export default function InputTransaksiPage() {
             </>
           )}
 
-          {/* ─── TIPE LAIN (buyback / cicilan): form lengkap ─── */}
+          {/* â”€â”€â”€ TIPE LAIN (buyback / cicilan): form lengkap â”€â”€â”€ */}
           {form.type !== "buy" && (
             <>
               {/* Berat */}
@@ -345,7 +345,7 @@ export default function InputTransaksiPage() {
             </>
           )}
 
-          {/* Tenor & angsuran — khusus Cicilan Emas */}
+          {/* Tenor & angsuran â€” khusus Cicilan Emas */}
           {form.type === "cicilan" && (
             <div style={{ background:"rgba(167,139,250,0.05)", border:"1px solid rgba(167,139,250,0.2)", borderRadius:12, padding:16, display:"flex", flexDirection:"column", gap:12 }}>
               <div>
@@ -360,7 +360,7 @@ export default function InputTransaksiPage() {
                   ))}
                 </div>
               </div>
-              {/* DP / uang muka yang sudah disetorkan — otomatis sesuai DP yang disetujui, bisa diubah */}
+              {/* DP / uang muka yang sudah disetorkan â€” otomatis sesuai DP yang disetujui, bisa diubah */}
               <div>
                 <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>DP / Uang Muka Disetorkan (Rp)</label>
                 <div style={{ position:"relative" }}>
@@ -376,14 +376,14 @@ export default function InputTransaksiPage() {
                 </div>
               )}
               <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:0 }}>
-                Total ÷ tenor = {form.amount?fmt(Number(form.amount)):"Rp 0"} ÷ {cicilanTenor} = {fmt(cicilanAngsuran)}/bln · DP {form.dp?fmt(Number(form.dp)):"Rp 0"} · akan masuk ke Kelola Cicilan.
+                Total Ã· tenor = {form.amount?fmt(Number(form.amount)):"Rp 0"} Ã· {cicilanTenor} = {fmt(cicilanAngsuran)}/bln Â· DP {form.dp?fmt(Number(form.dp)):"Rp 0"} Â· akan masuk ke Kelola Cicilan.
               </p>
             </div>
           )}
 
           <button onClick={handleSave} disabled={saving || !form.user_id || !form.amount}
             style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px", borderRadius:11, background: saved ? "rgba(52,211,153,0.2)" : "linear-gradient(135deg,#D4AF37,#F5D060)", border: saved ? "1px solid #34d399" : "none", color: saved ? "#34d399" : "#0a0a0a", fontWeight:700, fontSize:".95rem", cursor: saving || !form.user_id || !form.amount ? "not-allowed" : "pointer", opacity: saving ? .7 : 1, transition:"all .3s" }}>
-            {saving ? <><RefreshCw style={{ width:15, height:15, animation:"spin 1s linear infinite" }} /> Menyimpan...</> : saved ? "✓ Tersimpan" : <><Save style={{ width:15, height:15 }} /> {form.type==="cicilan" ? "Buat Cicilan" : "Simpan Transaksi"}</>}
+            {saving ? <><RefreshCw style={{ width:15, height:15, animation:"spin 1s linear infinite" }} /> Menyimpan...</> : saved ? "âœ“ Tersimpan" : <><Save style={{ width:15, height:15 }} /> {form.type==="cicilan" ? "Buat Cicilan" : "Simpan Transaksi"}</>}
           </button>
         </motion.div>
 
@@ -410,13 +410,13 @@ export default function InputTransaksiPage() {
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                   <span style={{ color:"rgba(255,255,255,0.55)", fontSize:".8rem" }}>
                     {tx.profiles?.name || "-"}
-                    {tx.gram ? ` · ${Number(tx.gram).toFixed(2)}g` : ""}
+                    {tx.gram ? ` Â· ${Number(tx.gram).toFixed(2)}g` : ""}
                   </span>
                   <span style={{ color:"#fff", fontWeight:700, fontSize:".85rem" }}>{fmt(tx.amount)}</span>
                 </div>
                 <div style={{ marginTop:6, paddingTop:6, borderTop:"1px solid rgba(255,255,255,0.05)", display:"flex", justifyContent:"space-between", alignItems:"center", gap:8, flexWrap:"wrap" }}>
                   <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>
-                    Diinput oleh: <span style={{ color:"#D4AF37" }}>{staff[tx.recorded_by] || "—"}</span>
+                    Diinput oleh: <span style={{ color:"#D4AF37" }}>{staff[tx.recorded_by] || "â€”"}</span>
                   </span>
                   <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem" }}>
                     Diinput: {fmtTglJam(tx.created_at)}
@@ -431,3 +431,4 @@ export default function InputTransaksiPage() {
     </div>
   );
 }
+

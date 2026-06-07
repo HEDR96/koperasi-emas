@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -46,7 +46,7 @@ export default function AdminDashboardPage() {
         (supabase.from("transactions") as any).select("id",{count:"exact",head:true}).gte("created_at",today),
         (supabase.from("profiles") as any).select("id",{count:"exact",head:true}).eq("role","member"),
         (supabase.from("transactions") as any)
-          .select("id,type,amount,gram,created_at,profiles(name)")
+          .select("id,type,amount,gram,created_at,profiles:profiles!user_id(name)")
           .eq("status","pending")
           .order("created_at",{ascending:false})
           .limit(5),
@@ -117,7 +117,7 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
               <p style={{ color:"#fff", fontSize:"1.8rem", fontWeight:800, margin:0, lineHeight:1 }}>
-                {loading ? "—" : c.value.toLocaleString("id-ID")}
+                {loading ? "â€”" : c.value.toLocaleString("id-ID")}
               </p>
             </motion.div>
           );
@@ -131,7 +131,7 @@ export default function AdminDashboardPage() {
           <h2 style={{ color:"#fff", fontWeight:700, fontSize:"1rem", margin:0 }}>Permintaan Menunggu Approval</h2>
           <Link href="/dashboard/admin/transaksi"
             style={{ color:"#D4AF37", fontSize:".8rem", textDecoration:"none" }}>
-            Lihat Semua →
+            Lihat Semua â†’
           </Link>
         </div>
 
@@ -156,13 +156,13 @@ export default function AdminDashboardPage() {
                     onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background="transparent"}
                   >
                     <td style={{ padding:"13px 18px", color:"#fff", fontSize:".88rem", fontWeight:600 }}>
-                      {(tx.profiles as any)?.name || "—"}
+                      {(tx.profiles as any)?.name || "â€”"}
                     </td>
                     <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.6)", fontSize:".85rem" }}>
                       {TYPE_LABEL[tx.type] || tx.type}
                     </td>
                     <td style={{ padding:"13px 18px", color:"#D4AF37", fontSize:".85rem" }}>
-                      {tx.gram ? tx.gram + " gr" : "—"}
+                      {tx.gram ? tx.gram + " gr" : "â€”"}
                     </td>
                     <td style={{ padding:"13px 18px", color:"#D4AF37", fontWeight:600, fontSize:".85rem" }}>
                       {fmt(tx.amount)}
@@ -192,3 +192,4 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
