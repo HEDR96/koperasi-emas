@@ -7,6 +7,12 @@ import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import MemberPicker from "@/components/ui/MemberPicker";
 import RupiahInput from "@/components/ui/RupiahInput";
+import Select from "@/components/ui/Select";
+import {
+  getMarkup, withMarkup, getCicilanParams, type CicilanParams,
+  cicilanHargaTenor, cicilanDpTenor, cicilanAngsuranTenor, CICILAN_TENORS,
+  CICILAN_PARAM_DEFAULTS,
+} from "@/lib/harga";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -23,7 +29,7 @@ const FILTERS = ["semua","pending","berjalan","lunas"] as const;
 // Item ternormalisasi: cicilan (installments) ATAU gadai
 interface Item {
   id: string; kind: "cicilan" | "gadai"; user_id: string; name: string; memberName: string;
-  total: number; monthly: number; tenor: number; paid: number; sisa: number; status: string; created_at: string;
+  total: number; monthly: number; downPayment: number; tenor: number; paid: number; sisa: number; status: string; created_at: string;
 }
 
 export default function AdminCicilanPage() {
@@ -35,9 +41,30 @@ export default function AdminCicilanPage() {
   const [acting, setActing] = useState<string | null>(null);
 
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ user_id:"", product_name:"", total_amount:"", tenor:"6", monthly_amount:"", total_gram:"" });
+  const [form, setForm] = useState({ user_id:"", gram:"", tenor:"12" });
   const [saving, setSaving] = useState(false);
   const [formErr, setFormErr] = useState("");
+
+  // Data harga emas + parameter cicilan (untuk auto-fill)
+  const [goldRows, setGoldRows] = useState<{ gram:number; harga:number }[]>([]);
+  const [cicilanParams, setCicilanParams] = useState<CicilanParams>(CICILAN_PARAM_DEFAULTS);
+
+  useEffect(() => {
+    (async () => {
+      const [{ data: e }, markup, params] = await Promise.all([
+        (supabase.from("harga_emas_berat") as any).select("gram,harga,created_at").eq("kategori","emas").order("created_at",{ascending:false}).limit(200),
+        getMarkup(),
+        getCicilanParams(),
+      ]);
+      const seen = new Set<number>();
+      const rows = (e||[])
+        .filter((r:any)=>{ const g=Number(r.gram); if(seen.has(g)) return false; seen.add(g); return true; })
+        .map((r:any)=>({ gram:Number(r.gram), harga:withMarkup(r.harga,Number(r.gram),markup.anggota) }))
+        .sort((a:any,b:any)=>a.gram-b.gram);
+      setGoldRows(rows);
+      setCicilanParams(params);
+    })();
+  }, []);
 
   const [detail, setDetail] = useState<Item | null>(null);
   const [payments, setPayments] = useState<any[]>([]);
@@ -47,6 +74,7 @@ export default function AdminCicilanPage() {
     return {
       id:r.id, kind:"cicilan", user_id:r.user_id, name:r.product_name || "Cicilan Emas",
       memberName:r.profiles?.name || "—", total:r.total_amount, monthly:r.monthly_amount,
+      downPayment: r.down_payment || 0,
       tenor:r.tenor, paid:r.paid_installments, sisa:Math.max(0,(r.tenor-r.paid_installments)*r.monthly_amount),
       status: r.status === "completed" ? "lunas" : (r.status === "overdue" ? "terlambat" : r.status === "pending" ? "pending" : "berjalan"),
       created_at:r.created_at,
@@ -56,31 +84,48 @@ export default function AdminCicilanPage() {
   async function load() {
     setLoading(true);
     const { data } = await (supabase.from("installments") as any)
-      .select("id, user_id, product_name, total_amount, monthly_amount, tenor, paid_installments, status, created_at, profiles(name)")
+      .select("id, user_id, product_name, total_amount, monthly_amount, down_payment, tenor, paid_installments, status, created_at, profiles(name)")
       .order("created_at",{ascending:false}).limit(300);
     setRows((data||[]).map(normCicilan));
     setLoading(false);
   }
   useEffect(() => { load(); }, []);
 
-  const autoMonthly = form.total_amount && form.tenor ? Math.ceil(Number(form.total_amount) / Number(form.tenor)) : 0;
+  // Auto-kalkulasi dari berat + tenor + parameter
+  const selectedRow = goldRows.find(r => String(r.gram) === form.gram) || null;
+  const tenor = Number(form.tenor) || 1;
+  const calcTotal   = selectedRow ? cicilanHargaTenor(selectedRow.harga, tenor, cicilanParams.adminAnggota, cicilanParams.persenBulanAnggota, cicilanParams.persenDpAnggota) : 0;
+  const calcDp      = selectedRow ? cicilanDpTenor(selectedRow.harga, tenor, cicilanParams.adminAnggota, cicilanParams.persenBulanAnggota, cicilanParams.persenDpAnggota) : 0;
+  const calcAngsuran = selectedRow ? cicilanAngsuranTenor(selectedRow.harga, tenor, cicilanParams.adminAnggota, cicilanParams.persenBulanAnggota, cicilanParams.persenDpAnggota) : 0;
 
   async function createCicilan() {
-    if (!form.user_id || !form.product_name || !form.total_amount) { setFormErr("Anggota, produk, dan total wajib."); return; }
+    if (!form.user_id || !form.gram) { setFormErr("Pilih anggota dan berat emas."); return; }
+    if (!selectedRow) { setFormErr("Harga emas untuk berat ini tidak ditemukan."); return; }
     setSaving(true); setFormErr("");
-    const tenor = Number(form.tenor) || 1;
-    const total = Number(form.total_amount);
-    const monthly = Number(form.monthly_amount) || Math.ceil(total / tenor);
     const due = new Date(); due.setMonth(due.getMonth() + 1);
+    const productName = `Emas ${selectedRow.gram} gram`;
     const { error } = await (supabase.from("installments") as any).insert({
-      user_id: form.user_id, product_name: form.product_name, total_gram: Number(form.total_gram)||0,
-      total_amount: total, monthly_amount: monthly, tenor, paid_installments: 0, status: "active",
+      user_id: form.user_id,
+      product_name: productName,
+      total_gram: selectedRow.gram,
+      total_amount: calcTotal,
+      monthly_amount: calcAngsuran,
+      down_payment: calcDp,
+      tenor,
+      paid_installments: 0,
+      status: "active",
       next_due_date: due.toISOString().slice(0,10),
     });
     if (error) { setFormErr(error.message); }
     else {
-      try { await (supabase.from("notifications") as any).insert({ user_id:form.user_id, title:"Cicilan Baru", body:`Cicilan ${form.product_name} ${fmt(total)} (${tenor}x ${fmt(monthly)}).`, type:"cicilan", is_read:false, link:"/dashboard/member/cicilan" }); } catch {}
-      setForm({ user_id:"", product_name:"", total_amount:"", tenor:"6", monthly_amount:"", total_gram:"" });
+      try {
+        await (supabase.from("notifications") as any).insert({
+          user_id: form.user_id, title:"Cicilan Baru",
+          body: `Cicilan ${productName} (${tenor} bln). DP: ${fmt(calcDp)}, angsuran: ${fmt(calcAngsuran)}/bln.`,
+          type:"cicilan", is_read:false, link:"/dashboard/member/cicilan",
+        });
+      } catch {}
+      setForm({ user_id:"", gram:"", tenor:"12" });
       setShowForm(false); load();
     }
     setSaving(false);
@@ -230,39 +275,75 @@ export default function AdminCicilanPage() {
               </div>
               {formErr && <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:10, padding:"10px 14px", color:"#f87171", fontSize:".82rem", marginBottom:14 }}>{formErr}</div>}
               <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+                {/* Anggota */}
                 <div>
                   <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Anggota *</label>
                   <MemberPicker value={form.user_id} onChange={m=>setForm(p=>({...p,user_id:m?.id||""}))} />
                 </div>
+
+                {/* Berat */}
                 <div>
-                  <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Nama Produk / Emas *</label>
-                  <input value={form.product_name} onChange={e=>setForm(p=>({...p,product_name:e.target.value}))} style={inp} placeholder="Emas 5 gram" />
+                  <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Berat Emas *</label>
+                  {goldRows.length > 0 ? (
+                    <Select value={form.gram} placeholder="Pilih berat emas"
+                      options={goldRows.map(r=>({ value:String(r.gram), label:`${r.gram % 1 === 0 ? r.gram : r.gram.toFixed(1)} gram — ${fmt(r.harga)}` }))}
+                      onChange={v=>setForm(p=>({...p,gram:v}))} />
+                  ) : (
+                    <p style={{ color:"#f87171", fontSize:".8rem", margin:0 }}>Harga emas belum tersedia. Tambahkan di menu Harga.</p>
+                  )}
                 </div>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                  <div>
-                    <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Total Harga (Rp) *</label>
-                    <RupiahInput value={form.total_amount} onValueChange={v=>setForm(p=>({...p,total_amount:v}))} style={inp} placeholder="8.490.000" />
-                  </div>
-                  <div>
-                    <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Tenor (bulan) *</label>
-                    <input type="number" min={1} value={form.tenor} onChange={e=>setForm(p=>({...p,tenor:e.target.value}))} style={inp} placeholder="6" />
-                  </div>
+
+                {/* Tenor */}
+                <div>
+                  <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Tenor *</label>
+                  <Select value={form.tenor} placeholder="Pilih tenor"
+                    options={CICILAN_TENORS.map(t=>({ value:String(t), label:`${t} bulan` }))}
+                    onChange={v=>setForm(p=>({...p,tenor:v}))} />
                 </div>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                  <div>
-                    <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Angsuran/bln</label>
-                    <RupiahInput value={form.monthly_amount} onValueChange={v=>setForm(p=>({...p,monthly_amount:v}))} style={inp} placeholder={autoMonthly ? String(autoMonthly) : "otomatis"} />
+
+                {/* Preview otomatis */}
+                {selectedRow && (
+                  <div style={{ background:"rgba(167,139,250,0.07)", border:"1px solid rgba(167,139,250,0.25)", borderRadius:12, padding:"14px 16px" }}>
+                    <p style={{ color:"#a78bfa", fontWeight:700, fontSize:".8rem", margin:"0 0 10px" }}>Rincian Cicilan (Anggota)</p>
+                    {[
+                      { label:"Berat",          val:`${selectedRow.gram} gram` },
+                      { label:"Harga Anggota",   val:fmt(selectedRow.harga) },
+                    ].map(r=>(
+                      <div key={r.label} style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                        <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".82rem" }}>{r.label}</span>
+                        <span style={{ color:"#fff", fontWeight:600, fontSize:".82rem" }}>{r.val}</span>
+                      </div>
+                    ))}
+                    <div style={{ borderTop:"1px solid rgba(255,255,255,0.07)", paddingTop:10, marginTop:6, display:"flex", flexDirection:"column", gap:8 }}>
+                      {/* Step 1 DP */}
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+                          <span style={{ background:"#60a5fa", color:"#0a0a0a", borderRadius:"50%", width:18, height:18, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:".65rem", fontWeight:900 }}>1</span>
+                          <span style={{ color:"rgba(255,255,255,0.65)", fontSize:".83rem" }}>DP disetor dulu</span>
+                        </div>
+                        <span style={{ color:"#60a5fa", fontWeight:800, fontSize:".9rem" }}>{calcDp > 0 ? fmt(calcDp) : "—"}</span>
+                      </div>
+                      {/* Step 2 Angsuran */}
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+                          <span style={{ background:"#D4AF37", color:"#0a0a0a", borderRadius:"50%", width:18, height:18, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:".65rem", fontWeight:900 }}>2</span>
+                          <span style={{ color:"rgba(255,255,255,0.65)", fontSize:".83rem" }}>Angsuran {tenor}×</span>
+                        </div>
+                        <span style={{ color:"#D4AF37", fontWeight:800, fontSize:".9rem" }}>
+                          {fmt(calcAngsuran)}<span style={{ color:"rgba(255,255,255,0.4)", fontSize:".72rem", fontWeight:400 }}>/bln</span>
+                        </span>
+                      </div>
+                      {/* Total */}
+                      <div style={{ display:"flex", justifyContent:"space-between", borderTop:"1px dashed rgba(255,255,255,0.07)", paddingTop:8, marginTop:2 }}>
+                        <span style={{ color:"rgba(255,255,255,0.35)", fontSize:".75rem" }}>Total Keseluruhan</span>
+                        <span style={{ color:"rgba(255,255,255,0.6)", fontWeight:600, fontSize:".78rem" }}>{fmt(calcTotal + calcDp)}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Berat (gram)</label>
-                    <input type="number" min={0} step={0.01} value={form.total_gram} onChange={e=>setForm(p=>({...p,total_gram:e.target.value}))} style={inp} placeholder="5" />
-                  </div>
-                </div>
-                {autoMonthly > 0 && !form.monthly_amount && (
-                  <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".75rem", margin:0 }}>Angsuran otomatis: {fmt(Number(form.total_amount))} ÷ {form.tenor} = {fmt(autoMonthly)}/bln</p>
                 )}
-                <button onClick={createCicilan} disabled={saving || !form.user_id || !form.product_name || !form.total_amount}
-                  style={{ padding:"12px", borderRadius:11, background:"linear-gradient(135deg,#a78bfa,#c4b5fd)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".95rem", cursor:saving?"not-allowed":"pointer", opacity:saving?.7:1 }}>
+
+                <button onClick={createCicilan} disabled={saving || !form.user_id || !form.gram}
+                  style={{ padding:"12px", borderRadius:11, background:"linear-gradient(135deg,#a78bfa,#c4b5fd)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".95rem", cursor:saving||!form.user_id||!form.gram?"not-allowed":"pointer", opacity:saving?.7:1 }}>
                   {saving ? "Menyimpan..." : "Buat Cicilan"}
                 </button>
               </div>
@@ -297,7 +378,8 @@ export default function AdminCicilanPage() {
               <div style={{ padding:"18px 22px 24px" }}>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:18 }}>
                   {[
-                    { label:"Total", value:fmt(detail.total), color:"#fff" },
+                    { label:"Total Cicilan", value:fmt(detail.total), color:"#fff" },
+                    ...(detail.downPayment > 0 ? [{ label:"DP Disetor", value:fmt(detail.downPayment), color:"#60a5fa" }] : []),
                     { label:"Angsuran/bln", value:fmt(detail.monthly), color:"#a78bfa" },
                     { label:"Terbayar", value:`${detail.paid}/${detail.tenor}`, color:"#34d399" },
                     { label:"Sisa", value:fmt(detail.sisa), color: detail.sisa>0 ? "#f87171" : "#34d399" },
