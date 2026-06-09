@@ -224,16 +224,20 @@ export default function MemberManagementPage() {
     if (!form.name||!form.email||!form.password) { setError("Nama, email, password wajib."); return; }
     setSubmitting(true);
     try {
+      // Member yang didaftarkan admin harus diverifikasi dulu; master langsung aktif.
+      const requireVerification = user?.role === "admin";
       const res = await fetch("/api/register-user",{
         method:"POST", headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({ name:form.name, email:form.email, password:form.password, phone:form.phone, nik:form.nik, role:"member" }),
+        body:JSON.stringify({ name:form.name, email:form.email, password:form.password, phone:form.phone, nik:form.nik, role:"member", requireVerification, createdBy:user?.id }),
       });
       const json = await res.json();
       if (!res.ok||json.error) { setError(json.error||"Gagal mendaftar member."); }
       else {
-        setSuccess("Member berhasil didaftarkan!");
+        setSuccess(json.status === "pending"
+          ? "Member terdaftar. Menunggu verifikasi admin sebelum bisa login."
+          : "Member berhasil didaftarkan!");
         setForm(DEFAULT_FORM);
-        setTimeout(()=>{ setShowForm(false); setSuccess(""); load(); }, 1200);
+        setTimeout(()=>{ setShowForm(false); setSuccess(""); load(); }, 1600);
       }
     } catch { setError("Kesalahan jaringan."); }
     setSubmitting(false);

@@ -9,7 +9,7 @@ const serviceKey =
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, password, phone, nik, role, permissions } = await req.json();
+    const { name, email, password, phone, nik, role, permissions, requireVerification, createdBy } = await req.json();
 
     if (!name || !email || !password) {
       return NextResponse.json({ error: "Nama, email, dan password wajib diisi." }, { status: 400 });
@@ -47,6 +47,11 @@ export async function POST(req: NextRequest) {
         ? "KE-ADM-" + Math.random().toString(36).slice(2, 6).toUpperCase()
         : "KE-" + Math.random().toString(36).slice(2, 7).toUpperCase();
 
+    // Member yang didaftarkan admin harus diverifikasi dulu (status "pending").
+    // Master yang mendaftar tetap langsung "active". Admin selalu "active".
+    const needVerify = role === "member" && requireVerification === true;
+    const status = needVerify ? "pending" : "active";
+
     // 2. Upsert profile (trigger may have already created it)
     const { error: profErr } = await (admin.from("profiles") as any).upsert({
       id: userId,
@@ -54,10 +59,17 @@ export async function POST(req: NextRequest) {
       phone: phone || null,
       nik: nik || null,
       role,
-      status: "active",
+      status,
       referral_code: referralCode,
       gold_grams: 0,
       rupiah_balance: 0,
+      ...(needVerify
+        ? {
+            status_changed_by: createdBy || null,
+            status_changed_at: new Date().toISOString(),
+            status_reason: "Didaftarkan admin, menunggu verifikasi",
+          }
+        : {}),
     });
 
     if (profErr) {
@@ -81,7 +93,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, userId });
+    return NextResponse.json({ success: true, userId, status });
   } catch (e: any) {
     return NextResponse.json({ error: e.message || "Terjadi kesalahan server." }, { status: 500 });
   }
