@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Search, ChevronDown, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
-export interface PickMember { id: string; name: string; phone: string | null; }
+export interface PickMember { id: string; name: string; phone: string | null; nik: string | null; }
 
 interface Props {
   value: string;                          // id anggota terpilih
@@ -27,7 +27,7 @@ export default function MemberPicker({ value, onChange, placeholder = "Pilih ang
     (async () => {
       setLoading(true);
       const { data } = await (supabase.from("profiles") as any)
-        .select("id, name, phone").eq("role", "member").eq("status", "active").order("name");
+        .select("id, name, phone, nik").eq("role", "member").eq("status", "active").order("name");
       setMembers(data || []);
       setLoading(false);
     })();
@@ -43,7 +43,10 @@ export default function MemberPicker({ value, onChange, placeholder = "Pilih ang
 
   const selected = members.find(m => m.id === value);
   const filtered = q
-    ? members.filter(m => m.name.toLowerCase().includes(q.toLowerCase()) || (m.phone || "").includes(q))
+    ? members.filter(m =>
+        m.name.toLowerCase().includes(q.toLowerCase()) ||
+        (m.nik || "").toLowerCase().includes(q.toLowerCase()) ||
+        (m.phone || "").includes(q))
     : members;
 
   return (
@@ -59,7 +62,7 @@ export default function MemberPicker({ value, onChange, placeholder = "Pilih ang
         }}
       >
         <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {selected ? `${selected.name}${selected.phone ? " · " + selected.phone : ""}` : placeholder}
+          {selected ? `${selected.name}${selected.nik ? " · " + selected.nik : ""}` : placeholder}
         </span>
         <ChevronDown style={{ width: 16, height: 16, color: "rgba(255,255,255,0.4)", flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }} />
       </button>
@@ -73,7 +76,7 @@ export default function MemberPicker({ value, onChange, placeholder = "Pilih ang
           <div style={{ position: "relative", padding: 8, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             <Search style={{ position: "absolute", left: 18, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: "rgba(255,255,255,0.3)" }} />
             <input
-              autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder="Cari nama / nomor HP..."
+              autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder="Cari nama / ID..."
               style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "8px 10px 8px 32px", color: "#fff", fontSize: ".85rem", outline: "none", boxSizing: "border-box" }}
             />
           </div>
@@ -98,7 +101,7 @@ export default function MemberPicker({ value, onChange, placeholder = "Pilih ang
                 >
                   <span style={{ display: "flex", flexDirection: "column" }}>
                     <span style={{ color: active ? "#D4AF37" : "#fff", fontWeight: 600, fontSize: ".86rem" }}>{m.name}</span>
-                    <span style={{ color: "rgba(255,255,255,0.4)", fontSize: ".74rem" }}>{m.phone || "—"}</span>
+                    <span style={{ color: "rgba(255,255,255,0.4)", fontSize: ".74rem" }}>{m.nik || "—"}</span>
                   </span>
                   {active && <Check style={{ width: 14, height: 14, color: "#D4AF37", flexShrink: 0 }} />}
                 </button>
