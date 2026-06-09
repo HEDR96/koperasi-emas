@@ -1,6 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 
+const BUCKET = "koperasi";
+
+// Create the public storage bucket if it doesn't exist yet.
+async function ensureBucket(admin: ReturnType<typeof supabaseAdmin>): Promise<{ error: string | null }> {
+  const { data: bucket } = await admin.storage.getBucket(BUCKET);
+  if (bucket) return { error: null };
+
+  const { error } = await admin.storage.createBucket(BUCKET, {
+    public: true,
+    fileSizeLimit: 5 * 1024 * 1024,
+    allowedMimeTypes: ["image/jpeg", "image/jpg", "image/png", "image/webp"],
+  });
+
+  // Ignore "already exists" races — treat as success.
+  if (error && !/already exists/i.test(error.message)) {
+    return { error: error.message };
+  }
+  return { error: null };
+}
+
 export async function POST(req: NextRequest) {
   const admin = supabaseAdmin();
 
@@ -23,9 +43,15 @@ export async function POST(req: NextRequest) {
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
+  // Ensure the storage bucket exists (create it on first use)
+  const { error: bucketErr } = await ensureBucket(admin);
+  if (bucketErr) {
+    return NextResponse.json({ error: "Gagal menyiapkan storage: " + bucketErr }, { status: 500 });
+  }
+
   // Upload to Supabase Storage — always overwrite "building.jpg"
   const { error: uploadErr } = await admin.storage
-    .from("site-assets")
+    .from(BUCKET)
     .upload("building.jpg", buffer, {
       contentType: file.type,
       upsert: true,   // overwrite existing
@@ -37,7 +63,7 @@ export async function POST(req: NextRequest) {
 
   // Get public URL
   const { data: urlData } = admin.storage
-    .from("site-assets")
+    .from(BUCKET)
     .getPublicUrl("building.jpg");
 
   const publicUrl = urlData.publicUrl + "?t=" + Date.now(); // cache-bust
@@ -58,7 +84,7 @@ export async function DELETE() {
   const admin = supabaseAdmin();
 
   // Remove from storage
-  await admin.storage.from("site-assets").remove(["building.jpg"]);
+  await admin.storage.from(BUCKET).remove(["building.jpg"]);
 
   // Clear setting
   await (admin.from("site_settings") as any)
