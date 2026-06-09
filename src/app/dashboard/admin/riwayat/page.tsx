@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { RefreshCw, Search, CreditCard, Coins, ArrowDownCircle, Landmark, Wallet, LayoutGrid } from "lucide-react";
+import { RefreshCw, Search, CreditCard, Coins, ArrowDownCircle, Landmark, Wallet, LayoutGrid, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -46,9 +47,12 @@ const TABS: { id: Tab; label: string; icon: any; color: string }[] = [
 ];
 
 export default function AdminRiwayatPage() {
+  const { user } = useAuthStore();
+  const isMaster = user?.role === "master";
   const [tab, setTab]     = useState<Tab>("all");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   // Data per kategori — SEMUA status
   const [beliData, setBeliData]       = useState<any[]>([]);
@@ -95,6 +99,36 @@ export default function AdminRiwayatPage() {
   const q = search.toLowerCase();
   const byName = (rows: any[]) => q ? rows.filter(r => (r.profiles?.name||"").toLowerCase().includes(q)) : rows;
 
+  // Hapus data — HANYA master. Verifikasi role juga dilakukan di server.
+  async function handleDelete(table: string, id: string, label: string) {
+    if (!isMaster) return;
+    if (!confirm(`Hapus ${label}? Tindakan ini permanen dan tidak bisa dibatalkan.`)) return;
+    setDeleting(id);
+    try {
+      const res = await fetch("/api/master/delete", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ table, id, requesterId: user?.id }),
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) { alert(json.error || "Gagal menghapus."); }
+      else { await load(); }
+    } catch { alert("Kesalahan jaringan."); }
+    setDeleting(null);
+  }
+
+  // Tombol hapus kecil — hanya dirender untuk master.
+  function DeleteBtn({ table, id, label }: { table: string; id: string; label: string }) {
+    if (!isMaster) return null;
+    return (
+      <button onClick={() => handleDelete(table, id, label)} disabled={deleting === id} title="Hapus permanen"
+        style={{ display:"flex", alignItems:"center", justifyContent:"center", width:30, height:30, borderRadius:8,
+          background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.25)", color:"#f87171",
+          cursor: deleting === id ? "wait" : "pointer", opacity: deleting === id ? .5 : 1, flexShrink:0 }}>
+        <Trash2 style={{ width:14, height:14 }} />
+      </button>
+    );
+  }
+
   // Row components
   function TxRow({ r, color, showGram = true }: { r: any; color: string; showGram?: boolean }) {
     return (
@@ -113,6 +147,7 @@ export default function AdminRiwayatPage() {
             {showGram && r.gram > 0 && <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem" }}>{Number(r.gram).toFixed(1)} gr</span>}
             <span style={{ color, fontWeight:800 }}>{fmt(r.amount)}</span>
             <StatusBadge status={r.status} />
+            <DeleteBtn table="transactions" id={r.id} label={`transaksi ${TX_LABEL[r.type]||r.type} - ${r.profiles?.name||"-"}`} />
           </div>
         </div>
       </motion.div>
@@ -139,6 +174,7 @@ export default function AdminRiwayatPage() {
               <span style={{ color:"#a78bfa", fontWeight:800 }}>{fmt(r.total_amount)}</span>
               <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem" }}>{fmt(r.monthly_amount)}/bln</span>
               <StatusBadge status={r.status} />
+              <DeleteBtn table="installments" id={r.id} label={`cicilan ${r.product_name||""} - ${r.profiles?.name||"-"}`} />
             </div>
           </div>
           <div style={{ height:4, background:"rgba(255,255,255,0.08)", borderRadius:3, overflow:"hidden" }}>
@@ -168,6 +204,7 @@ export default function AdminRiwayatPage() {
           <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
             <span style={{ color:"#60a5fa", fontWeight:800 }}>{fmt(r.dana_cair)}</span>
             <StatusBadge status={r.status} />
+            <DeleteBtn table="gadai" id={r.id} label={`gadai - ${r.profiles?.name||"-"}`} />
           </div>
         </div>
       </motion.div>
@@ -190,6 +227,7 @@ export default function AdminRiwayatPage() {
           <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
             <span style={{ color:"#f59e0b", fontWeight:800 }}>{fmt(r.amount)}</span>
             <StatusBadge status={r.status} />
+            <DeleteBtn table="simpanan" id={r.id} label={`simpanan ${SIM_LABEL[r.type]||r.type} - ${r.profiles?.name||"-"}`} />
           </div>
         </div>
       </motion.div>
