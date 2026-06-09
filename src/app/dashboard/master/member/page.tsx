@@ -115,15 +115,24 @@ export default function MemberManagementPage() {
 
   useEffect(() => { load(); }, []);
 
+  // Kata kunci status (Indonesia) supaya bisa dicari "aktif", "menunggu", dll.
+  const statusKeywords: Record<string,string> = {
+    active: "active aktif", pending: "pending menunggu pending verifikasi",
+    suspended: "suspended suspend nonaktif dinonaktifkan", rejected: "rejected ditolak tolak",
+  };
+
   useEffect(() => {
-    const q = search.toLowerCase();
+    const q = search.toLowerCase().trim();
     setFiltered(
       q ? members.filter(m =>
         m.name.toLowerCase().includes(q) ||
-        (m.nik||"").includes(q) ||
-        (m.phone||"").includes(q)
+        (m.nik||"").toLowerCase().includes(q) ||
+        (m.phone||"").includes(q) ||
+        (m.status||"").toLowerCase().includes(q) ||
+        (statusKeywords[m.status]||"").includes(q)
       ) : members
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, members]);
 
   async function openDetail(m: MemberRow) {
@@ -273,7 +282,7 @@ export default function MemberManagementPage() {
       {/* Search */}
       <div style={{ position:"relative", maxWidth:400 }}>
         <Search style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", width:15, height:15, color:"rgba(255,255,255,0.3)" }} />
-        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Cari nama, NIK, atau nomor HP..."
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Cari nama, NIK, HP, atau status (aktif/pending/suspend/ditolak)..."
           style={{ width:"100%", background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", borderRadius:10, padding:"10px 14px 10px 38px", color:"#fff", fontSize:".88rem", outline:"none", boxSizing:"border-box" }} />
       </div>
 
