@@ -41,6 +41,11 @@ export default function LoginPage() {
       setError("Akun kamu telah dinonaktifkan. Hubungi admin.");
       return;
     }
+    if (user?.status === "rejected") {
+      useAuthStore.getState().logout();
+      setError("Verifikasi keanggotaan kamu ditolak. Hubungi admin untuk informasi lebih lanjut.");
+      return;
+    }
     router.push(`/dashboard/${user?.role || "member"}`);
   }
 

@@ -14,13 +14,19 @@ export interface Database {
           referred_by: string | null;
           gold_grams: number;
           rupiah_balance: number;
-          status: "active" | "suspended" | "pending";
+          status: "active" | "suspended" | "pending" | "rejected";
+          status_changed_by: string | null;
+          status_changed_at: string | null;
+          status_reason: string | null;
           created_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database["public"]["Tables"]["profiles"]["Row"], "created_at" | "updated_at"> & {
+        Insert: Omit<Database["public"]["Tables"]["profiles"]["Row"], "created_at" | "updated_at" | "status_changed_by" | "status_changed_at" | "status_reason"> & {
           created_at?: string;
           updated_at?: string;
+          status_changed_by?: string | null;
+          status_changed_at?: string | null;
+          status_reason?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
       };

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, RefreshCw, UserPlus, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface AdminRow {
   id: string;
@@ -55,6 +56,7 @@ function getEmail(admin: AdminRow) {
 }
 
 export default function AdminManagementPage() {
+  const { user } = useAuthStore();
   const [admins, setAdmins]       = useState<AdminRow[]>([]);
   const [loading, setLoading]     = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -143,7 +145,9 @@ export default function AdminManagementPage() {
 
   async function toggleStatus(admin: AdminRow) {
     const newStatus = admin.status === "active" ? "suspended" : "active";
-    await (supabase.from("profiles") as any).update({ status: newStatus }).eq("id", admin.id);
+    await (supabase.from("profiles") as any)
+      .update({ status: newStatus, status_changed_by: user?.id ?? null, status_changed_at: new Date().toISOString() })
+      .eq("id", admin.id);
     load();
   }
 

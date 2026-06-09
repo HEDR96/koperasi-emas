@@ -28,7 +28,12 @@ export default function AdminVerifikasiPage() {
 
   async function act(row: any, approve: boolean) {
     setActing(row.id);
-    await (supabase.from("profiles") as any).update({ status: approve ? "active" : "suspended" }).eq("id", row.id);
+    await (supabase.from("profiles") as any).update({
+      status: approve ? "active" : "rejected",
+      status_changed_by: user?.id ?? null,
+      status_changed_at: new Date().toISOString(),
+      status_reason: approve ? "Verifikasi disetujui" : "Verifikasi ditolak",
+    }).eq("id", row.id);
     try {
       await (supabase.from("notifications") as any).insert({
         user_id: row.id, title: approve ? "Akun Diaktifkan" : "Verifikasi Ditolak",

@@ -42,8 +42,8 @@ function fmtDate(s: string) {
   return new Date(s).toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"});
 }
 
-const STATUS_COLOR: Record<string,string> = { active:"#34d399", pending:"#fbbf24", suspended:"#f87171" };
-const STATUS_BG:    Record<string,string> = { active:"rgba(52,211,153,0.12)", pending:"rgba(251,191,36,0.12)", suspended:"rgba(248,113,113,0.12)" };
+const STATUS_COLOR: Record<string,string> = { active:"#34d399", pending:"#fbbf24", suspended:"#f87171", rejected:"#fb923c" };
+const STATUS_BG:    Record<string,string> = { active:"rgba(52,211,153,0.12)", pending:"rgba(251,191,36,0.12)", suspended:"rgba(248,113,113,0.12)", rejected:"rgba(251,146,60,0.12)" };
 
 export default function MemberManagementPage() {
   const { user } = useAuthStore();
@@ -143,7 +143,9 @@ export default function MemberManagementPage() {
   }
 
   async function updateStatus(id: string, status: string) {
-    await (supabase.from("profiles") as any).update({ status }).eq("id", id);
+    await (supabase.from("profiles") as any)
+      .update({ status, status_changed_by: user?.id ?? null, status_changed_at: new Date().toISOString() })
+      .eq("id", id);
     load();
   }
 
@@ -332,7 +334,7 @@ export default function MemberManagementPage() {
                           Suspend
                         </button>
                       )}
-                      {m.status==="suspended" && (
+                      {(m.status==="suspended" || m.status==="rejected") && (
                         <button onClick={()=>updateStatus(m.id,"active")}
                           style={{ background:"rgba(52,211,153,0.08)", border:"1px solid rgba(52,211,153,0.2)", borderRadius:8, padding:"5px 10px", color:"#34d399", cursor:"pointer", fontSize:".78rem", fontWeight:600 }}>
                           Aktifkan
