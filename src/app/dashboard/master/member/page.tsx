@@ -123,14 +123,22 @@ export default function MemberManagementPage() {
 
   useEffect(() => {
     const q = search.toLowerCase().trim();
+    if (!q) { setFiltered(members); return; }
+    // Normalisasi: paksa string, lowercase, buang spasi — supaya NIK/HP cocok walau ada beda kapital/spasi.
+    const norm = (v: unknown) => String(v ?? "").toLowerCase().replace(/\s+/g, "");
+    const qn = q.replace(/\s+/g, "");
     setFiltered(
-      q ? members.filter(m =>
-        m.name.toLowerCase().includes(q) ||
-        (m.nik||"").toLowerCase().includes(q) ||
-        (m.phone||"").includes(q) ||
-        (m.status||"").toLowerCase().includes(q) ||
-        (statusKeywords[m.status]||"").includes(q)
-      ) : members
+      members.filter(m => {
+        const hay = [
+          norm(m.name),
+          norm(m.nik),
+          norm(m.phone),
+          norm(m.status),
+          norm(statusKeywords[m.status]),
+        ].join(" ");
+        // Cocokkan baik versi mentah (q) maupun tanpa spasi (qn).
+        return hay.includes(q) || hay.includes(qn);
+      })
     );
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, members]);
