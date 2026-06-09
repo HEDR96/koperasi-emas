@@ -103,7 +103,7 @@ export default function AdminInvoicePage() {
                 <div style={{ display:"flex", flexDirection:"column", gap:0, border:"1px solid rgba(255,255,255,0.08)", borderRadius:12, overflow:"hidden" }}>
                   {[
                     ["Anggota", inv.profiles?.name||"—"],
-                    ["NIK", inv.profiles?.nik||"—"],
+                    ["ID", inv.profiles?.nik||"—"],
                     ["Jenis", TYPE_LABEL[inv.type]||inv.type],
                     ...(inv.gram ? [["Berat", `${Number(inv.gram).toFixed(1)} gram`]] : []),
                     ...(inv.price_per_gram ? [["Harga/gram", fmt(inv.price_per_gram)]] : []),

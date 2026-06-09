@@ -290,7 +290,7 @@ export default function MemberManagementPage() {
       {/* Search */}
       <div style={{ position:"relative", maxWidth:400 }}>
         <Search style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", width:15, height:15, color:"rgba(255,255,255,0.3)" }} />
-        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Cari nama, NIK, HP, atau status (aktif/pending/suspend/ditolak)..."
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Cari nama, ID, HP, atau status (aktif/pending/suspend/ditolak)..."
           style={{ width:"100%", background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", borderRadius:10, padding:"10px 14px 10px 38px", color:"#fff", fontSize:".88rem", outline:"none", boxSizing:"border-box" }} />
       </div>
 
@@ -301,7 +301,7 @@ export default function MemberManagementPage() {
           <table style={{ width:"100%", borderCollapse:"collapse" }}>
             <thead>
               <tr style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                {["Nama","NIK","HP","Status","Emas (gr)","Saldo","Aksi"].map(h=>(
+                {["Nama","ID","HP","Status","Emas (gr)","Saldo","Aksi"].map(h=>(
                   <th key={h} style={{ padding:"12px 18px", textAlign:"left", color:"rgba(255,255,255,0.3)", fontSize:".75rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", whiteSpace:"nowrap" }}>{h}</th>
                 ))}
               </tr>
@@ -411,7 +411,7 @@ export default function MemberManagementPage() {
                 {/* Info rows */}
                 <div style={{ display:"flex", flexDirection:"column", gap:0, marginBottom:18, background:"rgba(255,255,255,0.02)", borderRadius:12, overflow:"hidden", border:"1px solid rgba(255,255,255,0.05)" }}>
                   {[
-                    ["NIK",       detail.nik||"—"],
+                    ["ID",        detail.nik||"—"],
                     ["Nomor HP",  detail.phone||"—"],
                     ["Bergabung", fmtDate(detail.created_at)],
                   ].map(([k,v], i, arr)=>(
@@ -664,7 +664,7 @@ export default function MemberManagementPage() {
               <form onSubmit={handleSubmit} style={{ display:"flex", flexDirection:"column", gap:14 }}>
                 {[
                   { key:"name",     label:"Nama Lengkap *",  placeholder:"Siti Rahayu",       type:"text" },
-                  { key:"nik",      label:"NIK",             placeholder:"3271...",            type:"text" },
+                  { key:"nik",      label:"ID Anggota",      placeholder:"Contoh: KIA202501013", type:"text" },
                   { key:"email",    label:"Email *",         placeholder:"member@gmail.com",   type:"email" },
                   { key:"password", label:"Password *",      placeholder:"Min. 8 karakter",    type:"password" },
                   { key:"phone",    label:"Nomor HP",        placeholder:"08123456789",        type:"text" },

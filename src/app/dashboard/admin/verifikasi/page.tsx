@@ -74,7 +74,7 @@ export default function AdminVerifikasiPage() {
                   <div>
                     <p style={{ color:"#fff", fontWeight:700, fontSize:".92rem", margin:0 }}>{m.name}</p>
                     <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".76rem", margin:"2px 0 0" }}>
-                      NIK {m.nik||"—"} · {m.phone||"—"} · Daftar {fmtDate(m.created_at)}
+                      ID {m.nik||"—"} · {m.phone||"—"} · Daftar {fmtDate(m.created_at)}
                     </p>
                   </div>
                 </div>
