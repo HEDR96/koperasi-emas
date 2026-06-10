@@ -33,7 +33,7 @@ export default function StatistikPage() {
       const sinceISO = since.toISOString();
 
       const [profRes, txRes, simRes, gadaiRes] = await Promise.all([
-        (supabase.from("profiles") as any).select("id, status, created_at").eq("role","member"),
+        (supabase.from("profiles") as any).select("id, status, created_at").or("role.eq.member,is_member.eq.true"),
         (supabase.from("transactions") as any).select("type, amount, gram, status, created_at").eq("status","completed").limit(5000),
         (supabase.from("simpanan") as any).select("amount, status").eq("status","completed"),
         (supabase.from("gadai") as any).select("dana_cair, status").in("status",["disetujui","aktif"]),

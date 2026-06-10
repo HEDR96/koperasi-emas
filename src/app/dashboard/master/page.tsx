@@ -55,7 +55,7 @@ export default function MasterDashboardPage() {
     setLoading(true);
     try {
       const [memberRes, adminRes, pendingRes, todayRes, txRes] = await Promise.all([
-        (supabase.from("profiles") as any).select("id", { count:"exact", head:true }).eq("role","member"),
+        (supabase.from("profiles") as any).select("id", { count:"exact", head:true }).or("role.eq.member,is_member.eq.true"),
         (supabase.from("profiles") as any).select("id", { count:"exact", head:true }).eq("role","admin"),
         (supabase.from("transactions") as any).select("id", { count:"exact", head:true }).eq("status","pending"),
         (supabase.from("transactions") as any).select("id", { count:"exact", head:true })

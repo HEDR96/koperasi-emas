@@ -7,6 +7,19 @@ const serviceKey =
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0bW92cHR6emF1Znh4aHhld2JuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTM3MjI1MCwiZXhwIjoyMDk0OTQ4MjUwfQ.jXWk6XUIS_yFw-VD2bqsQk73hnzoCGXk3kTkukNB9X0";
 
+// Cari auth user berdasarkan email (admin API tidak punya getUserByEmail).
+async function findUserByEmail(admin: any, email: string) {
+  const target = String(email).toLowerCase();
+  for (let page = 1; page <= 10; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error || !data?.users?.length) return null;
+    const hit = data.users.find((u: any) => (u.email || "").toLowerCase() === target);
+    if (hit) return hit;
+    if (data.users.length < 1000) return null;
+  }
+  return null;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { name, email, password, phone, nik, role, permissions, requireVerification, createdBy } = await req.json();
@@ -34,10 +47,54 @@ export async function POST(req: NextRequest) {
     });
 
     if (authErr) {
-      const msg =
-        authErr.message.includes("already") || authErr.message.includes("exists")
-          ? "Email sudah terdaftar."
-          : authErr.message;
+      const emailExists = authErr.message.includes("already") || authErr.message.includes("exists");
+
+      // Email sudah dipakai akun lain. Kalau akun lama adalah admin/master dan
+      // yang didaftarkan sekarang adalah anggota → jangan error, tandai akun
+      // tersebut sebagai anggota juga (dual-role lewat kolom is_member).
+      if (emailExists && role === "member") {
+        const existing = await findUserByEmail(admin, email);
+        if (existing) {
+          const { data: prof } = await (admin.from("profiles") as any)
+            .select("id, role, is_member, nik, phone")
+            .eq("id", existing.id)
+            .single();
+
+          if (prof && (prof.role === "admin" || prof.role === "master")) {
+            if (prof.is_member) {
+              return NextResponse.json(
+                { error: "Akun ini sudah terdaftar sebagai admin sekaligus anggota." },
+                { status: 400 }
+              );
+            }
+            const { error: updErr } = await (admin.from("profiles") as any)
+              .update({
+                is_member: true,
+                nik: prof.nik || nik || null,
+                phone: prof.phone || phone || null,
+              })
+              .eq("id", prof.id);
+            if (updErr) {
+              const hint = updErr.message.includes("is_member")
+                ? " (Jalankan dulu supabase/admin-as-member.sql di Supabase SQL Editor.)"
+                : "";
+              return NextResponse.json(
+                { error: "Gagal menandai admin sebagai anggota: " + updErr.message + hint },
+                { status: 500 }
+              );
+            }
+            return NextResponse.json({
+              success: true,
+              userId: prof.id,
+              status: "active",
+              adminAsMember: true,
+            });
+          }
+        }
+        return NextResponse.json({ error: "Email sudah terdaftar." }, { status: 400 });
+      }
+
+      const msg = emailExists ? "Email sudah terdaftar." : authErr.message;
       return NextResponse.json({ error: msg }, { status: 400 });
     }
 

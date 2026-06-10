@@ -23,6 +23,7 @@ interface MemberRow {
   gold_grams: number;
   rupiah_balance: number;
   created_at: string;
+  role?: string;
 }
 
 interface MemberDetail extends MemberRow {
@@ -103,8 +104,8 @@ export default function MemberManagementPage() {
     setLoading(true);
     try {
       const { data } = await (supabase.from("profiles") as any)
-        .select("id,name,nik,phone,status,gold_grams,rupiah_balance,created_at")
-        .eq("role","member")
+        .select("id,name,nik,phone,status,gold_grams,rupiah_balance,created_at,role")
+        .or("role.eq.member,is_member.eq.true")
         .order("created_at",{ ascending:false });
       const list = data ?? [];
       setMembers(list);
@@ -250,7 +251,9 @@ export default function MemberManagementPage() {
       const json = await res.json();
       if (!res.ok||json.error) { setError(json.error||"Gagal mendaftar member."); }
       else {
-        setSuccess(json.status === "pending"
+        setSuccess(json.adminAsMember
+          ? "Email ini milik admin — akun tersebut kini juga terdaftar sebagai anggota."
+          : json.status === "pending"
           ? "Member terdaftar. Menunggu verifikasi admin sebelum bisa login."
           : "Member berhasil didaftarkan!");
         setForm(DEFAULT_FORM);
@@ -322,6 +325,11 @@ export default function MemberManagementPage() {
                         {m.name?.[0]||"M"}
                       </div>
                       <span style={{ color:"#fff", fontWeight:600, fontSize:".88rem" }}>{m.name}</span>
+                      {m.role && m.role !== "member" && (
+                        <span style={{ background:"rgba(212,175,55,0.14)", color:"#D4AF37", borderRadius:6, padding:"2px 8px", fontSize:".68rem", fontWeight:600 }}>
+                          {m.role === "master" ? "Master" : "Admin"}
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>{m.nik||"—"}</td>

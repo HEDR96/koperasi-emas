@@ -25,7 +25,7 @@ export default function AdminChatPage() {
   async function load() {
     setLoading(true);
     const { data } = await (supabase.from("profiles") as any)
-      .select("id, name, phone, status").eq("role","member").order("name");
+      .select("id, name, phone, status").or("role.eq.member,is_member.eq.true").order("name");
     setMembers(data || []);
     setLoading(false);
   }

@@ -27,7 +27,7 @@ export default function MemberPicker({ value, onChange, placeholder = "Pilih ang
     (async () => {
       setLoading(true);
       const { data } = await (supabase.from("profiles") as any)
-        .select("id, name, phone, nik").eq("role", "member").eq("status", "active").order("name");
+        .select("id, name, phone, nik").or("role.eq.member,is_member.eq.true").eq("status", "active").order("name");
       setMembers(data || []);
       setLoading(false);
     })();

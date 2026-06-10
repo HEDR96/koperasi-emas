@@ -44,7 +44,7 @@ export default function AdminDashboardPage() {
       const [pCount, tCount, mCount, pList] = await Promise.all([
         (supabase.from("transactions") as any).select("id",{count:"exact",head:true}).eq("status","pending"),
         (supabase.from("transactions") as any).select("id",{count:"exact",head:true}).gte("created_at",today),
-        (supabase.from("profiles") as any).select("id",{count:"exact",head:true}).eq("role","member"),
+        (supabase.from("profiles") as any).select("id",{count:"exact",head:true}).or("role.eq.member,is_member.eq.true"),
         (supabase.from("transactions") as any)
           .select("id,type,amount,gram,created_at,profiles:profiles!user_id(name)")
           .eq("status","pending")

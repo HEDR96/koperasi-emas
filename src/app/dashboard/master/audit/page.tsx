@@ -35,7 +35,7 @@ export default function MasterAuditPage() {
         (supabase.from("transactions") as any).select("id, type, amount, status, updated_at, created_at, profiles:profiles!user_id(name)").order("created_at",{ascending:false}).limit(40),
         (supabase.from("gadai") as any).select("id, dana_cair, status, updated_at, created_at, profiles:profiles!user_id(name)").order("updated_at",{ascending:false}).limit(30),
         (supabase.from("simpanan") as any).select("id, type, amount, status, created_at, profiles:profiles!user_id(name)").order("created_at",{ascending:false}).limit(30),
-        (supabase.from("profiles") as any).select("id, name, status, created_at").eq("role","member").order("created_at",{ascending:false}).limit(20),
+        (supabase.from("profiles") as any).select("id, name, status, created_at").or("role.eq.member,is_member.eq.true").order("created_at",{ascending:false}).limit(20),
       ]);
 
       const merged: Item[] = [];

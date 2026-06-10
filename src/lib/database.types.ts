@@ -10,6 +10,7 @@ export interface Database {
           nik: string | null;
           phone: string | null;
           role: "master" | "admin" | "member";
+          is_member: boolean;
           referral_code: string | null;
           referred_by: string | null;
           gold_grams: number;
@@ -21,7 +22,8 @@ export interface Database {
           created_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database["public"]["Tables"]["profiles"]["Row"], "created_at" | "updated_at" | "status_changed_by" | "status_changed_at" | "status_reason"> & {
+        Insert: Omit<Database["public"]["Tables"]["profiles"]["Row"], "created_at" | "updated_at" | "status_changed_by" | "status_changed_at" | "status_reason" | "is_member"> & {
+          is_member?: boolean;
           created_at?: string;
           updated_at?: string;
           status_changed_by?: string | null;
