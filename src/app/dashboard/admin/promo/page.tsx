@@ -233,11 +233,10 @@ export default function AdminPromoPage() {
       {/* ── MODAL ───────────────────────────────────────────── */}
       <AnimatePresence>
         {modal && (
-          <>
-            {/* backdrop */}
-            <motion.div onClick={closeModal}
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)", zIndex: 50 }} />
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}
+            onClick={e => { if (e.target === e.currentTarget) closeModal(); }}>
 
             {/* panel */}
             <motion.div
@@ -245,7 +244,7 @@ export default function AdminPromoPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: .95, y: 16 }}
               transition={{ type: "spring", stiffness: 300, damping: 28 }}
-              style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "min(540px, 92vw)", maxHeight: "88vh", overflowY: "auto", background: "#111", border: `1px solid ${editId ? "rgba(212,175,55,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: 20, zIndex: 51, boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }}>
+              style={{ width: "100%", maxWidth: 540, maxHeight: "88vh", overflowY: "auto", background: "#111", border: `1px solid ${editId ? "rgba(212,175,55,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: 20, boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }}>
 
               {/* modal header */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 22px 14px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
@@ -354,7 +353,7 @@ export default function AdminPromoPage() {
                 </div>
               </div>
             </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
