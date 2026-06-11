@@ -347,13 +347,13 @@ export default function ApprovalPage() {
             borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".95rem", outline:"none", boxSizing:"border-box",
           };
           return (
-            <>
-              <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
-                onClick={()=>!savingOngkir && setOngkirModal(null)}
-                style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:2000 }} />
+            <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+              onClick={()=>!savingOngkir && setOngkirModal(null)}
+              style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:2000,
+                display:"flex", alignItems:"center", justifyContent:"center" }}>
               <motion.div initial={{ opacity:0, scale:.93, y:16 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.93 }}
-                style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:2001,
-                  width:"min(420px,94vw)", background:"rgba(14,14,14,0.98)", border:"1px solid rgba(212,175,55,0.3)",
+                onClick={e => e.stopPropagation()}
+                style={{ width:"min(420px,94vw)", background:"rgba(14,14,14,0.98)", border:"1px solid rgba(212,175,55,0.3)",
                   borderRadius:20, padding:26 }}>
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
                   <div>
@@ -418,7 +418,7 @@ export default function ApprovalPage() {
                   </div>
                 </div>
               </motion.div>
-            </>
+            </motion.div>
           );
         })()}
       </AnimatePresence>
