@@ -49,7 +49,7 @@ export default function ApprovalPage() {
     const [txRes, simRes, gadaiRes, cicRes] = await Promise.all([
       (supabase.from("transactions") as any)
         .select("id, user_id, type, amount, gram, payment_method, created_at, profiles:profiles!user_id(name)")
-        .eq("status","pending").order("created_at",{ascending:false}),
+        .in("status",["pending","processing"]).order("created_at",{ascending:false}),
       (supabase.from("simpanan") as any)
         .select("id, user_id, type, amount, description, created_at, profiles:profiles!user_id(name)")
         .eq("status","pending").order("created_at",{ascending:false}),
