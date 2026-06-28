@@ -160,7 +160,7 @@ async function fetchBuyback(from: string, to: string) {
 
 async function fetchCicilan(from: string, to: string) {
   const base = (supabase.from("installments") as any)
-    .select("id, product_name, total_amount, monthly_amount, down_payment, tenor, paid_installments, status, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
+    .select("id, product_name, total_gram, total_amount, monthly_amount, down_payment, tenor, paid_installments, status, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
     .limit(5000);
   const { data } = await applyDateFilter(base, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
   return (data || []).sort((a: any, b: any) => {
@@ -226,12 +226,12 @@ async function xlsxBuyback(rows: any[], from: string, to: string) {
 }
 
 async function xlsxCicilan(rows: any[], from: string, to: string) {
-  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Produk","Total (Rp)","DP (Rp)","Angsuran/Bln (Rp)","Tenor","Terbayar","Status","Tgl Input"];
-  const fmt: ColFmt[] = ["auto","auto","auto","phone","auto","rupiah","rupiah","rupiah","number","number","auto","auto"];
+  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Produk","Gram","Total (Rp)","DP (Rp)","Angsuran/Bln (Rp)","Tenor (bln)","Terbayar (bln)","Status","Tgl Input"];
+  const fmt: ColFmt[] = ["auto","auto","auto","phone","auto","gram","rupiah","rupiah","rupiah","number","number","auto","auto"];
   const data = rows.map((r, i) => [
     i + 1, tglIndo(r.transaction_date || r.created_at),
     r.profiles?.name || "-", r.profiles?.phone || "-",
-    r.product_name || "-", r.total_amount, r.down_payment ?? 0,
+    r.product_name || "-", r.total_gram ?? 0, r.total_amount, r.down_payment ?? 0,
     r.monthly_amount, r.tenor, r.paid_installments ?? 0, r.status, tglIndo(r.created_at),
   ]);
   await downloadXLSX("Cicilan Emas", headers, data, `Laporan_Cicilan_${from}_sd_${to}.xlsx`, fmt);
