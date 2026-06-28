@@ -20,24 +20,43 @@ function toISOStart(d: string) { return d + "T00:00:00.000Z"; }
 function toISOEnd(d: string)   { return d + "T23:59:59.999Z"; }
 
 /* ─── Excel download via SheetJS ─── */
+// colTypes: "text" → paksa string (No HP), "number" → angka murni, lainnya → auto
 async function downloadXLSX(
   sheetName: string,
   headers: string[],
   rows: (string | number | null)[][],
   filename: string,
+  colTypes: ("text" | "number" | "auto")[] = [],
 ) {
   const XLSX = await import("xlsx");
-  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
+  // Normalisasi data: paksa tipe sesuai colTypes
+  const normalizedRows = rows.map(row =>
+    row.map((cell, ci) => {
+      const t = colTypes[ci] ?? "auto";
+      if (t === "number") return cell === null || cell === "" || cell === "-" ? "" : Number(cell) || 0;
+      if (t === "text")   return String(cell ?? "");
+      return cell;
+    })
+  );
+
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...normalizedRows]);
+
+  // Paksa sel kolom "text" agar Excel tidak kasih warning segitiga
+  const totalRows = normalizedRows.length;
+  colTypes.forEach((t, ci) => {
+    if (t !== "text") return;
+    const col = XLSX.utils.encode_col(ci);
+    for (let r = 1; r <= totalRows; r++) {
+      const addr = col + (r + 1);
+      if (ws[addr]) { ws[addr].t = "s"; ws[addr].z = "@"; }
+    }
+  });
 
   // Auto column width
-  const colWidths = headers.map((h, ci) => {
-    const maxLen = Math.max(
-      h.length,
-      ...rows.map(r => String(r[ci] ?? "").length),
-    );
-    return { wch: Math.min(maxLen + 2, 40) };
-  });
-  ws["!cols"] = colWidths;
+  ws["!cols"] = headers.map((h, ci) => ({
+    wch: Math.min(Math.max(h.length, ...normalizedRows.map(r => String(r[ci] ?? "").length)) + 2, 45),
+  }));
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, sheetName);
@@ -131,56 +150,63 @@ async function fetchSimpanan(from: string, to: string) {
 /* ─── Excel builders ─── */
 const SIM_LABEL: Record<string, string> = { pokok:"Simpanan Pokok", wajib:"Simpanan Wajib", sukarela:"Simpanan Sukarela" };
 
+// colTypes per laporan:
+// No=auto, Tgl Trx=auto, Nama=auto, No HP=TEXT, Gram=number, Nominal=number, ...
 async function xlsxTransaksi(rows: any[], from: string, to: string) {
   const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Gram","Harga Total (Rp)","Metode Bayar","Status","Tgl Input"];
+  const types:   ("auto"|"text"|"number")[] = ["auto","auto","auto","text","number","number","auto","auto","auto"];
   const data = rows.map((r, i) => [
     i + 1, tglIndo(r.transaction_date || r.created_at),
     r.profiles?.name || "-", r.profiles?.phone || "-",
-    r.gram ?? "-", r.amount, r.payment_method || "-", r.status, tglIndo(r.created_at),
+    Number(r.gram) || 0, Number(r.amount) || 0, r.payment_method || "-", r.status, tglIndo(r.created_at),
   ]);
-  await downloadXLSX("Beli Emas", headers, data, `Laporan_Beli_Emas_${from}_sd_${to}.xlsx`);
+  await downloadXLSX("Beli Emas", headers, data, `Laporan_Beli_Emas_${from}_sd_${to}.xlsx`, types);
 }
 
 async function xlsxBuyback(rows: any[], from: string, to: string) {
   const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Gram","Dana Cair (Rp)","Status","Tgl Input"];
+  const types:   ("auto"|"text"|"number")[] = ["auto","auto","auto","text","number","number","auto","auto"];
   const data = rows.map((r, i) => [
     i + 1, tglIndo(r.transaction_date || r.created_at),
     r.profiles?.name || "-", r.profiles?.phone || "-",
-    r.gram ?? "-", r.amount, r.status, tglIndo(r.created_at),
+    Number(r.gram) || 0, Number(r.amount) || 0, r.status, tglIndo(r.created_at),
   ]);
-  await downloadXLSX("Buyback", headers, data, `Laporan_Buyback_${from}_sd_${to}.xlsx`);
+  await downloadXLSX("Buyback", headers, data, `Laporan_Buyback_${from}_sd_${to}.xlsx`, types);
 }
 
 async function xlsxCicilan(rows: any[], from: string, to: string) {
   const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Produk","Total (Rp)","DP (Rp)","Angsuran/Bln (Rp)","Tenor","Terbayar","Status","Tgl Input"];
+  const types:   ("auto"|"text"|"number")[] = ["auto","auto","auto","text","auto","number","number","number","number","number","auto","auto"];
   const data = rows.map((r, i) => [
     i + 1, tglIndo(r.transaction_date || r.created_at),
     r.profiles?.name || "-", r.profiles?.phone || "-",
-    r.product_name || "-", r.total_amount, r.down_payment ?? 0,
-    r.monthly_amount, r.tenor, r.paid_installments ?? 0, r.status, tglIndo(r.created_at),
+    r.product_name || "-", Number(r.total_amount) || 0, Number(r.down_payment) || 0,
+    Number(r.monthly_amount) || 0, Number(r.tenor) || 0, Number(r.paid_installments) || 0, r.status, tglIndo(r.created_at),
   ]);
-  await downloadXLSX("Cicilan Emas", headers, data, `Laporan_Cicilan_${from}_sd_${to}.xlsx`);
+  await downloadXLSX("Cicilan Emas", headers, data, `Laporan_Cicilan_${from}_sd_${to}.xlsx`, types);
 }
 
 async function xlsxGadai(rows: any[], from: string, to: string) {
   const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Dana Cair (Rp)","Gram Setara","Nilai Jaminan (Rp)","Tenor","Angsuran/Bln (Rp)","Sisa Tagihan (Rp)","Status","Tgl Input"];
+  const types:   ("auto"|"text"|"number")[] = ["auto","auto","auto","text","number","number","number","number","number","number","auto","auto"];
   const data = rows.map((r, i) => [
     i + 1, tglIndo(r.transaction_date || r.created_at),
     r.profiles?.name || "-", r.profiles?.phone || "-",
-    r.dana_cair, r.gram_setara ?? "-", r.nilai_jaminan ?? "-",
-    r.tenor, r.angsuran_per_bulan, r.sisa_tagihan, r.status, tglIndo(r.created_at),
+    Number(r.dana_cair) || 0, Number(r.gram_setara) || 0, Number(r.nilai_jaminan) || 0,
+    Number(r.tenor) || 0, Number(r.angsuran_per_bulan) || 0, Number(r.sisa_tagihan) || 0, r.status, tglIndo(r.created_at),
   ]);
-  await downloadXLSX("Gadai Emas", headers, data, `Laporan_Gadai_${from}_sd_${to}.xlsx`);
+  await downloadXLSX("Gadai Emas", headers, data, `Laporan_Gadai_${from}_sd_${to}.xlsx`, types);
 }
 
 async function xlsxSimpanan(rows: any[], from: string, to: string) {
   const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Jenis","Jumlah (Rp)","Keterangan","Status","Tgl Input"];
+  const types:   ("auto"|"text"|"number")[] = ["auto","auto","auto","text","auto","number","auto","auto","auto"];
   const data = rows.map((r, i) => [
     i + 1, tglIndo(r.transaction_date || r.created_at),
     r.profiles?.name || "-", r.profiles?.phone || "-",
-    SIM_LABEL[r.type] || r.type, r.amount, r.description || "-", r.status, tglIndo(r.created_at),
+    SIM_LABEL[r.type] || r.type, Number(r.amount) || 0, r.description || "-", r.status, tglIndo(r.created_at),
   ]);
-  await downloadXLSX("Simpanan", headers, data, `Laporan_Simpanan_${from}_sd_${to}.xlsx`);
+  await downloadXLSX("Simpanan", headers, data, `Laporan_Simpanan_${from}_sd_${to}.xlsx`, types);
 }
 
 /* ─── summary stats ─── */
