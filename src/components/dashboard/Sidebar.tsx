@@ -59,7 +59,6 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Verifikasi Bayar",     href:"/dashboard/admin/pembayaran",      icon:Receipt },
       { label:"Riwayat",              href:"/dashboard/admin/riwayat",         icon:History },
       { label:"Invoice",              href:"/dashboard/admin/invoice",         icon:FileText },
-      { label:"Laporan",              href:"/dashboard/admin/laporan",         icon:FileSpreadsheet },
     ]},
     { group:"Anggota", items:[
       { label:"Kelola Anggota",    href:"/dashboard/admin/member",    icon:Users },
