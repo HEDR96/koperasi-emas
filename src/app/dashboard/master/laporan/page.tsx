@@ -19,23 +19,29 @@ function tglIndo(s: string | null) {
 function toISOStart(d: string) { return d + "T00:00:00.000Z"; }
 function toISOEnd(d: string)   { return d + "T23:59:59.999Z"; }
 
-/* ─── simple CSV builder ─── */
-function buildCSV(headers: string[], rows: (string | number | null)[][]): string {
-  const escape = (v: string | number | null) => {
-    const s = String(v ?? "");
-    return s.includes(",") || s.includes('"') || s.includes("\n")
-      ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  return [headers, ...rows].map(r => r.map(escape).join(",")).join("\r\n");
-}
+/* ─── Excel download via SheetJS ─── */
+async function downloadXLSX(
+  sheetName: string,
+  headers: string[],
+  rows: (string | number | null)[][],
+  filename: string,
+) {
+  const XLSX = await import("xlsx");
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
 
-function downloadCSV(csv: string, filename: string) {
-  const BOM = "﻿";
-  const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement("a");
-  a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
+  // Auto column width
+  const colWidths = headers.map((h, ci) => {
+    const maxLen = Math.max(
+      h.length,
+      ...rows.map(r => String(r[ci] ?? "").length),
+    );
+    return { wch: Math.min(maxLen + 2, 40) };
+  });
+  ws["!cols"] = colWidths;
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  XLSX.writeFile(wb, filename);
 }
 
 /* ─── report configs ─── */
@@ -122,91 +128,59 @@ async function fetchSimpanan(from: string, to: string) {
   });
 }
 
-/* ─── CSV builders ─── */
-function csvTransaksi(rows: any[]) {
-  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Gram","Harga Total","Metode Bayar","Status","Tgl Input"];
-  const data = rows.map((r, i) => [
-    i + 1,
-    tglIndo(r.transaction_date || r.created_at),
-    r.profiles?.name || "-",
-    r.profiles?.phone || "-",
-    r.gram ?? "-",
-    r.amount,
-    r.payment_method || "-",
-    r.status,
-    tglIndo(r.created_at),
-  ]);
-  return buildCSV(headers, data);
-}
-
-function csvBuyback(rows: any[]) {
-  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Gram","Dana Cair","Status","Tgl Input"];
-  const data = rows.map((r, i) => [
-    i + 1,
-    tglIndo(r.transaction_date || r.created_at),
-    r.profiles?.name || "-",
-    r.profiles?.phone || "-",
-    r.gram ?? "-",
-    r.amount,
-    r.status,
-    tglIndo(r.created_at),
-  ]);
-  return buildCSV(headers, data);
-}
-
-function csvCicilan(rows: any[]) {
-  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Produk","Total","DP","Angsuran/Bln","Tenor","Terbayar","Status","Tgl Input"];
-  const data = rows.map((r, i) => [
-    i + 1,
-    tglIndo(r.transaction_date || r.created_at),
-    r.profiles?.name || "-",
-    r.profiles?.phone || "-",
-    r.product_name || "-",
-    r.total_amount,
-    r.down_payment ?? 0,
-    r.monthly_amount,
-    r.tenor,
-    r.paid_installments ?? 0,
-    r.status,
-    tglIndo(r.created_at),
-  ]);
-  return buildCSV(headers, data);
-}
-
-function csvGadai(rows: any[]) {
-  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Dana Cair","Gram Setara","Nilai Jaminan","Tenor","Angsuran/Bln","Sisa Tagihan","Status","Tgl Input"];
-  const data = rows.map((r, i) => [
-    i + 1,
-    tglIndo(r.transaction_date || r.created_at),
-    r.profiles?.name || "-",
-    r.profiles?.phone || "-",
-    r.dana_cair,
-    r.gram_setara ?? "-",
-    r.nilai_jaminan ?? "-",
-    r.tenor,
-    r.angsuran_per_bulan,
-    r.sisa_tagihan,
-    r.status,
-    tglIndo(r.created_at),
-  ]);
-  return buildCSV(headers, data);
-}
-
+/* ─── Excel builders ─── */
 const SIM_LABEL: Record<string, string> = { pokok:"Simpanan Pokok", wajib:"Simpanan Wajib", sukarela:"Simpanan Sukarela" };
-function csvSimpanan(rows: any[]) {
-  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Jenis","Jumlah","Keterangan","Status","Tgl Input"];
+
+async function xlsxTransaksi(rows: any[], from: string, to: string) {
+  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Gram","Harga Total (Rp)","Metode Bayar","Status","Tgl Input"];
   const data = rows.map((r, i) => [
-    i + 1,
-    tglIndo(r.transaction_date || r.created_at),
-    r.profiles?.name || "-",
-    r.profiles?.phone || "-",
-    SIM_LABEL[r.type] || r.type,
-    r.amount,
-    r.description || "-",
-    r.status,
-    tglIndo(r.created_at),
+    i + 1, tglIndo(r.transaction_date || r.created_at),
+    r.profiles?.name || "-", r.profiles?.phone || "-",
+    r.gram ?? "-", r.amount, r.payment_method || "-", r.status, tglIndo(r.created_at),
   ]);
-  return buildCSV(headers, data);
+  await downloadXLSX("Beli Emas", headers, data, `Laporan_Beli_Emas_${from}_sd_${to}.xlsx`);
+}
+
+async function xlsxBuyback(rows: any[], from: string, to: string) {
+  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Gram","Dana Cair (Rp)","Status","Tgl Input"];
+  const data = rows.map((r, i) => [
+    i + 1, tglIndo(r.transaction_date || r.created_at),
+    r.profiles?.name || "-", r.profiles?.phone || "-",
+    r.gram ?? "-", r.amount, r.status, tglIndo(r.created_at),
+  ]);
+  await downloadXLSX("Buyback", headers, data, `Laporan_Buyback_${from}_sd_${to}.xlsx`);
+}
+
+async function xlsxCicilan(rows: any[], from: string, to: string) {
+  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Produk","Total (Rp)","DP (Rp)","Angsuran/Bln (Rp)","Tenor","Terbayar","Status","Tgl Input"];
+  const data = rows.map((r, i) => [
+    i + 1, tglIndo(r.transaction_date || r.created_at),
+    r.profiles?.name || "-", r.profiles?.phone || "-",
+    r.product_name || "-", r.total_amount, r.down_payment ?? 0,
+    r.monthly_amount, r.tenor, r.paid_installments ?? 0, r.status, tglIndo(r.created_at),
+  ]);
+  await downloadXLSX("Cicilan Emas", headers, data, `Laporan_Cicilan_${from}_sd_${to}.xlsx`);
+}
+
+async function xlsxGadai(rows: any[], from: string, to: string) {
+  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Dana Cair (Rp)","Gram Setara","Nilai Jaminan (Rp)","Tenor","Angsuran/Bln (Rp)","Sisa Tagihan (Rp)","Status","Tgl Input"];
+  const data = rows.map((r, i) => [
+    i + 1, tglIndo(r.transaction_date || r.created_at),
+    r.profiles?.name || "-", r.profiles?.phone || "-",
+    r.dana_cair, r.gram_setara ?? "-", r.nilai_jaminan ?? "-",
+    r.tenor, r.angsuran_per_bulan, r.sisa_tagihan, r.status, tglIndo(r.created_at),
+  ]);
+  await downloadXLSX("Gadai Emas", headers, data, `Laporan_Gadai_${from}_sd_${to}.xlsx`);
+}
+
+async function xlsxSimpanan(rows: any[], from: string, to: string) {
+  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Jenis","Jumlah (Rp)","Keterangan","Status","Tgl Input"];
+  const data = rows.map((r, i) => [
+    i + 1, tglIndo(r.transaction_date || r.created_at),
+    r.profiles?.name || "-", r.profiles?.phone || "-",
+    SIM_LABEL[r.type] || r.type, r.amount, r.description || "-", r.status, tglIndo(r.created_at),
+  ]);
+  await downloadXLSX("Simpanan", headers, data, `Laporan_Simpanan_${from}_sd_${to}.xlsx`);
 }
 
 /* ─── summary stats ─── */
@@ -261,15 +235,11 @@ export default function LaporanPage() {
 
       if (!data.length) { setLoading(false); return; }
 
-      let csv = "";
-      if (type === "transaksi") csv = csvTransaksi(data);
-      if (type === "buyback")   csv = csvBuyback(data);
-      if (type === "cicilan")   csv = csvCicilan(data);
-      if (type === "gadai")     csv = csvGadai(data);
-      if (type === "simpanan")  csv = csvSimpanan(data);
-
-      const label = REPORTS.find(r => r.id === type)?.label.replace(/\s+/g, "_") || type;
-      downloadCSV(csv, `laporan_${label}_${from}_sd_${to}.csv`);
+      if (type === "transaksi") await xlsxTransaksi(data, from, to);
+      if (type === "buyback")   await xlsxBuyback(data, from, to);
+      if (type === "cicilan")   await xlsxCicilan(data, from, to);
+      if (type === "gadai")     await xlsxGadai(data, from, to);
+      if (type === "simpanan")  await xlsxSimpanan(data, from, to);
     } catch {}
     setLoading(false);
   }
@@ -283,7 +253,7 @@ export default function LaporanPage() {
       <div>
         <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Laporan</h1>
         <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>
-          Download laporan transaksi dalam format CSV (Excel-compatible)
+          Download laporan transaksi dalam format Excel (.xlsx)
         </p>
       </div>
 
@@ -347,7 +317,7 @@ export default function LaporanPage() {
                   cursor: isActive ? "wait" : "pointer", fontWeight:700, fontSize:".84rem", transition:"all .2s" }}>
                 {isActive
                   ? <><RefreshCw style={{ width:14, height:14, animation:"spin 1s linear infinite" }} /> Memuat...</>
-                  : <><Download style={{ width:14, height:14 }} /> Download CSV</>}
+                  : <><Download style={{ width:14, height:14 }} /> Download Excel</>}
               </button>
             </div>
           );
