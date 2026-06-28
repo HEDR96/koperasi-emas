@@ -8,6 +8,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import Select from "@/components/ui/Select";
 import RupiahInput from "@/components/ui/RupiahInput";
 import { getMarkup, withMarkup } from "@/lib/harga";
+import { PAYMENT_METHODS as PM_LIST } from "@/lib/paymentMethods";
 
 const TX_TYPES = [
   { value: "buy",      label: "Beli Emas",       desc: "Beli emas dengan pembayaran ke koperasi",    color: "#D4AF37" },
@@ -15,7 +16,7 @@ const TX_TYPES = [
   { value: "buyback",  label: "Jual Kembali",     desc: "Jual emas Anda kembali ke koperasi",        color: "#60a5fa" },
 ];
 
-const PAYMENT_METHODS = ["Transfer Bank","QRIS","Tunai","BRI","BCA","Mandiri","BNI","BSI"];
+const PAYMENT_METHODS = PM_LIST;
 
 const STATUS_COLOR: Record<string,string> = {
   pending:"#fbbf24", processing:"#60a5fa", completed:"#34d399", rejected:"#f87171",
@@ -55,7 +56,7 @@ const DEFAULT_FORM = {
   type: "buy",
   gram: "",
   amount: "",
-  paymentMethod: "Transfer Bank",
+  paymentMethod: "QRIS",
   notes: "",
 };
 
@@ -276,7 +277,7 @@ export default function MemberRequestPage() {
           {form.type !== "buyback" && (
             <div>
               <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 6 }}>Metode Pembayaran</label>
-              <Select value={form.paymentMethod} onChange={v => setForm(f => ({ ...f, paymentMethod: v }))} options={PAYMENT_METHODS.map(m=>({value:m,label:m}))} />
+              <Select value={form.paymentMethod} onChange={v => setForm(f => ({ ...f, paymentMethod: v }))} options={PAYMENT_METHODS} />
             </div>
           )}
 

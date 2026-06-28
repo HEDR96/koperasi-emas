@@ -8,6 +8,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import Select from "@/components/ui/Select";
 import MemberPicker from "@/components/ui/MemberPicker";
 import { getStaffMap, fmtTgl, fmtTglJam } from "@/lib/staff";
+import { PAYMENT_METHODS, DEFAULT_PAYMENT_METHOD } from "@/lib/paymentMethods";
 import {
   getMarkup, withMarkup, getCicilanParams, cicilanHargaTenor, cicilanDpTenor,
   type CicilanParams, CICILAN_PARAM_DEFAULTS,
@@ -46,7 +47,7 @@ const EMPTY = {
   user_id:"", type:"buy", gram:"", amount:"", price_per_gram:"",
   // Default "pending" supaya transaksi yang diinput masuk ke Pusat Approval.
   // Admin bisa memilih "Selesai" untuk mencatat transaksi historis tanpa approval.
-  payment_method:"", notes:"", status:"pending", tenor:"6", dp:"",
+  payment_method:DEFAULT_PAYMENT_METHOD, notes:"", status:"pending", tenor:"6", dp:"",
   created_at: new Date().toISOString().slice(0,16),
 };
 
@@ -280,7 +281,7 @@ export default function InputTransaksiPage() {
 
               <div>
                 <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Metode Bayar</label>
-                <input value={form.payment_method} onChange={e=>setForm(p=>({...p,payment_method:e.target.value}))} style={inp} placeholder="Transfer, Tunai, dll" />
+                <Select value={form.payment_method} onChange={v=>setForm(p=>({...p,payment_method:v}))} options={PAYMENT_METHODS} />
               </div>
               <div>
                 <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tanggal Transaksi</label>
@@ -326,7 +327,7 @@ export default function InputTransaksiPage() {
                 </div>
                 <div>
                   <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Metode Bayar</label>
-                  <input value={form.payment_method} onChange={e=>setForm(p=>({...p,payment_method:e.target.value}))} style={inp} placeholder="Transfer, Tunai, dll" />
+                  <Select value={form.payment_method} onChange={v=>setForm(p=>({...p,payment_method:v}))} options={PAYMENT_METHODS} />
                 </div>
               </div>
 

@@ -8,6 +8,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import Select from "@/components/ui/Select";
 import MemberPicker from "@/components/ui/MemberPicker";
 import RupiahInput from "@/components/ui/RupiahInput";
+import { PAYMENT_METHODS, DEFAULT_PAYMENT_METHOD } from "@/lib/paymentMethods";
 
 interface MemberOption {
   id: string;
@@ -21,16 +22,12 @@ const TX_TYPES = [
   { value:"cicilan",  label:"Cicilan Emas" },
 ];
 
-const PAYMENT_METHODS = [
-  "Transfer Bank","QRIS","Tunai","BRI","BCA","Mandiri","BNI","BSI",
-];
-
 const DEFAULT_FORM = {
   memberId: "",
   type: "buy",
   gram: "",
   amount: "",
-  paymentMethod: "Transfer Bank",
+  paymentMethod: DEFAULT_PAYMENT_METHOD,
   notes: "",
 };
 
@@ -177,7 +174,7 @@ export default function AdminDepositPage() {
           {/* Payment Method */}
           <div>
             <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Metode Pembayaran</label>
-            <Select value={form.paymentMethod} onChange={v=>setForm(f=>({...f,paymentMethod:v}))} options={PAYMENT_METHODS.map(m=>({value:m,label:m}))} />
+            <Select value={form.paymentMethod} onChange={v=>setForm(f=>({...f,paymentMethod:v}))} options={PAYMENT_METHODS} />
           </div>
 
           {/* Notes */}

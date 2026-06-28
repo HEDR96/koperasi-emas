@@ -52,6 +52,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Harga Emas", href:"/dashboard/admin/harga", icon:Coins },
     ]},
     { group:"Transaksi", items:[
+      { label:"Ajukan Transaksi",     href:"/dashboard/admin/ajukan",          icon:Send },
       { label:"Transaksi & Approval", href:"/dashboard/admin/transaksi",       icon:CheckSquare },
       { label:"Input Transaksi",      href:"/dashboard/admin/input-transaksi", icon:PlusCircle },
       { label:"Input Deposit",        href:"/dashboard/admin/deposit",         icon:PlusCircle },

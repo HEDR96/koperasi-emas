@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import Select from "@/components/ui/Select";
 import RupiahInput from "@/components/ui/RupiahInput";
+import { PAYMENT_METHODS, DEFAULT_PAYMENT_METHOD } from "@/lib/paymentMethods";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -16,14 +17,13 @@ const inp: React.CSSProperties = {
   width:"100%", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)",
   borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".9rem", outline:"none", boxSizing:"border-box",
 };
-const PAYMENT_METHODS = ["Transfer Bank","QRIS","Tunai","BRI","BCA","Mandiri","BNI","BSI"];
 const TYPE_LABEL: Record<string,string> = { buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan", Simpanan:"Simpanan" };
 
 export default function MemberUploadPage() {
   const { user } = useAuthStore();
   const [pendingTx, setPendingTx] = useState<any[]>([]);
   const [myPayments, setMyPayments] = useState<any[]>([]);
-  const [form, setForm] = useState({ transaction_id:"", amount:"", payment_method:"Transfer Bank", proof_url:"", notes:"" });
+  const [form, setForm] = useState({ transaction_id:"", amount:"", payment_method:DEFAULT_PAYMENT_METHOD, proof_url:"", notes:"" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -73,7 +73,7 @@ export default function MemberUploadPage() {
             staff.map((s: any) => ({ user_id:s.id, title:"Bukti Bayar Masuk", body:`${user.name} mengirim bukti pembayaran ${fmt(amount)}.`, type:"pembayaran", is_read:false, link:"/dashboard/admin/pembayaran" }))
           );
         } catch {}
-        setForm({ transaction_id:"", amount:"", payment_method:"Transfer Bank", proof_url:"", notes:"" });
+        setForm({ transaction_id:"", amount:"", payment_method:DEFAULT_PAYMENT_METHOD, proof_url:"", notes:"" });
         load();
       }
     } catch { setError("Terjadi kesalahan."); }
@@ -117,7 +117,7 @@ export default function MemberUploadPage() {
           </div>
           <div>
             <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Metode</label>
-            <Select value={form.payment_method} onChange={v=>setForm(p=>({...p,payment_method:v}))} options={PAYMENT_METHODS.map(m=>({value:m,label:m}))} />
+            <Select value={form.payment_method} onChange={v=>setForm(p=>({...p,payment_method:v}))} options={PAYMENT_METHODS} />
           </div>
         </div>
 
