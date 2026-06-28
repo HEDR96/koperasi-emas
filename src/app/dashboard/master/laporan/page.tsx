@@ -25,22 +25,30 @@ function cleanPhone(v: string | null): string {
   return String(v).replace(/\D/g, "");
 }
 
-// Parse notes: "Disetujui. Ongkir: Rp 5.000, Diskon: Rp 10.000. Total final: Rp 100.000."
-// Kembalikan { ongkir, diskon, catatan }
+// Format notes baru: "{catatan user} | [Ongkir: 5000, Diskon: 2000]"
+// Format lama:       "Disetujui. Ongkir: Rp 5.000, Diskon: Rp 10.000. Total final: Rp 100.000."
 function parseNotes(notes: string | null): { ongkir: number; diskon: number; catatan: string } {
   if (!notes) return { ongkir: 0, diskon: 0, catatan: "-" };
-  const ongkirMatch = notes.match(/Ongkir:\s*Rp\s*([\d.,]+)/i);
-  const diskonMatch = notes.match(/Diskon:\s*Rp\s*([\d.,]+)/i);
-  const ongkir = ongkirMatch ? Number(ongkirMatch[1].replace(/\./g, "").replace(",", ".")) : 0;
-  const diskon = diskonMatch ? Number(diskonMatch[1].replace(/\./g, "").replace(",", ".")) : 0;
-  // Catatan = hapus bagian auto-generated, sisakan teks user (jika ada)
+
+  // Format baru: bracket [Ongkir: x, Diskon: y]
+  const bracketMatch = notes.match(/\[Ongkir:\s*([\d]+),\s*Diskon:\s*([\d]+)\]/i);
+  if (bracketMatch) {
+    const catatan = notes.replace(/\s*\|\s*\[Ongkir:[^\]]+\]/, "").trim() || "-";
+    return { ongkir: Number(bracketMatch[1]), diskon: Number(bracketMatch[2]), catatan };
+  }
+
+  // Format lama: "Disetujui. Ongkir: Rp 5.000, Diskon: Rp 10.000. Total final: ..."
+  const ongkirMatch = notes.match(/Ongkir:\s*Rp\s*([\d.]+)/i);
+  const diskonMatch = notes.match(/Diskon:\s*Rp\s*([\d.]+)/i);
+  const ongkir = ongkirMatch ? Number(ongkirMatch[1].replace(/\./g, "")) : 0;
+  const diskon = diskonMatch ? Number(diskonMatch[1].replace(/\./g, "")) : 0;
   const cleaned = notes
     .replace(/Disetujui\.\s*/i, "")
     .replace(/Ongkir:\s*Rp\s*[\d.,]+,?\s*/i, "")
     .replace(/Diskon:\s*Rp\s*[\d.,]+\.?\s*/i, "")
     .replace(/Total final:\s*Rp\s*[\d.,]+\.?\s*/i, "")
-    .replace(/Pengajuan [^.]+\./i, "")
-    .trim().replace(/^[.,\s]+|[.,\s]+$/g, "").trim();
+    .replace(/Pengajuan [^.]+\.\s*/i, "")
+    .trim().replace(/^[|,\s]+|[|,\s]+$/g, "").trim();
   return { ongkir, diskon, catatan: cleaned || "-" };
 }
 

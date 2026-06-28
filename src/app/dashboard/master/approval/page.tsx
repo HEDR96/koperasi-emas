@@ -106,7 +106,7 @@ export default function ApprovalPage() {
       .update({
         status:     "completed",
         amount:     finalAmount,
-        notes:      `Disetujui. Ongkir: ${fmt(ongkirVal)}, Diskon: ${fmt(diskonVal)}. Total final: ${fmt(finalAmount)}.`,
+        notes:      `${row.notes ? row.notes + " | " : ""}[Ongkir: ${ongkirVal}, Diskon: ${diskonVal}]`,
         updated_at: new Date().toISOString(),
       })
       .eq("id", row.id);
