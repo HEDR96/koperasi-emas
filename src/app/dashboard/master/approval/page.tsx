@@ -86,7 +86,11 @@ export default function ApprovalPage() {
     }
     setActing(row.id);
     await (supabase.from("transactions") as any)
-      .update({ status: approve ? "completed" : "rejected", updated_at: new Date().toISOString() })
+      .update({
+        status: approve ? "completed" : "rejected",
+        updated_at: new Date().toISOString(),
+        ...(approve ? {} : { notes: row.notes ? `${row.notes} | [Ditolak]` : "[Ditolak]" }),
+      })
       .eq("id", row.id);
     await notify(row.user_id, approve ? "Transaksi Disetujui" : "Transaksi Ditolak",
       `${TX_TYPE_LABEL[row.type]||row.type} ${fmt(row.amount)} telah ${approve?"disetujui":"ditolak"}.`,

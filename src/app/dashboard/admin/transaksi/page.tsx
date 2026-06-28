@@ -98,7 +98,7 @@ export default function AdminTransaksiPage() {
     if (!rejectId) return;
     setActing(rejectId);
     await (supabase.from("transactions") as any)
-      .update({ status:"rejected", updated_at: new Date().toISOString(), notes: rejectNote || null })
+      .update({ status:"rejected", updated_at: new Date().toISOString(), notes: (() => { const orig = [...pending,...history].find(t=>t.id===rejectId)?.notes || ""; return orig ? `${orig} | [Ditolak: ${rejectNote||"-"}]` : (rejectNote||null); })() })
       .eq("id", rejectId);
     setRejectId(null); setRejectNote("");
     await load();
