@@ -12,13 +12,16 @@ import {
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
+const fmtDate = (s: string | null) => s
+  ? new Date(s).toLocaleDateString("id-ID", { day:"2-digit", month:"short", year:"numeric" })
+  : "-";
 const fmtGram = (n: number) => `${n.toFixed(1)} gram`;
 const fmtRibuan = (v: string | number) => {
   const digits = String(v ?? "").replace(/\D/g, "");
   return digits ? new Intl.NumberFormat("id-ID").format(Number(digits)) : "";
 };
 
-interface SimpananRow { type: string; amount: number; status: string; }
+interface SimpananRow { id: string; type: string; amount: number; status: string; transaction_date: string | null; created_at: string; description: string | null; }
 
 export default function SimpananPage() {
   const { user } = useAuthStore();
@@ -46,9 +49,10 @@ export default function SimpananPage() {
     try {
       // Simpanan data
       const { data: simpananData } = await (supabase.from("simpanan") as any)
-        .select("type, amount, status")
+        .select("id, type, amount, status, transaction_date, created_at, description")
         .eq("user_id", user.id)
-        .eq("status", "completed");
+        .eq("status", "completed")
+        .order("transaction_date", { ascending: false });
 
       const rowData: SimpananRow[] = simpananData || [];
       setRows(rowData);
@@ -125,11 +129,13 @@ export default function SimpananPage() {
   }
 
   const typeLabel: Record<string,string> = { pokok:"Simpanan Pokok", wajib:"Simpanan Wajib", sukarela:"Simpanan Sukarela" };
+  const typeColor: Record<string,string> = { pokok:"#D4AF37", wajib:"#60a5fa", sukarela:"#34d399" };
   const simpananByType = ["pokok","wajib","sukarela"].map(type => ({
     type,
     label: typeLabel[type],
+    color: typeColor[type],
     total: rows.filter(r => r.type===type).reduce((s, r) => s + r.amount, 0),
-    count: rows.filter(r => r.type===type).length,
+    items: rows.filter(r => r.type===type),
   }));
 
   return (
@@ -171,15 +177,38 @@ export default function SimpananPage() {
             </p>
           </motion.div>
 
-          {/* Per-type */}
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:14 }}>
-            {simpananByType.map(s => (
-              <div key={s.type} style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:14, padding:"16px 18px" }}>
-                <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", marginBottom:8 }}>{s.label}</p>
-                <p style={{ color:"#fff", fontWeight:900, fontSize:"1.1rem", margin:0 }}>{fmt(s.total)}</p>
-                <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".72rem", marginTop:4 }}>{s.count} setoran verified</p>
+          {/* Per-type detail */}
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+            {simpananByType.filter(s => s.items.length > 0).map(s => (
+              <div key={s.type} style={{ background:"rgba(255,255,255,0.02)", border:`1px solid ${s.color}22`, borderRadius:16, overflow:"hidden" }}>
+                {/* Header grup */}
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 18px", background:`${s.color}0d`, borderBottom:`1px solid ${s.color}18` }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{ width:8, height:8, borderRadius:"50%", background:s.color, display:"inline-block" }} />
+                    <p style={{ color:s.color, fontWeight:700, fontSize:".88rem", margin:0 }}>{s.label}</p>
+                    <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".75rem" }}>{s.items.length} setoran</span>
+                  </div>
+                  <p style={{ color:s.color, fontWeight:900, fontSize:".95rem", margin:0 }}>{fmt(s.total)}</p>
+                </div>
+                {/* Tabel header */}
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 130px 1fr", padding:"8px 18px", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+                  <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>Nominal</p>
+                  <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>Tgl Transaksi</p>
+                  <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>Keterangan</p>
+                </div>
+                {/* Baris data */}
+                {s.items.map((r, i) => (
+                  <div key={r.id} style={{ display:"grid", gridTemplateColumns:"1fr 130px 1fr", padding:"10px 18px", borderBottom: i < s.items.length-1 ? "1px solid rgba(255,255,255,0.04)" : "none", alignItems:"center" }}>
+                    <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:0 }}>{fmt(r.amount)}</p>
+                    <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".82rem", margin:0 }}>{fmtDate(r.transaction_date || r.created_at)}</p>
+                    <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".82rem", margin:0 }}>{r.description || "-"}</p>
+                  </div>
+                ))}
               </div>
             ))}
+            {rows.length === 0 && (
+              <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".88rem", textAlign:"center", padding:"24px 0" }}>Belum ada setoran simpanan.</p>
+            )}
           </div>
 
           {/* Gadai Section */}
