@@ -48,16 +48,16 @@ export default function ApprovalPage() {
     setLoading(true); setLoadErr("");
     const [txRes, simRes, gadaiRes, cicRes] = await Promise.all([
       (supabase.from("transactions") as any)
-        .select("id, user_id, type, amount, gram, payment_method, created_at, profiles:profiles!user_id(name)")
+        .select("id, user_id, type, amount, gram, payment_method, created_at, transaction_date, profiles:profiles!user_id(name)")
         .in("status",["pending","processing"]).order("created_at",{ascending:false}),
       (supabase.from("simpanan") as any)
-        .select("id, user_id, type, amount, description, created_at, profiles:profiles!user_id(name)")
+        .select("id, user_id, type, amount, description, created_at, transaction_date, profiles:profiles!user_id(name)")
         .eq("status","pending").order("created_at",{ascending:false}),
       (supabase.from("gadai") as any)
-        .select("id, user_id, dana_cair, sisa_tagihan, tenor, angsuran_per_bulan, gram_setara, keterangan, created_at, profiles:profiles!user_id(name)")
+        .select("id, user_id, dana_cair, sisa_tagihan, tenor, angsuran_per_bulan, gram_setara, keterangan, created_at, transaction_date, profiles:profiles!user_id(name)")
         .eq("status","pengajuan").order("created_at",{ascending:false}),
       (supabase.from("installments") as any)
-        .select("id, user_id, product_name, total_amount, monthly_amount, tenor, created_at, profiles:profiles!user_id(name)")
+        .select("id, user_id, product_name, total_amount, monthly_amount, tenor, created_at, transaction_date, profiles:profiles!user_id(name)")
         .eq("status","pending").order("created_at",{ascending:false}),
     ]);
     const errs = [txRes.error, simRes.error, gadaiRes.error, cicRes.error].filter(Boolean);
@@ -197,7 +197,7 @@ export default function ApprovalPage() {
         <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}> - {TX_TYPE_LABEL[row.type]||row.type}</span>
       </p>
       <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", margin:"3px 0 0" }}>
-        {row.gram ? `${Number(row.gram).toFixed(1)} gr - ` : ""}{row.payment_method || "-"} - {fmtDate(row.created_at)}
+        {row.gram ? `${Number(row.gram).toFixed(1)} gr - ` : ""}{row.payment_method || "-"} - {fmtDate(row.transaction_date || row.created_at)}
       </p>
     </div>
     <div style={{ display:"flex", alignItems:"center", gap:16 }}>
@@ -213,7 +213,7 @@ export default function ApprovalPage() {
         <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}> - {SIM_LABEL[row.type]||row.type}</span>
       </p>
       <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", margin:"3px 0 0" }}>
-        {row.description || "-"} - {fmtDate(row.created_at)}
+        {row.description || "-"} - {fmtDate(row.transaction_date || row.created_at)}
       </p>
     </div>
     <div style={{ display:"flex", alignItems:"center", gap:16 }}>
@@ -229,7 +229,7 @@ export default function ApprovalPage() {
         <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}> - {row.product_name}</span>
       </p>
       <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", margin:"3px 0 0" }}>
-        {row.tenor} bln - angsuran {fmt(row.monthly_amount)} - {fmtDate(row.created_at)}
+        {row.tenor} bln - angsuran {fmt(row.monthly_amount)} - {fmtDate(row.transaction_date || row.created_at)}
       </p>
     </div>
     <div style={{ display:"flex", alignItems:"center", gap:16 }}>
@@ -245,7 +245,7 @@ export default function ApprovalPage() {
         <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}> - Gadai {row.tenor} bln</span>
       </p>
       <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", margin:"3px 0 0" }}>
-        Jaminan {Number(row.gram_setara).toFixed(1)} gr - Angsuran {fmt(row.angsuran_per_bulan)}/bln - {fmtDate(row.created_at)}
+        Jaminan {Number(row.gram_setara).toFixed(1)} gr - Angsuran {fmt(row.angsuran_per_bulan)}/bln - {fmtDate(row.transaction_date || row.created_at)}
       </p>
     </div>
     <div style={{ display:"flex", alignItems:"center", gap:16 }}>

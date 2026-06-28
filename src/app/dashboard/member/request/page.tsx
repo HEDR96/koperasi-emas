@@ -91,7 +91,7 @@ export default function MemberRequestPage() {
     setLoadingReq(true);
     try {
       const { data } = await (supabase.from("transactions") as any)
-        .select("id,type,amount,gram,status,notes,payment_method,created_at")
+        .select("id,type,amount,gram,status,notes,payment_method,created_at,transaction_date")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(20);
@@ -334,7 +334,7 @@ export default function MemberRequestPage() {
                     {TX_TYPES.find(t => t.value === req.type)?.label || req.type}
                   </p>
                   <p style={{ color: "rgba(255,255,255,0.35)", fontSize: ".75rem", margin: 0 }}>
-                    {fmtDate(req.created_at)}
+                    {fmtDate((req as any).transaction_date || req.created_at)}
                     {req.gram && ` · ${req.gram} gr`}
                     {req.payment_method && ` · ${req.payment_method}`}
                   </p>

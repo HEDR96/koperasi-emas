@@ -35,7 +35,7 @@ export default function MemberUploadPage() {
     try {
       const [txRes, payRes] = await Promise.all([
         (supabase.from("transactions") as any)
-          .select("id, type, amount, created_at").eq("user_id", user.id).eq("status","pending").order("created_at",{ascending:false}),
+          .select("id, type, amount, created_at, transaction_date").eq("user_id", user.id).eq("status","pending").order("created_at",{ascending:false}),
         (supabase.from("payments") as any)
           .select("id, amount, payment_method, status, created_at").eq("user_id", user.id).order("created_at",{ascending:false}).limit(10),
       ]);
@@ -106,7 +106,7 @@ export default function MemberUploadPage() {
             : (
               <Select value={form.transaction_id} placeholder="— Pilih transaksi —"
                 onChange={v=>{ const tx=pendingTx.find(t=>t.id===v); setForm(p=>({...p, transaction_id:v, amount:tx?String(tx.amount):""})); }}
-                options={pendingTx.map(t=>({ value:t.id, label:`${TYPE_LABEL[t.type]||t.type} · ${fmt(t.amount)} · ${fmtDate(t.created_at)}` }))} />
+                options={pendingTx.map(t=>({ value:t.id, label:`${TYPE_LABEL[t.type]||t.type} · ${fmt(t.amount)} · ${fmtDate((t as any).transaction_date || t.created_at)}` }))} />
             )}
         </div>
 

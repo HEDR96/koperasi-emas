@@ -25,7 +25,7 @@ export default function AdminInvoicePage() {
   async function load() {
     setLoading(true);
     const { data } = await (supabase.from("transactions") as any)
-      .select("id, type, amount, gram, price_per_gram, payment_method, status, created_at, profiles(name, nik, phone)")
+      .select("id, type, amount, gram, price_per_gram, payment_method, status, created_at, transaction_date, profiles(name, nik, phone)")
       .eq("status","completed").order("created_at",{ascending:false}).limit(200);
     setRows(data || []);
     setLoading(false);
@@ -73,7 +73,7 @@ export default function AdminInvoicePage() {
                   <td style={{ padding:"12px 18px", color:"#fff", fontSize:".85rem" }}>{r.profiles?.name||"—"}</td>
                   <td style={{ padding:"12px 18px", color:"rgba(255,255,255,0.6)", fontSize:".85rem" }}>{TYPE_LABEL[r.type]||r.type}</td>
                   <td style={{ padding:"12px 18px", color:"#D4AF37", fontWeight:600, fontSize:".85rem" }}>{fmt(r.amount)}</td>
-                  <td style={{ padding:"12px 18px", color:"rgba(255,255,255,0.45)", fontSize:".8rem", whiteSpace:"nowrap" }}>{fmtDate(r.created_at)}</td>
+                  <td style={{ padding:"12px 18px", color:"rgba(255,255,255,0.45)", fontSize:".8rem", whiteSpace:"nowrap" }}>{fmtDate((r as any).transaction_date || r.created_at)}</td>
                   <td style={{ padding:"12px 18px" }}>
                     <button onClick={()=>setInv(r)} style={{ background:"rgba(96,165,250,0.1)", border:"1px solid rgba(96,165,250,0.25)", borderRadius:8, padding:"5px 12px", color:"#60a5fa", cursor:"pointer", fontSize:".78rem", fontWeight:600 }}>Lihat</button>
                   </td>
@@ -108,7 +108,7 @@ export default function AdminInvoicePage() {
                     ...(inv.gram ? [["Berat", `${Number(inv.gram).toFixed(1)} gram`]] : []),
                     ...(inv.price_per_gram ? [["Harga/gram", fmt(inv.price_per_gram)]] : []),
                     ["Metode", inv.payment_method||"—"],
-                    ["Tanggal", fmtDate(inv.created_at)],
+                    ["Tanggal", fmtDate((inv as any).transaction_date || inv.created_at)],
                   ].map(([k,v],idx,arr)=>(
                     <div key={k} style={{ display:"flex", justifyContent:"space-between", padding:"10px 16px", borderBottom: idx<arr.length-1?"1px solid rgba(255,255,255,0.05)":"none" }}>
                       <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".82rem" }}>{k}</span>
