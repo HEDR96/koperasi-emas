@@ -131,61 +131,56 @@ function applyDateFilter(query: any, from: string, to: string) {
   );
 }
 
-/* ─── fetch functions ─── */
-async function fetchTransaksi(from: string, to: string) {
-  const base = (supabase.from("transactions") as any)
-    .select("id, type, amount, gram, status, payment_method, notes, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
-    .eq("type", "buy")
-    .limit(5000);
-  const { data } = await applyDateFilter(base, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
-  return (data || []).sort((a: any, b: any) => {
+/* ─── fetch functions — userId: filter per member jika ada ─── */
+function sortByDate(data: any[]) {
+  return (data || []).sort((a, b) => {
     const da = a.transaction_date || a.created_at;
     const db = b.transaction_date || b.created_at;
     return da < db ? -1 : 1;
   });
 }
 
-async function fetchBuyback(from: string, to: string) {
-  const base = (supabase.from("transactions") as any)
+async function fetchTransaksi(from: string, to: string, userId?: string) {
+  let base = (supabase.from("transactions") as any)
     .select("id, type, amount, gram, status, payment_method, notes, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
-    .eq("type", "buyback")
-    .limit(5000);
+    .eq("type", "buy").limit(5000);
+  if (userId) base = base.eq("user_id", userId);
   const { data } = await applyDateFilter(base, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
-  return (data || []).sort((a: any, b: any) => {
-    const da = a.transaction_date || a.created_at;
-    const db = b.transaction_date || b.created_at;
-    return da < db ? -1 : 1;
-  });
+  return sortByDate(data);
 }
 
-async function fetchCicilan(from: string, to: string) {
-  const base = (supabase.from("installments") as any)
+async function fetchBuyback(from: string, to: string, userId?: string) {
+  let base = (supabase.from("transactions") as any)
+    .select("id, type, amount, gram, status, payment_method, notes, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
+    .eq("type", "buyback").limit(5000);
+  if (userId) base = base.eq("user_id", userId);
+  const { data } = await applyDateFilter(base, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
+  return sortByDate(data);
+}
+
+async function fetchCicilan(from: string, to: string, userId?: string) {
+  let base = (supabase.from("installments") as any)
     .select("id, product_name, total_gram, total_amount, monthly_amount, down_payment, tenor, paid_installments, status, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
     .limit(5000);
+  if (userId) base = base.eq("user_id", userId);
   const { data } = await applyDateFilter(base, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
-  return (data || []).sort((a: any, b: any) => {
-    const da = a.transaction_date || a.created_at;
-    const db = b.transaction_date || b.created_at;
-    return da < db ? -1 : 1;
-  });
+  return sortByDate(data);
 }
 
-async function fetchGadai(from: string, to: string) {
-  const base = (supabase.from("gadai") as any)
+async function fetchGadai(from: string, to: string, userId?: string) {
+  let base = (supabase.from("gadai") as any)
     .select("id, dana_cair, gram_setara, tenor, angsuran_per_bulan, sisa_tagihan, nilai_jaminan, status, keterangan, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
     .limit(5000);
+  if (userId) base = base.eq("user_id", userId);
   const { data } = await applyDateFilter(base, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
-  return (data || []).sort((a: any, b: any) => {
-    const da = a.transaction_date || a.created_at;
-    const db = b.transaction_date || b.created_at;
-    return da < db ? -1 : 1;
-  });
+  return sortByDate(data);
 }
 
-async function fetchSimpanan(from: string, to: string) {
-  const base = (supabase.from("simpanan") as any)
+async function fetchSimpanan(from: string, to: string, userId?: string) {
+  let base = (supabase.from("simpanan") as any)
     .select("id, type, amount, status, description, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
     .limit(5000);
+  if (userId) base = base.eq("user_id", userId);
   const { data } = await applyDateFilter(base, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
   return (data || []).sort((a: any, b: any) => {
     const da = a.transaction_date || a.created_at;
@@ -284,7 +279,7 @@ function summary(type: ReportType, rows: any[]) {
 }
 
 /* ─── component ─── */
-export default function LaporanPage() {
+export function LaporanPageContent({ userId, subtitle }: { userId?: string; subtitle?: string }) {
   const today = new Date().toISOString().slice(0, 10);
   const firstOfMonth = today.slice(0, 8) + "01";
 
@@ -301,11 +296,11 @@ export default function LaporanPage() {
     setActive(type);
     try {
       let data: any[] = [];
-      if (type === "transaksi") data = await fetchTransaksi(from, to);
-      if (type === "buyback")   data = await fetchBuyback(from, to);
-      if (type === "cicilan")   data = await fetchCicilan(from, to);
-      if (type === "gadai")     data = await fetchGadai(from, to);
-      if (type === "simpanan")  data = await fetchSimpanan(from, to);
+      if (type === "transaksi") data = await fetchTransaksi(from, to, userId);
+      if (type === "buyback")   data = await fetchBuyback(from, to, userId);
+      if (type === "cicilan")   data = await fetchCicilan(from, to, userId);
+      if (type === "gadai")     data = await fetchGadai(from, to, userId);
+      if (type === "simpanan")  data = await fetchSimpanan(from, to, userId);
 
       setRows(data);
       setFetched(type);
@@ -330,7 +325,7 @@ export default function LaporanPage() {
       <div>
         <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Laporan</h1>
         <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>
-          Download laporan transaksi dalam format Excel (.xlsx)
+          {subtitle || "Download laporan transaksi dalam format Excel (.xlsx)"}
         </p>
       </div>
 
@@ -438,4 +433,8 @@ export default function LaporanPage() {
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
+}
+
+export default function LaporanPage() {
+  return <LaporanPageContent />;
 }

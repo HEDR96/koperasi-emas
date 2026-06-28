@@ -59,6 +59,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Verifikasi Bayar",     href:"/dashboard/admin/pembayaran",      icon:Receipt },
       { label:"Riwayat",              href:"/dashboard/admin/riwayat",         icon:History },
       { label:"Invoice",              href:"/dashboard/admin/invoice",         icon:FileText },
+      { label:"Laporan",              href:"/dashboard/admin/laporan",         icon:FileSpreadsheet },
     ]},
     { group:"Anggota", items:[
       { label:"Kelola Anggota",    href:"/dashboard/admin/member",    icon:Users },
@@ -90,8 +91,9 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Cicilan",     href:"/dashboard/member/cicilan",  icon:CreditCard },
     ]},
     { group:"Transaksi", items:[
-      { label:"Ajukan Transaksi", href:"/dashboard/member/request", icon:Send },
-      { label:"Histori",          href:"/dashboard/member/histori", icon:History },
+      { label:"Ajukan Transaksi", href:"/dashboard/member/request",  icon:Send },
+      { label:"Histori",          href:"/dashboard/member/histori",  icon:History },
+      { label:"Laporan Saya",     href:"/dashboard/member/laporan",  icon:FileSpreadsheet },
     ]},
   ],
 };
