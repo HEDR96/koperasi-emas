@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, Check } from "lucide-react";
 
 export interface SelectOption { value: string; label: string; }
@@ -14,30 +15,71 @@ interface SelectProps {
   disabled?: boolean;
 }
 
-/**
- * Dropdown custom (bukan <select> native) supaya popup-nya bisa di-styling
- * gelap di semua OS/browser — native <select> di Windows mengabaikan CSS.
- */
 export default function Select({ value, onChange, options, placeholder = "Pilih...", style, disabled }: SelectProps) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [rect, setRect] = useState<DOMRect | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const dropRef = useRef<HTMLDivElement>(null);
+
+  const updateRect = useCallback(() => {
+    if (btnRef.current) setRect(btnRef.current.getBoundingClientRect());
+  }, []);
+
+  function handleOpen() {
+    if (disabled) return;
+    updateRect();
+    setOpen(o => !o);
+  }
 
   useEffect(() => {
-    function onDoc(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    if (!open) return;
+    function onClose(e: MouseEvent) {
+      if (
+        btnRef.current && btnRef.current.contains(e.target as Node) ||
+        dropRef.current && dropRef.current.contains(e.target as Node)
+      ) return;
+      setOpen(false);
     }
-    if (open) document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, [open]);
+    function onScroll() { updateRect(); }
+    document.addEventListener("mousedown", onClose);
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      document.removeEventListener("mousedown", onClose);
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [open, updateRect]);
 
   const selected = options.find(o => o.value === value);
 
+  // Posisi dropdown: buka ke bawah atau ke atas tergantung ruang
+  const spaceBelow = rect ? window.innerHeight - rect.bottom : 0;
+  const dropUp = rect ? spaceBelow < 220 && rect.top > 220 : false;
+  const dropStyle: React.CSSProperties = rect ? {
+    position: "fixed",
+    left: rect.left,
+    width: rect.width,
+    zIndex: 99999,
+    ...(dropUp
+      ? { bottom: window.innerHeight - rect.top + 4 }
+      : { top: rect.bottom + 4 }),
+    background: "#1a1a1a",
+    border: "1px solid rgba(212,175,55,0.25)",
+    borderRadius: 10,
+    boxShadow: "0 12px 32px rgba(0,0,0,0.6)",
+    maxHeight: 240,
+    overflowY: "auto",
+    padding: 4,
+  } : {};
+
   return (
-    <div ref={ref} style={{ position: "relative", width: "100%" }}>
+    <div style={{ position: "relative", width: "100%" }}>
       <button
+        ref={btnRef}
         type="button"
         disabled={disabled}
-        onClick={() => !disabled && setOpen(o => !o)}
+        onClick={handleOpen}
         style={{
           width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
           background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
@@ -52,14 +94,8 @@ export default function Select({ value, onChange, options, placeholder = "Pilih.
         <ChevronDown style={{ width: 16, height: 16, color: "rgba(255,255,255,0.4)", flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }} />
       </button>
 
-      {open && (
-        <div
-          style={{
-            position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, zIndex: 1000,
-            background: "#1a1a1a", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 10,
-            boxShadow: "0 12px 32px rgba(0,0,0,0.6)", maxHeight: 240, overflowY: "auto", padding: 4,
-          }}
-        >
+      {open && rect && typeof document !== "undefined" && createPortal(
+        <div ref={dropRef} style={dropStyle}>
           {options.map(o => {
             const active = o.value === value;
             return (
@@ -81,7 +117,8 @@ export default function Select({ value, onChange, options, placeholder = "Pilih.
               </button>
             );
           })}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
