@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { Wallet, RefreshCw, Save, CheckCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
-import Select from "@/components/ui/Select";
 import MemberPicker from "@/components/ui/MemberPicker";
 import RupiahInput from "@/components/ui/RupiahInput";
 import { getStaffMap, fmtTgl, fmtTglJam } from "@/lib/staff";
@@ -17,18 +16,12 @@ const inp: React.CSSProperties = {
   borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".9rem", outline:"none", boxSizing:"border-box",
 };
 
-const TYPE_OPTS = [
-  { value:"pokok",    label:"Simpanan Pokok" },
-  { value:"wajib",    label:"Simpanan Wajib" },
-  { value:"sukarela", label:"Simpanan Sukarela" },
-];
-const TYPE_LABEL: Record<string,string> = { pokok:"Pokok", wajib:"Wajib", sukarela:"Sukarela" };
 const STATUS_COLOR: Record<string,string> = { pending:"#fbbf24", completed:"#34d399", rejected:"#f87171" };
 
 export default function AdminSimpananPage() {
   const { user } = useAuthStore();
   const today = new Date().toISOString().slice(0,10);
-  const [form, setForm]       = useState({ user_id:"", type:"wajib", amount:"", description:"", tgl: today });
+  const [form, setForm]       = useState({ user_id:"", amount:"", description:"", tgl: today });
   const [saving, setSaving]   = useState(false);
   const [saved, setSaved]     = useState(false);
   const [error, setError]     = useState("");
@@ -56,7 +49,7 @@ export default function AdminSimpananPage() {
     try {
       const { error: err } = await (supabase.from("simpanan") as any).insert({
         user_id: form.user_id,
-        type: form.type,
+        type: "simpanan",
         amount: Number(form.amount),
         description: form.description || null,
         status: "completed",        // langsung sah karena diinput admin
@@ -70,11 +63,11 @@ export default function AdminSimpananPage() {
         try {
           await (supabase.from("notifications") as any).insert({
             user_id: form.user_id, title:"Simpanan Ditambahkan",
-            body:`Admin menambahkan ${TYPE_LABEL[form.type]} ${fmt(Number(form.amount))} ke Simpanan Anda.`,
+            body:`Admin menambahkan Simpanan ${fmt(Number(form.amount))} ke Simpanan Anda.`,
             type:"simpanan", is_read:false, link:"/dashboard/member/simpanan",
           });
         } catch {}
-        setForm({ user_id:"", type:"wajib", amount:"", description:"", tgl: today });
+        setForm({ user_id:"", amount:"", description:"", tgl: today });
         loadRecent();
       }
     } catch { setError("Terjadi kesalahan."); }
@@ -86,7 +79,7 @@ export default function AdminSimpananPage() {
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
           <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Input Simpanan Anggota</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Catat setoran Simpanan pokok / wajib / sukarela anggota</p>
+          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Catat setoran simpanan anggota</p>
         </div>
         <button onClick={loadRecent} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:13, height:13 }} /> Refresh
@@ -110,15 +103,9 @@ export default function AdminSimpananPage() {
             <MemberPicker value={form.user_id} onChange={m=>setForm(p=>({...p,user_id:m?.id||""}))} />
           </div>
 
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-            <div>
-              <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Jenis</label>
-              <Select value={form.type} onChange={v=>setForm(p=>({...p,type:v}))} options={TYPE_OPTS} />
-            </div>
-            <div>
-              <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Nominal (Rp) *</label>
-              <RupiahInput value={form.amount} onValueChange={v=>setForm(p=>({...p,amount:v}))} style={inp} />
-            </div>
+          <div>
+            <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Nominal (Rp) *</label>
+            <RupiahInput value={form.amount} onValueChange={v=>setForm(p=>({...p,amount:v}))} style={inp} />
           </div>
 
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
@@ -146,7 +133,7 @@ export default function AdminSimpananPage() {
             : recent.map(r => (
               <div key={r.id} style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:12, padding:"12px 16px" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-                  <span style={{ color:"#a78bfa", fontWeight:700, fontSize:".82rem" }}>{TYPE_LABEL[r.type]||r.type}</span>
+                  <span style={{ color:"#a78bfa", fontWeight:700, fontSize:".82rem" }}>{"Simpanan"}</span>
                   <span style={{ color:STATUS_COLOR[r.status]||"#fff", fontSize:".72rem", textTransform:"capitalize" }}>{r.status}</span>
                 </div>
                 <div style={{ display:"flex", justifyContent:"space-between" }}>

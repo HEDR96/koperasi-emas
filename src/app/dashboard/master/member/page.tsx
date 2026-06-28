@@ -521,37 +521,19 @@ export default function MemberManagementPage() {
                     ) : detail.simpanan.length===0 ? (
                       <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".85rem", marginBottom:18 }}>Belum ada simpanan.</p>
                     ) : (
-                      <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:18 }}>
-                        {(["pokok","wajib","sukarela"] as const).map(type => {
-                          const items = detail.simpanan.filter((s:any)=>s.type===type);
-                          if (!items.length) return null;
-                          const simLabel: Record<string,string> = { pokok:"Simpanan Pokok", wajib:"Simpanan Wajib", sukarela:"Simpanan Sukarela" };
-                          const simColor: Record<string,string> = { pokok:"#D4AF37", wajib:"#60a5fa", sukarela:"#34d399" };
-                          const c = simColor[type];
-                          return (
-                            <div key={type} style={{ border:`1px solid ${c}20`, borderRadius:9, overflow:"hidden" }}>
-                              {/* Grup header */}
-                              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:`${c}0d`, padding:"6px 12px", borderBottom:`1px solid ${c}18` }}>
-                                <span style={{ color:c, fontSize:".75rem", fontWeight:700 }}>{simLabel[type]}</span>
-                                <span style={{ color:c, fontSize:".75rem", fontWeight:700 }}>{fmt(items.reduce((a:number,s:any)=>a+(s.amount||0),0))}</span>
-                              </div>
-                              {/* Kolom header */}
-                              <div style={{ display:"flex", background:"rgba(255,255,255,0.03)", borderBottom:"1px solid rgba(255,255,255,0.05)", padding:"5px 12px" }}>
-                                <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".65rem", fontWeight:700, textTransform:"uppercase", flex:"0 0 120px" }}>Nominal</span>
-                                <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".65rem", fontWeight:700, textTransform:"uppercase", flex:"0 0 90px" }}>Tgl Transaksi</span>
-                                <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".65rem", fontWeight:700, textTransform:"uppercase", flex:1 }}>Keterangan</span>
-                              </div>
-                              {/* Baris data */}
-                              {items.map((s:any, i:number)=>(
-                                <div key={s.id} style={{ display:"flex", alignItems:"center", padding:"7px 12px", borderBottom: i < items.length-1 ? "1px solid rgba(255,255,255,0.04)" : "none", background:"rgba(255,255,255,0.01)" }}>
-                                  <span style={{ color:"#fff", fontSize:".82rem", fontWeight:700, flex:"0 0 120px" }}>{fmt(s.amount)}</span>
-                                  <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem", flex:"0 0 90px" }}>{fmtDate(s.transaction_date||s.created_at)}</span>
-                                  <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", flex:1 }}>{s.description||"-"}</span>
-                                </div>
-                              ))}
-                            </div>
-                          );
-                        })}
+                      <div style={{ border:"1px solid rgba(255,255,255,0.07)", borderRadius:9, overflow:"hidden", marginBottom:18 }}>
+                        <div style={{ display:"flex", background:"rgba(255,255,255,0.04)", borderBottom:"1px solid rgba(255,255,255,0.06)", padding:"5px 12px" }}>
+                          <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".65rem", fontWeight:700, textTransform:"uppercase", flex:"0 0 120px" }}>Nominal</span>
+                          <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".65rem", fontWeight:700, textTransform:"uppercase", flex:"0 0 90px" }}>Tgl Transaksi</span>
+                          <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".65rem", fontWeight:700, textTransform:"uppercase", flex:1 }}>Keterangan</span>
+                        </div>
+                        {detail.simpanan.map((s:any, i:number)=>(
+                          <div key={s.id} style={{ display:"flex", alignItems:"center", padding:"7px 12px", borderBottom: i < detail.simpanan.length-1 ? "1px solid rgba(255,255,255,0.04)" : "none", background:"rgba(255,255,255,0.01)" }}>
+                            <span style={{ color:"#fff", fontSize:".82rem", fontWeight:700, flex:"0 0 120px" }}>{fmt(s.amount)}</span>
+                            <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem", flex:"0 0 90px" }}>{fmtDate(s.transaction_date||s.created_at)}</span>
+                            <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", flex:1 }}>{s.description||"-"}</span>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </>

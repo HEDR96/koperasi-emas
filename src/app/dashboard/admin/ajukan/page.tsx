@@ -27,14 +27,8 @@ const TABS: { id: Tab; label: string; icon: any; color: string }[] = [
   { id: "buyback",  label: "Jual Kembali",    icon: ArrowDownCircle,color: "#60a5fa" },
 ];
 
-const SIM_TYPE_OPTS = [
-  { value: "pokok",    label: "Simpanan Pokok" },
-  { value: "wajib",    label: "Simpanan Wajib" },
-  { value: "sukarela", label: "Simpanan Sukarela" },
-];
-
 const EMPTY_BELI     = { user_id: "", gram: "", amount: "", paymentMethod: DEFAULT_PAYMENT_METHOD, notes: "" };
-const EMPTY_SIMPANAN = { user_id: "", simType: "wajib", amount: "", paymentMethod: DEFAULT_PAYMENT_METHOD, notes: "" };
+const EMPTY_SIMPANAN = { user_id: "", amount: "", paymentMethod: DEFAULT_PAYMENT_METHOD, notes: "" };
 const EMPTY_BUYBACK  = { user_id: "", gram: "", amount: "", paymentMethod: DEFAULT_PAYMENT_METHOD, notes: "" };
 
 export default function AdminAjukanPage() {
@@ -140,7 +134,7 @@ export default function AdminAjukanPage() {
       const amount = Number(simpanan.amount) || 0;
       const { error: err } = await (supabase.from("simpanan") as any).insert({
         user_id:          simpanan.user_id,
-        type:             simpanan.simType,
+        type:             "simpanan",
         amount,
         description:      simpanan.notes || null,
         payment_method:   simpanan.paymentMethod,
@@ -269,10 +263,6 @@ export default function AdminAjukanPage() {
           {/* ── SETOR SIMPANAN ── */}
           {tab === "simpanan" && (
             <>
-              <div>
-                <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Jenis Simpanan</label>
-                <Select value={simpanan.simType} onChange={v => setSimpanan(p => ({ ...p, simType: v }))} options={SIM_TYPE_OPTS} />
-              </div>
               <div>
                 <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Nominal (Rp) *</label>
                 <RupiahInput value={simpanan.amount} onValueChange={v => setSimpanan(p => ({ ...p, amount: v }))} style={inp} />
