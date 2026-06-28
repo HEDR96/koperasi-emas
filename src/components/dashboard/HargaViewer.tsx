@@ -29,8 +29,8 @@ export default function HargaViewer() {
     setLoading(true);
     try {
       const [{ data: e }, { data: b }, markup, params] = await Promise.all([
-        (supabase.from("harga_emas_berat") as any).select("gram,harga,created_at").eq("kategori","emas").order("created_at",{ ascending:false }).limit(200),
-        (supabase.from("harga_emas_berat") as any).select("gram,harga,created_at").eq("kategori","buyback").order("created_at",{ ascending:false }).limit(200),
+        (supabase.rpc("get_latest_harga_berat", { kat: "emas" }) as any),
+        (supabase.rpc("get_latest_harga_berat", { kat: "buyback" }) as any),
         getMarkup(),
         getCicilanParams(),
       ]);

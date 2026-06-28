@@ -69,8 +69,8 @@ export default function HargaEmasPage() {
     setLoading(true);
     try {
       const [{ data: e }, { data: b }, mk, cp] = await Promise.all([
-        (supabase.from("harga_emas_berat") as any).select("*").eq("kategori","emas").order("gram").order("created_at", { ascending:false }).limit(100),
-        (supabase.from("harga_emas_berat") as any).select("*").eq("kategori","buyback").order("gram").order("created_at", { ascending:false }).limit(100),
+        (supabase.rpc("get_latest_harga_berat", { kat: "emas" }) as any),
+        (supabase.rpc("get_latest_harga_berat", { kat: "buyback" }) as any),
         getMarkup(),
         getCicilanParams(),
       ]);
