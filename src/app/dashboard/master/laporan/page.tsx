@@ -22,7 +22,26 @@ function toISOEnd(d: string)   { return d + "T23:59:59.999Z"; }
 /* ─── helpers ─── */
 function cleanPhone(v: string | null): string {
   if (!v) return "-";
-  return String(v).replace(/\D/g, ""); // buang semua selain digit
+  return String(v).replace(/\D/g, "");
+}
+
+// Parse notes: "Disetujui. Ongkir: Rp 5.000, Diskon: Rp 10.000. Total final: Rp 100.000."
+// Kembalikan { ongkir, diskon, catatan }
+function parseNotes(notes: string | null): { ongkir: number; diskon: number; catatan: string } {
+  if (!notes) return { ongkir: 0, diskon: 0, catatan: "-" };
+  const ongkirMatch = notes.match(/Ongkir:\s*Rp\s*([\d.,]+)/i);
+  const diskonMatch = notes.match(/Diskon:\s*Rp\s*([\d.,]+)/i);
+  const ongkir = ongkirMatch ? Number(ongkirMatch[1].replace(/\./g, "").replace(",", ".")) : 0;
+  const diskon = diskonMatch ? Number(diskonMatch[1].replace(/\./g, "").replace(",", ".")) : 0;
+  // Catatan = hapus bagian auto-generated, sisakan teks user (jika ada)
+  const cleaned = notes
+    .replace(/Disetujui\.\s*/i, "")
+    .replace(/Ongkir:\s*Rp\s*[\d.,]+,?\s*/i, "")
+    .replace(/Diskon:\s*Rp\s*[\d.,]+\.?\s*/i, "")
+    .replace(/Total final:\s*Rp\s*[\d.,]+\.?\s*/i, "")
+    .replace(/Pengajuan [^.]+\./i, "")
+    .trim().replace(/^[.,\s]+|[.,\s]+$/g, "").trim();
+  return { ongkir, diskon, catatan: cleaned || "-" };
 }
 
 /* ─── Excel download via SheetJS ─── */
@@ -171,25 +190,31 @@ async function fetchSimpanan(from: string, to: string) {
 type ColFmt = "auto" | "text" | "phone" | "gram" | "rupiah" | "number";
 
 async function xlsxTransaksi(rows: any[], from: string, to: string) {
-  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Gram","Harga Total (Rp)","Metode Bayar","Keterangan","Status","Tgl Input"];
-  const fmt: ColFmt[] = ["auto","auto","auto","phone","gram","rupiah","auto","auto","auto","auto"];
-  const data = rows.map((r, i) => [
-    i + 1, tglIndo(r.transaction_date || r.created_at),
-    r.profiles?.name || "-", r.profiles?.phone || "-",
-    r.gram, r.amount, r.payment_method || "-", r.notes || "-", r.status, tglIndo(r.created_at),
-  ]);
-  await downloadXLSX("Beli Emas", headers, data, `Laporan_Beli_Emas_${from}_sd_${to}.xlsx`, fmt);
+  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Gram","Harga Total (Rp)","Ongkir (Rp)","Diskon (Rp)","Metode Bayar","Keterangan","Status","Tgl Input"];
+  const colFmt: ColFmt[] = ["auto","auto","auto","phone","gram","rupiah","rupiah","rupiah","auto","auto","auto","auto"];
+  const data = rows.map((r, i) => {
+    const { ongkir, diskon, catatan } = parseNotes(r.notes);
+    return [
+      i + 1, tglIndo(r.transaction_date || r.created_at),
+      r.profiles?.name || "-", r.profiles?.phone || "-",
+      r.gram, r.amount, ongkir, diskon, r.payment_method || "-", catatan, r.status, tglIndo(r.created_at),
+    ];
+  });
+  await downloadXLSX("Beli Emas", headers, data, `Laporan_Beli_Emas_${from}_sd_${to}.xlsx`, colFmt);
 }
 
 async function xlsxBuyback(rows: any[], from: string, to: string) {
-  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Gram","Dana Cair (Rp)","Keterangan","Status","Tgl Input"];
-  const fmt: ColFmt[] = ["auto","auto","auto","phone","gram","rupiah","auto","auto","auto"];
-  const data = rows.map((r, i) => [
-    i + 1, tglIndo(r.transaction_date || r.created_at),
-    r.profiles?.name || "-", r.profiles?.phone || "-",
-    r.gram, r.amount, r.notes || "-", r.status, tglIndo(r.created_at),
-  ]);
-  await downloadXLSX("Buyback", headers, data, `Laporan_Buyback_${from}_sd_${to}.xlsx`, fmt);
+  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Gram","Dana Cair (Rp)","Ongkir (Rp)","Diskon (Rp)","Keterangan","Status","Tgl Input"];
+  const colFmt: ColFmt[] = ["auto","auto","auto","phone","gram","rupiah","rupiah","rupiah","auto","auto","auto"];
+  const data = rows.map((r, i) => {
+    const { ongkir, diskon, catatan } = parseNotes(r.notes);
+    return [
+      i + 1, tglIndo(r.transaction_date || r.created_at),
+      r.profiles?.name || "-", r.profiles?.phone || "-",
+      r.gram, r.amount, ongkir, diskon, catatan, r.status, tglIndo(r.created_at),
+    ];
+  });
+  await downloadXLSX("Buyback", headers, data, `Laporan_Buyback_${from}_sd_${to}.xlsx`, colFmt);
 }
 
 async function xlsxCicilan(rows: any[], from: string, to: string) {
