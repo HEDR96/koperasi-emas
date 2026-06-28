@@ -9,7 +9,7 @@ import {
   BarChart2, Users, ShieldCheck, Coins, CheckSquare,
   Bell, Settings, Upload, MessageSquare, PlusCircle,
   Send, History, Star, HelpCircle, Image, Landmark, CreditCard, UserCircle,
-  Wallet, UserCheck, Newspaper, FileText, Receipt, Activity, Megaphone,
+  Wallet, UserCheck, Newspaper, FileText, Receipt, Activity, Megaphone, FileSpreadsheet,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSiteName } from "@/store/useSettingsStore";
@@ -37,6 +37,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Input Simpanan",      href:"/dashboard/master/simpanan",         icon:Wallet },
       { label:"Kelola Cicilan",     href:"/dashboard/master/cicilan",          icon:CreditCard },
       { label:"Riwayat",            href:"/dashboard/master/riwayat",          icon:History },
+      { label:"Laporan",            href:"/dashboard/master/laporan",          icon:FileSpreadsheet },
     ]},
     { group:"Sistem", items:[
       { label:"Log Aktivitas", href:"/dashboard/master/audit",      icon:Activity },
@@ -57,6 +58,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Verifikasi Bayar",     href:"/dashboard/admin/pembayaran",      icon:Receipt },
       { label:"Riwayat",              href:"/dashboard/admin/riwayat",         icon:History },
       { label:"Invoice",              href:"/dashboard/admin/invoice",         icon:FileText },
+      { label:"Laporan",              href:"/dashboard/admin/laporan",         icon:FileSpreadsheet },
     ]},
     { group:"Anggota", items:[
       { label:"Kelola Anggota",    href:"/dashboard/admin/member",    icon:Users },

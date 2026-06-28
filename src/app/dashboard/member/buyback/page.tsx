@@ -12,7 +12,7 @@ const fmtGram = (n: number) => `${n.toFixed(1)} gram`;
 const fmtDate = (s: string) =>
   new Date(s).toLocaleDateString("id-ID", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
 
-interface TxRow { id: string; type: string; amount: number; gram: number | null; status: string; created_at: string; notes: string | null; }
+interface TxRow { id: string; type: string; amount: number; gram: number | null; status: string; created_at: string; transaction_date: string | null; notes: string | null; }
 
 const GRAM_IN = new Set(["buy", "cicilan", "Simpanan"]);
 const STATUS_COLOR: Record<string,string> = { pending:"#fbbf24", processing:"#60a5fa", completed:"#34d399", rejected:"#f87171" };
@@ -38,7 +38,7 @@ export default function MemberBuybackPage() {
     try {
       const [txRes, bbRes] = await Promise.all([
         (supabase.from("transactions") as any)
-          .select("id, type, amount, gram, status, created_at, notes")
+          .select("id, type, amount, gram, status, created_at, transaction_date, notes")
           .eq("user_id", user.id)
           .order("created_at", { ascending:false }),
         (supabase.from("harga_emas_berat") as any)
@@ -247,7 +247,7 @@ export default function MemberBuybackPage() {
                       <p style={{ color:"#fff", fontWeight:600, fontSize:".88rem", margin:0 }}>
                         {tx.gram ? fmtGram(Number(tx.gram)) : "-"}
                       </p>
-                      <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".75rem", margin:"2px 0 0" }}>{fmtDate(tx.created_at)}</p>
+                      <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".75rem", margin:"2px 0 0" }}>{fmtDate(tx.transaction_date || tx.created_at)}</p>
                     </div>
                     <div style={{ textAlign:"right" }}>
                       <p style={{ color:"#34d399", fontWeight:700, fontSize:".9rem", margin:0 }}>{fmt(tx.amount)}</p>

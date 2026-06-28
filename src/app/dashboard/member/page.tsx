@@ -16,7 +16,7 @@ const fmtGram = (n: number) => `${n.toFixed(1)} gram`;
 const fmtDate = (s: string) =>
   new Date(s).toLocaleDateString("id-ID", { day:"2-digit", month:"short", year:"numeric" });
 
-interface TxRow { id: string; type: string; amount: number; gram: number | null; status: string; created_at: string; }
+interface TxRow { id: string; type: string; amount: number; gram: number | null; status: string; created_at: string; transaction_date: string | null; }
 
 const TYPE_LABEL: Record<string,string> = {
   buy:"Beli Emas", buyback:"Jual Kembali", cicilan:"Cicilan",
@@ -50,7 +50,7 @@ export default function MemberDashboardPage() {
     try {
       const [txRes, simRes, emasRes, bbRes, gadaiRes, cicRes] = await Promise.all([
         (supabase.from("transactions") as any)
-          .select("id, type, amount, gram, status, created_at")
+          .select("id, type, amount, gram, status, created_at, transaction_date")
           .eq("user_id", user.id)
           .order("created_at", { ascending:false }),
         (supabase.from("simpanan") as any)
@@ -137,7 +137,7 @@ export default function MemberDashboardPage() {
           style={{ background:"linear-gradient(135deg,rgba(212,175,55,0.14),rgba(212,175,55,0.04))", border:"1px solid rgba(212,175,55,0.3)", borderRadius:20, padding:24 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
             <Coins style={{ width:16, height:16, color:"#D4AF37" }} />
-            <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".82rem", margin:0 }}>Emas Tersimpan</p>
+            <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".82rem", margin:0 }}>Total Transaksi Emas</p>
           </div>
           <p style={{ color:"#D4AF37", fontSize:"2.1rem", fontWeight:900, margin:0, lineHeight:1 }}>
             {loading ? "—" : fmtGram(emasGram)}
@@ -257,7 +257,7 @@ export default function MemberDashboardPage() {
                     {TYPE_LABEL[tx.type] || tx.type}
                     {tx.gram ? <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}> · {Number(tx.gram).toFixed(1)} gr</span> : null}
                   </p>
-                  <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".75rem", margin:"2px 0 0" }}>{fmtDate(tx.created_at)}</p>
+                  <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".75rem", margin:"2px 0 0" }}>{fmtDate(tx.transaction_date || tx.created_at)}</p>
                 </div>
                 <div style={{ textAlign:"right" }}>
                   <p style={{ color:"#D4AF37", fontWeight:700, fontSize:".9rem", margin:0 }}>{fmt(tx.amount)}</p>

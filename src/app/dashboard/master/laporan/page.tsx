@@ -1,0 +1,374 @@
+"use client";
+
+import { useState } from "react";
+import {
+  FileSpreadsheet, Download, Calendar, Coins, CreditCard,
+  Landmark, ArrowDownCircle, Wallet, RefreshCw,
+} from "lucide-react";
+import { supabase } from "@/lib/supabase";
+
+/* ─── helpers ─── */
+const fmt = (n: number) =>
+  new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
+
+function tglIndo(s: string | null) {
+  if (!s) return "-";
+  return new Date(s).toLocaleDateString("id-ID", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+function toISOStart(d: string) { return d + "T00:00:00.000Z"; }
+function toISOEnd(d: string)   { return d + "T23:59:59.999Z"; }
+
+/* ─── simple CSV builder ─── */
+function buildCSV(headers: string[], rows: (string | number | null)[][]): string {
+  const escape = (v: string | number | null) => {
+    const s = String(v ?? "");
+    return s.includes(",") || s.includes('"') || s.includes("\n")
+      ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  return [headers, ...rows].map(r => r.map(escape).join(",")).join("\r\n");
+}
+
+function downloadCSV(csv: string, filename: string) {
+  const BOM = "﻿";
+  const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ─── report configs ─── */
+type ReportType = "transaksi" | "buyback" | "cicilan" | "gadai" | "simpanan";
+
+const REPORTS: { id: ReportType; label: string; icon: any; color: string; desc: string }[] = [
+  { id:"transaksi", label:"Transaksi Beli Emas", icon:Coins,          color:"#D4AF37", desc:"Semua transaksi beli emas dalam periode" },
+  { id:"buyback",   label:"Buyback Emas",        icon:ArrowDownCircle,color:"#34d399", desc:"Semua transaksi buyback dalam periode" },
+  { id:"cicilan",   label:"Cicilan Emas",         icon:CreditCard,     color:"#a78bfa", desc:"Data cicilan emas dalam periode" },
+  { id:"gadai",     label:"Gadai Emas",           icon:Landmark,       color:"#60a5fa", desc:"Data gadai emas dalam periode" },
+  { id:"simpanan",  label:"Simpanan",             icon:Wallet,         color:"#f59e0b", desc:"Data simpanan anggota dalam periode" },
+];
+
+/* ─── fetch functions ─── */
+async function fetchTransaksi(from: string, to: string) {
+  const { data } = await (supabase.from("transactions") as any)
+    .select("id, type, amount, gram, status, payment_method, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
+    .eq("type", "buy")
+    .gte("transaction_date", toISOStart(from))
+    .lte("transaction_date", toISOEnd(to))
+    .order("transaction_date", { ascending: true })
+    .limit(5000);
+  return data || [];
+}
+
+async function fetchBuyback(from: string, to: string) {
+  const { data } = await (supabase.from("transactions") as any)
+    .select("id, type, amount, gram, status, payment_method, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
+    .eq("type", "buyback")
+    .gte("transaction_date", toISOStart(from))
+    .lte("transaction_date", toISOEnd(to))
+    .order("transaction_date", { ascending: true })
+    .limit(5000);
+  return data || [];
+}
+
+async function fetchCicilan(from: string, to: string) {
+  const { data } = await (supabase.from("installments") as any)
+    .select("id, product_name, total_amount, monthly_amount, down_payment, tenor, paid_installments, status, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
+    .gte("transaction_date", toISOStart(from))
+    .lte("transaction_date", toISOEnd(to))
+    .order("transaction_date", { ascending: true })
+    .limit(5000);
+  return data || [];
+}
+
+async function fetchGadai(from: string, to: string) {
+  const { data } = await (supabase.from("gadai") as any)
+    .select("id, dana_cair, gram_setara, tenor, angsuran_per_bulan, sisa_tagihan, nilai_jaminan, status, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
+    .gte("transaction_date", toISOStart(from))
+    .lte("transaction_date", toISOEnd(to))
+    .order("transaction_date", { ascending: true })
+    .limit(5000);
+  return data || [];
+}
+
+async function fetchSimpanan(from: string, to: string) {
+  const { data } = await (supabase.from("simpanan") as any)
+    .select("id, type, amount, status, description, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
+    .gte("transaction_date", toISOStart(from))
+    .lte("transaction_date", toISOEnd(to))
+    .order("transaction_date", { ascending: true })
+    .limit(5000);
+  return data || [];
+}
+
+/* ─── CSV builders ─── */
+function csvTransaksi(rows: any[]) {
+  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Gram","Harga Total","Metode Bayar","Status","Tgl Input"];
+  const data = rows.map((r, i) => [
+    i + 1,
+    tglIndo(r.transaction_date || r.created_at),
+    r.profiles?.name || "-",
+    r.profiles?.phone || "-",
+    r.gram ?? "-",
+    r.amount,
+    r.payment_method || "-",
+    r.status,
+    tglIndo(r.created_at),
+  ]);
+  return buildCSV(headers, data);
+}
+
+function csvBuyback(rows: any[]) {
+  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Gram","Dana Cair","Status","Tgl Input"];
+  const data = rows.map((r, i) => [
+    i + 1,
+    tglIndo(r.transaction_date || r.created_at),
+    r.profiles?.name || "-",
+    r.profiles?.phone || "-",
+    r.gram ?? "-",
+    r.amount,
+    r.status,
+    tglIndo(r.created_at),
+  ]);
+  return buildCSV(headers, data);
+}
+
+function csvCicilan(rows: any[]) {
+  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Produk","Total","DP","Angsuran/Bln","Tenor","Terbayar","Status","Tgl Input"];
+  const data = rows.map((r, i) => [
+    i + 1,
+    tglIndo(r.transaction_date || r.created_at),
+    r.profiles?.name || "-",
+    r.profiles?.phone || "-",
+    r.product_name || "-",
+    r.total_amount,
+    r.down_payment ?? 0,
+    r.monthly_amount,
+    r.tenor,
+    r.paid_installments ?? 0,
+    r.status,
+    tglIndo(r.created_at),
+  ]);
+  return buildCSV(headers, data);
+}
+
+function csvGadai(rows: any[]) {
+  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Dana Cair","Gram Setara","Nilai Jaminan","Tenor","Angsuran/Bln","Sisa Tagihan","Status","Tgl Input"];
+  const data = rows.map((r, i) => [
+    i + 1,
+    tglIndo(r.transaction_date || r.created_at),
+    r.profiles?.name || "-",
+    r.profiles?.phone || "-",
+    r.dana_cair,
+    r.gram_setara ?? "-",
+    r.nilai_jaminan ?? "-",
+    r.tenor,
+    r.angsuran_per_bulan,
+    r.sisa_tagihan,
+    r.status,
+    tglIndo(r.created_at),
+  ]);
+  return buildCSV(headers, data);
+}
+
+const SIM_LABEL: Record<string, string> = { pokok:"Simpanan Pokok", wajib:"Simpanan Wajib", sukarela:"Simpanan Sukarela" };
+function csvSimpanan(rows: any[]) {
+  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Jenis","Jumlah","Keterangan","Status","Tgl Input"];
+  const data = rows.map((r, i) => [
+    i + 1,
+    tglIndo(r.transaction_date || r.created_at),
+    r.profiles?.name || "-",
+    r.profiles?.phone || "-",
+    SIM_LABEL[r.type] || r.type,
+    r.amount,
+    r.description || "-",
+    r.status,
+    tglIndo(r.created_at),
+  ]);
+  return buildCSV(headers, data);
+}
+
+/* ─── summary stats ─── */
+function summary(type: ReportType, rows: any[]) {
+  if (!rows.length) return null;
+  if (type === "transaksi" || type === "buyback") {
+    const total  = rows.reduce((s, r) => s + (r.amount || 0), 0);
+    const totalGram = rows.reduce((s, r) => s + (Number(r.gram) || 0), 0);
+    return { total, totalGram, count: rows.length };
+  }
+  if (type === "cicilan") {
+    const total = rows.reduce((s, r) => s + (r.total_amount || 0), 0);
+    return { total, count: rows.length };
+  }
+  if (type === "gadai") {
+    const total = rows.reduce((s, r) => s + (r.dana_cair || 0), 0);
+    return { total, count: rows.length };
+  }
+  if (type === "simpanan") {
+    const total = rows.reduce((s, r) => s + (r.amount || 0), 0);
+    return { total, count: rows.length };
+  }
+  return null;
+}
+
+/* ─── component ─── */
+export default function LaporanPage() {
+  const today = new Date().toISOString().slice(0, 10);
+  const firstOfMonth = today.slice(0, 8) + "01";
+
+  const [from, setFrom]   = useState(firstOfMonth);
+  const [to, setTo]       = useState(today);
+  const [active, setActive] = useState<ReportType | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [rows, setRows]   = useState<any[]>([]);
+  const [fetched, setFetched] = useState<ReportType | null>(null);
+
+  async function handleDownload(type: ReportType) {
+    if (!from || !to) return;
+    setLoading(true);
+    setActive(type);
+    try {
+      let data: any[] = [];
+      if (type === "transaksi") data = await fetchTransaksi(from, to);
+      if (type === "buyback")   data = await fetchBuyback(from, to);
+      if (type === "cicilan")   data = await fetchCicilan(from, to);
+      if (type === "gadai")     data = await fetchGadai(from, to);
+      if (type === "simpanan")  data = await fetchSimpanan(from, to);
+
+      setRows(data);
+      setFetched(type);
+
+      if (!data.length) { setLoading(false); return; }
+
+      let csv = "";
+      if (type === "transaksi") csv = csvTransaksi(data);
+      if (type === "buyback")   csv = csvBuyback(data);
+      if (type === "cicilan")   csv = csvCicilan(data);
+      if (type === "gadai")     csv = csvGadai(data);
+      if (type === "simpanan")  csv = csvSimpanan(data);
+
+      const label = REPORTS.find(r => r.id === type)?.label.replace(/\s+/g, "_") || type;
+      downloadCSV(csv, `laporan_${label}_${from}_sd_${to}.csv`);
+    } catch {}
+    setLoading(false);
+  }
+
+  const sum = fetched ? summary(fetched, rows) : null;
+  const reportInfo = REPORTS.find(r => r.id === (active || fetched));
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
+      {/* Header */}
+      <div>
+        <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Laporan</h1>
+        <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>
+          Download laporan transaksi dalam format CSV (Excel-compatible)
+        </p>
+      </div>
+
+      {/* Filter periode */}
+      <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:16, padding:"20px 22px" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
+          <Calendar style={{ width:16, height:16, color:"#D4AF37" }} />
+          <p style={{ color:"#D4AF37", fontWeight:700, fontSize:".88rem", margin:0 }}>Filter Periode</p>
+        </div>
+        <div style={{ display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
+          <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+            <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".75rem" }}>Dari Tanggal</label>
+            <input type="date" value={from} onChange={e => setFrom(e.target.value)}
+              style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:9, padding:"9px 12px", color:"#fff", fontSize:".88rem", outline:"none", colorScheme:"dark" }} />
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+            <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".75rem" }}>Sampai Tanggal</label>
+            <input type="date" value={to} onChange={e => setTo(e.target.value)}
+              style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:9, padding:"9px 12px", color:"#fff", fontSize:".88rem", outline:"none", colorScheme:"dark" }} />
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+            <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".75rem" }}>Shortcut</label>
+            <div style={{ display:"flex", gap:6 }}>
+              {[
+                { label:"Bulan ini",   fn: () => { setFrom(firstOfMonth); setTo(today); } },
+                { label:"3 bln",       fn: () => { const d = new Date(); d.setMonth(d.getMonth()-3); setFrom(d.toISOString().slice(0,10)); setTo(today); } },
+                { label:"Tahun ini",   fn: () => { setFrom(today.slice(0,4)+"-01-01"); setTo(today); } },
+              ].map(s => (
+                <button key={s.label} onClick={s.fn}
+                  style={{ background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:7, padding:"6px 10px", color:"#D4AF37", fontSize:".75rem", cursor:"pointer", whiteSpace:"nowrap" }}>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Pilih laporan & download */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))", gap:14 }}>
+        {REPORTS.map(r => {
+          const Icon = r.icon;
+          const isActive = active === r.id && loading;
+          return (
+            <div key={r.id}
+              style={{ background:"rgba(255,255,255,0.03)", border:`1px solid ${r.color}25`, borderRadius:16, padding:"18px 20px", display:"flex", flexDirection:"column", gap:14 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <span style={{ width:38, height:38, borderRadius:11, background:`${r.color}18`, border:`1px solid ${r.color}30`, display:"inline-flex", alignItems:"center", justifyContent:"center" }}>
+                  <Icon style={{ width:18, height:18, color:r.color }} />
+                </span>
+                <div>
+                  <p style={{ color:"#fff", fontWeight:700, fontSize:".9rem", margin:0 }}>{r.label}</p>
+                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".74rem", margin:"2px 0 0" }}>{r.desc}</p>
+                </div>
+              </div>
+              <button onClick={() => handleDownload(r.id)} disabled={isActive || !from || !to}
+                style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:7, width:"100%", padding:"10px", borderRadius:10,
+                  background: isActive ? "rgba(255,255,255,0.05)" : `${r.color}18`,
+                  border:`1px solid ${r.color}35`,
+                  color: isActive ? "rgba(255,255,255,0.4)" : r.color,
+                  cursor: isActive ? "wait" : "pointer", fontWeight:700, fontSize:".84rem", transition:"all .2s" }}>
+                {isActive
+                  ? <><RefreshCw style={{ width:14, height:14, animation:"spin 1s linear infinite" }} /> Memuat...</>
+                  : <><Download style={{ width:14, height:14 }} /> Download CSV</>}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Hasil preview singkat */}
+      {fetched && !loading && (
+        <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:16, padding:"18px 22px" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
+            <FileSpreadsheet style={{ width:16, height:16, color:reportInfo?.color || "#fff" }} />
+            <p style={{ color:reportInfo?.color || "#fff", fontWeight:700, fontSize:".9rem", margin:0 }}>
+              {reportInfo?.label} — {tglIndo(from)} s/d {tglIndo(to)}
+            </p>
+          </div>
+          {rows.length === 0 ? (
+            <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".88rem", margin:0 }}>Tidak ada data dalam periode ini.</p>
+          ) : (
+            <div style={{ display:"flex", gap:24, flexWrap:"wrap" }}>
+              <div>
+                <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".73rem", margin:"0 0 3px" }}>Total Data</p>
+                <p style={{ color:"#fff", fontWeight:800, fontSize:"1.2rem", margin:0 }}>{sum?.count ?? rows.length} baris</p>
+              </div>
+              {sum && "total" in sum && (
+                <div>
+                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".73rem", margin:"0 0 3px" }}>Total Nominal</p>
+                  <p style={{ color:reportInfo?.color || "#D4AF37", fontWeight:800, fontSize:"1.2rem", margin:0 }}>{fmt(sum.total)}</p>
+                </div>
+              )}
+              {sum && "totalGram" in sum && (
+                <div>
+                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".73rem", margin:"0 0 3px" }}>Total Gram</p>
+                  <p style={{ color:"#D4AF37", fontWeight:800, fontSize:"1.2rem", margin:0 }}>{(sum.totalGram as number).toFixed(2)} gr</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}

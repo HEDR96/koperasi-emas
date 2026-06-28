@@ -9,7 +9,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 interface TxRow {
   id: string; type: string; amount: number; gram: number | null;
   status: string; payment_method: string | null; notes: string | null;
-  created_at: string;
+  created_at: string; transaction_date: string | null;
 }
 
 const TYPE_LABEL: Record<string,string> = {
@@ -48,7 +48,7 @@ export default function MemberHistoriPage() {
     setLoading(true);
     try {
       const { data } = await (supabase.from("transactions") as any)
-        .select("id,type,amount,gram,status,payment_method,notes,created_at")
+        .select("id,type,amount,gram,status,payment_method,notes,created_at,transaction_date")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       setTxs(data ?? []);
@@ -128,7 +128,7 @@ export default function MemberHistoriPage() {
                     </span>
                   </div>
                   <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".78rem", margin:0 }}>
-                    {fmtDate(tx.created_at)}
+                    {fmtDate(tx.transaction_date || tx.created_at)}
                     {tx.gram && ` · ${tx.gram} gr`}
                     {tx.payment_method && ` · ${tx.payment_method}`}
                   </p>

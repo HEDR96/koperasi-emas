@@ -67,23 +67,23 @@ export default function AdminRiwayatPage() {
       const [bRes, cRes, gRes, bbRes, sRes] = await Promise.all([
         // Beli Emas — semua status
         (supabase.from("transactions") as any)
-          .select("id, user_id, type, amount, gram, status, payment_method, notes, created_at, profiles:profiles!user_id(name)")
+          .select("id, user_id, type, amount, gram, status, payment_method, notes, created_at, transaction_date, profiles:profiles!user_id(name)")
           .eq("type","buy").order("created_at",{ascending:false}).limit(500),
         // Cicilan Emas — installments semua status
         (supabase.from("installments") as any)
-          .select("id, user_id, product_name, total_amount, monthly_amount, down_payment, tenor, paid_installments, status, created_at, profiles:profiles!user_id(name)")
+          .select("id, user_id, product_name, total_amount, monthly_amount, down_payment, tenor, paid_installments, status, created_at, transaction_date, profiles:profiles!user_id(name)")
           .order("created_at",{ascending:false}).limit(500),
         // Gadai — semua status
         (supabase.from("gadai") as any)
-          .select("id, user_id, dana_cair, gram_setara, tenor, angsuran_per_bulan, sisa_tagihan, status, created_at, profiles:profiles!user_id(name)")
+          .select("id, user_id, dana_cair, gram_setara, tenor, angsuran_per_bulan, sisa_tagihan, status, created_at, transaction_date, profiles:profiles!user_id(name)")
           .order("created_at",{ascending:false}).limit(500),
         // Buyback — semua status
         (supabase.from("transactions") as any)
-          .select("id, user_id, type, amount, gram, status, payment_method, notes, created_at, profiles:profiles!user_id(name)")
+          .select("id, user_id, type, amount, gram, status, payment_method, notes, created_at, transaction_date, profiles:profiles!user_id(name)")
           .eq("type","buyback").order("created_at",{ascending:false}).limit(500),
         // Simpanan — semua status
         (supabase.from("simpanan") as any)
-          .select("id, user_id, type, amount, status, description, created_at, profiles:profiles!user_id(name)")
+          .select("id, user_id, type, amount, status, description, created_at, transaction_date, profiles:profiles!user_id(name)")
           .order("created_at",{ascending:false}).limit(500),
       ]);
       setBeliData(bRes.data || []);
@@ -140,7 +140,7 @@ export default function AdminRiwayatPage() {
               <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400, fontSize:".82rem" }}> - {TX_LABEL[r.type]||r.type}</span>
             </p>
             <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".74rem", margin:0 }}>
-              {fmtDate(r.created_at)}{r.payment_method ? ` - ${r.payment_method}` : ""}
+              {fmtDate(r.transaction_date || r.created_at)}{r.payment_method ? ` - ${r.payment_method}` : ""}
             </p>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
@@ -166,7 +166,7 @@ export default function AdminRiwayatPage() {
                 <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400, fontSize:".82rem" }}> - {r.product_name}</span>
               </p>
               <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".74rem", margin:0 }}>
-                {fmtDate(r.created_at)} - Tenor {r.tenor} bln
+                {fmtDate(r.transaction_date || r.created_at)} - Tenor {r.tenor} bln
                 {r.down_payment > 0 ? ` - DP ${fmt(r.down_payment)}` : ""}
               </p>
             </div>
@@ -198,7 +198,7 @@ export default function AdminRiwayatPage() {
               <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400, fontSize:".82rem" }}> - {Number(r.gram_setara||0).toFixed(1)} gr - Gadai {r.tenor} bln</span>
             </p>
             <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".74rem", margin:0 }}>
-              {fmtDate(r.created_at)} - Angsuran {fmt(r.angsuran_per_bulan)}/bln - Sisa {fmt(r.sisa_tagihan)}
+              {fmtDate(r.transaction_date || r.created_at)} - Angsuran {fmt(r.angsuran_per_bulan)}/bln - Sisa {fmt(r.sisa_tagihan)}
             </p>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
@@ -221,7 +221,7 @@ export default function AdminRiwayatPage() {
               <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400, fontSize:".82rem" }}> - {SIM_LABEL[r.type]||r.type}</span>
             </p>
             <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".74rem", margin:0 }}>
-              {fmtDate(r.created_at)}{r.description ? ` - ${r.description}` : ""}
+              {fmtDate(r.transaction_date || r.created_at)}{r.description ? ` - ${r.description}` : ""}
             </p>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
