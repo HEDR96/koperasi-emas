@@ -521,26 +521,26 @@ export default function MemberManagementPage() {
                     ) : detail.simpanan.length===0 ? (
                       <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".85rem", marginBottom:18 }}>Belum ada simpanan.</p>
                     ) : (
-                      <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:18 }}>
-                        <div style={{ display:"grid", gridTemplateColumns:"auto 1fr 110px 1fr", gap:0, background:"rgba(255,255,255,0.02)", borderRadius:10, overflow:"hidden", border:"1px solid rgba(255,255,255,0.06)" }}>
-                          <div style={{ display:"contents" }}>
-                            {["Jenis","Nominal","Tgl Transaksi","Keterangan"].map(h=>(
-                              <span key={h} style={{ color:"rgba(255,255,255,0.3)", fontSize:".68rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".05em", padding:"7px 12px", background:"rgba(255,255,255,0.03)", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>{h}</span>
-                            ))}
-                          </div>
-                          {detail.simpanan.map((s:any)=>{
-                            const simLabel: Record<string,string> = { pokok:"Pokok", wajib:"Wajib", sukarela:"Sukarela" };
-                            const simColor: Record<string,string> = { pokok:"#D4AF37", wajib:"#60a5fa", sukarela:"#34d399" };
-                            return (
-                              <div key={s.id} style={{ display:"contents" }}>
-                                <span style={{ color:simColor[s.type]||"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:600, padding:"8px 12px", borderBottom:"1px solid rgba(255,255,255,0.04)" }}>{simLabel[s.type]||s.type}</span>
-                                <span style={{ color:"#fff", fontSize:".83rem", fontWeight:700, padding:"8px 12px", borderBottom:"1px solid rgba(255,255,255,0.04)" }}>{fmt(s.amount)}</span>
-                                <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem", padding:"8px 12px", borderBottom:"1px solid rgba(255,255,255,0.04)" }}>{fmtDate(s.transaction_date||s.created_at)}</span>
-                                <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", padding:"8px 12px", borderBottom:"1px solid rgba(255,255,255,0.04)" }}>{s.description||"-"}</span>
-                              </div>
-                            );
-                          })}
+                      <div style={{ display:"flex", flexDirection:"column", gap:0, marginBottom:18, border:"1px solid rgba(255,255,255,0.07)", borderRadius:10, overflow:"hidden" }}>
+                        {/* Header */}
+                        <div style={{ display:"flex", background:"rgba(255,255,255,0.04)", borderBottom:"1px solid rgba(255,255,255,0.07)", padding:"6px 12px" }}>
+                          <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".68rem", fontWeight:700, textTransform:"uppercase", width:70, flexShrink:0 }}>Jenis</span>
+                          <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".68rem", fontWeight:700, textTransform:"uppercase", width:110, flexShrink:0 }}>Nominal</span>
+                          <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".68rem", fontWeight:700, textTransform:"uppercase", width:90, flexShrink:0 }}>Tgl Transaksi</span>
+                          <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".68rem", fontWeight:700, textTransform:"uppercase", flex:1 }}>Keterangan</span>
                         </div>
+                        {detail.simpanan.map((s:any, i:number)=>{
+                          const simLabel: Record<string,string> = { pokok:"Pokok", wajib:"Wajib", sukarela:"Sukarela" };
+                          const simColor: Record<string,string> = { pokok:"#D4AF37", wajib:"#60a5fa", sukarela:"#34d399" };
+                          return (
+                            <div key={s.id} style={{ display:"flex", alignItems:"center", padding:"8px 12px", borderBottom: i < detail.simpanan.length-1 ? "1px solid rgba(255,255,255,0.04)" : "none", background:"rgba(255,255,255,0.02)" }}>
+                              <span style={{ color:simColor[s.type]||"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:700, width:70, flexShrink:0 }}>{simLabel[s.type]||s.type}</span>
+                              <span style={{ color:"#fff", fontSize:".82rem", fontWeight:700, width:110, flexShrink:0 }}>{fmt(s.amount)}</span>
+                              <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem", width:90, flexShrink:0 }}>{fmtDate(s.transaction_date||s.created_at)}</span>
+                              <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", flex:1 }}>{s.description||"-"}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </>
