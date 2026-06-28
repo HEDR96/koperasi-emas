@@ -19,6 +19,7 @@ interface TxRow {
   amount: number;
   status: string;
   created_at: string;
+  transaction_date: string | null;
   profiles: { name: string } | null;
 }
 
@@ -61,7 +62,7 @@ export default function MasterDashboardPage() {
         (supabase.from("transactions") as any).select("id", { count:"exact", head:true })
           .gte("created_at", new Date().toISOString().slice(0,10)),
         (supabase.from("transactions") as any)
-          .select("id,type,amount,status,created_at,profiles:profiles!user_id(name)")
+          .select("id,type,amount,status,created_at,transaction_date,profiles:profiles!user_id(name)")
           .order("created_at", { ascending:false })
           .limit(10),
       ]);
@@ -183,7 +184,7 @@ export default function MasterDashboardPage() {
                     </span>
                   </td>
                   <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.45)", fontSize:".82rem", whiteSpace:"nowrap" }}>
-                    {fmtDate(tx.created_at)}
+                    {fmtDate(tx.transaction_date || tx.created_at)}
                   </td>
                 </tr>
               ))}

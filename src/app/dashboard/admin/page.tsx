@@ -13,6 +13,7 @@ interface PendingTx {
   amount: number;
   gram: number | null;
   created_at: string;
+  transaction_date: string | null;
   profiles: { name: string } | null;
 }
 
@@ -46,7 +47,7 @@ export default function AdminDashboardPage() {
         (supabase.from("transactions") as any).select("id",{count:"exact",head:true}).gte("created_at",today),
         (supabase.from("profiles") as any).select("id",{count:"exact",head:true}).or("role.eq.member,is_member.eq.true"),
         (supabase.from("transactions") as any)
-          .select("id,type,amount,gram,created_at,profiles:profiles!user_id(name)")
+          .select("id,type,amount,gram,created_at,transaction_date,profiles:profiles!user_id(name)")
           .eq("status","pending")
           .order("created_at",{ascending:false})
           .limit(5),
@@ -168,7 +169,7 @@ export default function AdminDashboardPage() {
                       {fmt(tx.amount)}
                     </td>
                     <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.4)", fontSize:".8rem", whiteSpace:"nowrap" }}>
-                      {fmtDate(tx.created_at)}
+                      {fmtDate(tx.transaction_date || tx.created_at)}
                     </td>
                     <td style={{ padding:"13px 18px" }}>
                       <div style={{ display:"flex", gap:6 }}>
