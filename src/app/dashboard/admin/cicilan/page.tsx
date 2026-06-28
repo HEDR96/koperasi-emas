@@ -52,7 +52,7 @@ export default function AdminCicilanPage() {
   useEffect(() => {
     (async () => {
       const [{ data: e }, markup, params] = await Promise.all([
-        (supabase.rpc("get_latest_harga_berat", { kat: "emas" }) as any),
+        ((supabase as any).rpc("get_latest_harga_berat", { kat: "emas" }) as any),
         getMarkup(),
         getCicilanParams(),
       ]);

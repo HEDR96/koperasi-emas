@@ -86,7 +86,7 @@ export default function MemberManagementPage() {
 
       // Daftar harga emas (jual) + markup anggota per berat, untuk dropdown gram.
       const [{ data: e }, markup, cp] = await Promise.all([
-        (supabase.rpc("get_latest_harga_berat", { kat: "emas" }) as any),
+        ((supabase as any).rpc("get_latest_harga_berat", { kat: "emas" }) as any),
         getMarkup(),
         getCicilanParams(),
       ]);
