@@ -57,7 +57,7 @@ export default function ApprovalPage() {
         .select("id, user_id, dana_cair, sisa_tagihan, tenor, angsuran_per_bulan, gram_setara, keterangan, created_at, transaction_date, profiles:profiles!user_id(name)")
         .eq("status","pengajuan").order("created_at",{ascending:false}),
       (supabase.from("installments") as any)
-        .select("id, user_id, product_name, total_amount, monthly_amount, tenor, created_at, transaction_date, profiles:profiles!user_id(name)")
+        .select("id, user_id, product_name, total_amount, monthly_amount, tenor, created_at, profiles:profiles!user_id(name)")
         .eq("status","pending").order("created_at",{ascending:false}),
     ]);
     const errs = [txRes.error, simRes.error, gadaiRes.error, cicRes.error].filter(Boolean);
