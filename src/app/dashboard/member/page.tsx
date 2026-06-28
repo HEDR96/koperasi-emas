@@ -20,7 +20,7 @@ interface TxRow { id: string; type: string; amount: number; gram: number | null;
 
 const TYPE_LABEL: Record<string,string> = {
   buy:"Beli Emas", buyback:"Jual Kembali", cicilan:"Cicilan",
-  Simpanan:"Simpanan", transfer:"Transfer", referral_bonus:"Bonus Referral",
+  tabungan:"Setor Simpanan", Simpanan:"Simpanan", transfer:"Transfer", referral_bonus:"Bonus Referral",
 };
 const STATUS_COLOR: Record<string,string> = {
   pending:"#fbbf24", processing:"#60a5fa", completed:"#34d399", rejected:"#f87171",

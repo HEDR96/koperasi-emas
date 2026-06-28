@@ -152,7 +152,7 @@ export default function MemberManagementPage() {
         (supabase.from("transactions") as any).select("*").eq("user_id",m.id).order("created_at",{ascending:false}).limit(5),
         (supabase.from("savings") as any).select("*").eq("user_id",m.id),
         (supabase.from("installments") as any).select("*").eq("user_id",m.id).order("created_at",{ascending:false}),
-        (supabase.from("simpanan") as any).select("id, type, amount, status, created_at").eq("user_id",m.id).order("created_at",{ascending:false}),
+        (supabase.from("simpanan") as any).select("id, type, amount, status, transaction_date, created_at, description").eq("user_id",m.id).order("transaction_date",{ascending:false}),
         (supabase.from("gadai") as any).select("id, dana_cair, sisa_tagihan, status, tenor, angsuran_per_bulan, created_at").eq("user_id",m.id).order("created_at",{ascending:false}),
       ]);
       setDetail(d => d ? ({ ...d, transactions:txRes.data||[], savings:savRes.data||[], installments:insRes.data||[], simpanan:simRes.data||[], gadai:gadaiRes.data||[] }) : d);
@@ -522,13 +522,25 @@ export default function MemberManagementPage() {
                       <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".85rem", marginBottom:18 }}>Belum ada simpanan.</p>
                     ) : (
                       <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:18 }}>
-                        {detail.simpanan.map((s:any)=>(
-                          <div key={s.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(255,255,255,0.03)", borderRadius:9, padding:"9px 14px" }}>
-                            <span style={{ color:"rgba(255,255,255,0.7)", fontSize:".83rem", textTransform:"capitalize" }}>{s.type}</span>
-                            <span style={{ color:"#a78bfa", fontWeight:600, fontSize:".83rem" }}>{fmt(s.amount)}</span>
-                            <span style={{ color:STATUS_COLOR[s.status]||"#fff", fontSize:".72rem" }}>{s.status}</span>
+                        <div style={{ display:"grid", gridTemplateColumns:"auto 1fr 110px 1fr", gap:0, background:"rgba(255,255,255,0.02)", borderRadius:10, overflow:"hidden", border:"1px solid rgba(255,255,255,0.06)" }}>
+                          <div style={{ display:"contents" }}>
+                            {["Jenis","Nominal","Tgl Transaksi","Keterangan"].map(h=>(
+                              <span key={h} style={{ color:"rgba(255,255,255,0.3)", fontSize:".68rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".05em", padding:"7px 12px", background:"rgba(255,255,255,0.03)", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>{h}</span>
+                            ))}
                           </div>
-                        ))}
+                          {detail.simpanan.map((s:any)=>{
+                            const simLabel: Record<string,string> = { pokok:"Pokok", wajib:"Wajib", sukarela:"Sukarela" };
+                            const simColor: Record<string,string> = { pokok:"#D4AF37", wajib:"#60a5fa", sukarela:"#34d399" };
+                            return (
+                              <div key={s.id} style={{ display:"contents" }}>
+                                <span style={{ color:simColor[s.type]||"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:600, padding:"8px 12px", borderBottom:"1px solid rgba(255,255,255,0.04)" }}>{simLabel[s.type]||s.type}</span>
+                                <span style={{ color:"#fff", fontSize:".83rem", fontWeight:700, padding:"8px 12px", borderBottom:"1px solid rgba(255,255,255,0.04)" }}>{fmt(s.amount)}</span>
+                                <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem", padding:"8px 12px", borderBottom:"1px solid rgba(255,255,255,0.04)" }}>{fmtDate(s.transaction_date||s.created_at)}</span>
+                                <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", padding:"8px 12px", borderBottom:"1px solid rgba(255,255,255,0.04)" }}>{s.description||"-"}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </>
@@ -543,13 +555,17 @@ export default function MemberManagementPage() {
                 <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Belum ada transaksi.</p>
               ) : (
                 <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:18 }}>
-                  {detail.transactions.map((tx:any)=>(
-                    <div key={tx.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(255,255,255,0.03)", borderRadius:9, padding:"9px 14px" }}>
-                      <span style={{ color:"rgba(255,255,255,0.7)", fontSize:".83rem" }}>{tx.type}</span>
-                      <span style={{ color:"#D4AF37", fontWeight:600, fontSize:".83rem" }}>{fmt(tx.amount)}</span>
-                      <span style={{ color:STATUS_COLOR[tx.status]||"#fff", fontSize:".75rem", background:STATUS_BG[tx.status]||"rgba(255,255,255,0.06)", borderRadius:5, padding:"2px 8px" }}>{tx.status}</span>
-                    </div>
-                  ))}
+                  {detail.transactions.map((tx:any)=>{
+                    const TX_LBL: Record<string,string> = { buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan", tabungan:"Setor Simpanan", transfer:"Transfer", referral_bonus:"Bonus Referral" };
+                    return (
+                      <div key={tx.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(255,255,255,0.03)", borderRadius:9, padding:"9px 14px", gap:8 }}>
+                        <span style={{ color:"rgba(255,255,255,0.7)", fontSize:".83rem", flex:1 }}>{TX_LBL[tx.type]||tx.type}</span>
+                        <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem" }}>{fmtDate(tx.transaction_date||tx.created_at)}</span>
+                        <span style={{ color:"#D4AF37", fontWeight:600, fontSize:".83rem" }}>{fmt(tx.amount)}</span>
+                        <span style={{ color:STATUS_COLOR[tx.status]||"#fff", fontSize:".75rem", background:STATUS_BG[tx.status]||"rgba(255,255,255,0.06)", borderRadius:5, padding:"2px 8px" }}>{tx.status}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               {/* Savings */}

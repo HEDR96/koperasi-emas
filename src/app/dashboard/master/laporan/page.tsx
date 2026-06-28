@@ -49,57 +49,77 @@ const REPORTS: { id: ReportType; label: string; icon: any; color: string; desc: 
   { id:"simpanan",  label:"Simpanan",             icon:Wallet,         color:"#f59e0b", desc:"Data simpanan anggota dalam periode" },
 ];
 
+/* ─── helpers filter: pakai transaction_date jika ada, fallback created_at ─── */
+function applyDateFilter(query: any, from: string, to: string) {
+  // Baris dengan transaction_date terisi → filter transaction_date
+  // Baris dengan transaction_date null → filter created_at sebagai fallback
+  return query.or(
+    `and(transaction_date.gte.${toISOStart(from)},transaction_date.lte.${toISOEnd(to)}),` +
+    `and(transaction_date.is.null,created_at.gte.${toISOStart(from)},created_at.lte.${toISOEnd(to)})`
+  );
+}
+
 /* ─── fetch functions ─── */
 async function fetchTransaksi(from: string, to: string) {
-  const { data } = await (supabase.from("transactions") as any)
+  const base = (supabase.from("transactions") as any)
     .select("id, type, amount, gram, status, payment_method, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
     .eq("type", "buy")
-    .gte("transaction_date", toISOStart(from))
-    .lte("transaction_date", toISOEnd(to))
-    .order("transaction_date", { ascending: true })
     .limit(5000);
-  return data || [];
+  const { data } = await applyDateFilter(base, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
+  return (data || []).sort((a: any, b: any) => {
+    const da = a.transaction_date || a.created_at;
+    const db = b.transaction_date || b.created_at;
+    return da < db ? -1 : 1;
+  });
 }
 
 async function fetchBuyback(from: string, to: string) {
-  const { data } = await (supabase.from("transactions") as any)
+  const base = (supabase.from("transactions") as any)
     .select("id, type, amount, gram, status, payment_method, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
     .eq("type", "buyback")
-    .gte("transaction_date", toISOStart(from))
-    .lte("transaction_date", toISOEnd(to))
-    .order("transaction_date", { ascending: true })
     .limit(5000);
-  return data || [];
+  const { data } = await applyDateFilter(base, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
+  return (data || []).sort((a: any, b: any) => {
+    const da = a.transaction_date || a.created_at;
+    const db = b.transaction_date || b.created_at;
+    return da < db ? -1 : 1;
+  });
 }
 
 async function fetchCicilan(from: string, to: string) {
-  const { data } = await (supabase.from("installments") as any)
+  const base = (supabase.from("installments") as any)
     .select("id, product_name, total_amount, monthly_amount, down_payment, tenor, paid_installments, status, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
-    .gte("transaction_date", toISOStart(from))
-    .lte("transaction_date", toISOEnd(to))
-    .order("transaction_date", { ascending: true })
     .limit(5000);
-  return data || [];
+  const { data } = await applyDateFilter(base, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
+  return (data || []).sort((a: any, b: any) => {
+    const da = a.transaction_date || a.created_at;
+    const db = b.transaction_date || b.created_at;
+    return da < db ? -1 : 1;
+  });
 }
 
 async function fetchGadai(from: string, to: string) {
-  const { data } = await (supabase.from("gadai") as any)
+  const base = (supabase.from("gadai") as any)
     .select("id, dana_cair, gram_setara, tenor, angsuran_per_bulan, sisa_tagihan, nilai_jaminan, status, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
-    .gte("transaction_date", toISOStart(from))
-    .lte("transaction_date", toISOEnd(to))
-    .order("transaction_date", { ascending: true })
     .limit(5000);
-  return data || [];
+  const { data } = await applyDateFilter(base, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
+  return (data || []).sort((a: any, b: any) => {
+    const da = a.transaction_date || a.created_at;
+    const db = b.transaction_date || b.created_at;
+    return da < db ? -1 : 1;
+  });
 }
 
 async function fetchSimpanan(from: string, to: string) {
-  const { data } = await (supabase.from("simpanan") as any)
+  const base = (supabase.from("simpanan") as any)
     .select("id, type, amount, status, description, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
-    .gte("transaction_date", toISOStart(from))
-    .lte("transaction_date", toISOEnd(to))
-    .order("transaction_date", { ascending: true })
     .limit(5000);
-  return data || [];
+  const { data } = await applyDateFilter(base, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
+  return (data || []).sort((a: any, b: any) => {
+    const da = a.transaction_date || a.created_at;
+    const db = b.transaction_date || b.created_at;
+    return da < db ? -1 : 1;
+  });
 }
 
 /* ─── CSV builders ─── */
