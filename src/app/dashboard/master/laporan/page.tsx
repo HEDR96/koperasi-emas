@@ -107,7 +107,7 @@ function applyDateFilter(query: any, from: string, to: string) {
 /* ─── fetch functions ─── */
 async function fetchTransaksi(from: string, to: string) {
   const base = (supabase.from("transactions") as any)
-    .select("id, type, amount, gram, status, payment_method, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
+    .select("id, type, amount, gram, status, payment_method, notes, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
     .eq("type", "buy")
     .limit(5000);
   const { data } = await applyDateFilter(base, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
@@ -120,7 +120,7 @@ async function fetchTransaksi(from: string, to: string) {
 
 async function fetchBuyback(from: string, to: string) {
   const base = (supabase.from("transactions") as any)
-    .select("id, type, amount, gram, status, payment_method, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
+    .select("id, type, amount, gram, status, payment_method, notes, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
     .eq("type", "buyback")
     .limit(5000);
   const { data } = await applyDateFilter(base, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
@@ -145,7 +145,7 @@ async function fetchCicilan(from: string, to: string) {
 
 async function fetchGadai(from: string, to: string) {
   const base = (supabase.from("gadai") as any)
-    .select("id, dana_cair, gram_setara, tenor, angsuran_per_bulan, sisa_tagihan, nilai_jaminan, status, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
+    .select("id, dana_cair, gram_setara, tenor, angsuran_per_bulan, sisa_tagihan, nilai_jaminan, status, keterangan, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
     .limit(5000);
   const { data } = await applyDateFilter(base, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
   return (data || []).sort((a: any, b: any) => {
@@ -171,23 +171,23 @@ async function fetchSimpanan(from: string, to: string) {
 type ColFmt = "auto" | "text" | "phone" | "gram" | "rupiah" | "number";
 
 async function xlsxTransaksi(rows: any[], from: string, to: string) {
-  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Gram","Harga Total (Rp)","Metode Bayar","Status","Tgl Input"];
-  const fmt: ColFmt[] = ["auto","auto","auto","phone","gram","rupiah","auto","auto","auto"];
+  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Gram","Harga Total (Rp)","Metode Bayar","Keterangan","Status","Tgl Input"];
+  const fmt: ColFmt[] = ["auto","auto","auto","phone","gram","rupiah","auto","auto","auto","auto"];
   const data = rows.map((r, i) => [
     i + 1, tglIndo(r.transaction_date || r.created_at),
     r.profiles?.name || "-", r.profiles?.phone || "-",
-    r.gram, r.amount, r.payment_method || "-", r.status, tglIndo(r.created_at),
+    r.gram, r.amount, r.payment_method || "-", r.notes || "-", r.status, tglIndo(r.created_at),
   ]);
   await downloadXLSX("Beli Emas", headers, data, `Laporan_Beli_Emas_${from}_sd_${to}.xlsx`, fmt);
 }
 
 async function xlsxBuyback(rows: any[], from: string, to: string) {
-  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Gram","Dana Cair (Rp)","Status","Tgl Input"];
-  const fmt: ColFmt[] = ["auto","auto","auto","phone","gram","rupiah","auto","auto"];
+  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Gram","Dana Cair (Rp)","Keterangan","Status","Tgl Input"];
+  const fmt: ColFmt[] = ["auto","auto","auto","phone","gram","rupiah","auto","auto","auto"];
   const data = rows.map((r, i) => [
     i + 1, tglIndo(r.transaction_date || r.created_at),
     r.profiles?.name || "-", r.profiles?.phone || "-",
-    r.gram, r.amount, r.status, tglIndo(r.created_at),
+    r.gram, r.amount, r.notes || "-", r.status, tglIndo(r.created_at),
   ]);
   await downloadXLSX("Buyback", headers, data, `Laporan_Buyback_${from}_sd_${to}.xlsx`, fmt);
 }
@@ -205,13 +205,13 @@ async function xlsxCicilan(rows: any[], from: string, to: string) {
 }
 
 async function xlsxGadai(rows: any[], from: string, to: string) {
-  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Dana Cair (Rp)","Gram Setara","Nilai Jaminan (Rp)","Tenor","Angsuran/Bln (Rp)","Sisa Tagihan (Rp)","Status","Tgl Input"];
-  const fmt: ColFmt[] = ["auto","auto","auto","phone","rupiah","gram","rupiah","number","rupiah","rupiah","auto","auto"];
+  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Dana Cair (Rp)","Gram Setara","Nilai Jaminan (Rp)","Tenor","Angsuran/Bln (Rp)","Sisa Tagihan (Rp)","Keterangan","Status","Tgl Input"];
+  const fmt: ColFmt[] = ["auto","auto","auto","phone","rupiah","gram","rupiah","number","rupiah","rupiah","auto","auto","auto"];
   const data = rows.map((r, i) => [
     i + 1, tglIndo(r.transaction_date || r.created_at),
     r.profiles?.name || "-", r.profiles?.phone || "-",
     r.dana_cair, r.gram_setara, r.nilai_jaminan,
-    r.tenor, r.angsuran_per_bulan, r.sisa_tagihan, r.status, tglIndo(r.created_at),
+    r.tenor, r.angsuran_per_bulan, r.sisa_tagihan, r.keterangan || "-", r.status, tglIndo(r.created_at),
   ]);
   await downloadXLSX("Gadai Emas", headers, data, `Laporan_Gadai_${from}_sd_${to}.xlsx`, fmt);
 }
