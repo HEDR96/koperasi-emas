@@ -50,19 +50,22 @@ async function uploadProof(file: File): Promise<string> {
   return json.url as string;
 }
 
-/* ── invoice printer ── */
-function printInvoice(order: any, payment: any, siteName: string) {
+/* ── invoice printer — paid=true → LUNAS, paid=false → BELUM LUNAS ── */
+function printInvoice(order: any, payment: any | null, siteName: string, paid: boolean) {
   const items = Array.isArray(order.items) ? order.items : JSON.parse(order.items || "[]");
-  const kembalian = Math.max(0, payment.terbayar - payment.nominal);
+  const kembalian = payment ? Math.max(0, payment.terbayar - payment.nominal) : 0;
   const w = window.open("", "_blank");
   if (!w) return;
   w.document.write(`<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8">
 <title>Invoice #${order.id.slice(-8).toUpperCase()}</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:Arial,sans-serif;font-size:13px;color:#111;padding:24px;max-width:640px;margin:0 auto}
+  body{font-family:Arial,sans-serif;font-size:13px;color:#111;padding:24px;max-width:640px;margin:0 auto;position:relative}
   .logo{font-size:1.3rem;font-weight:900;color:#B8860B;text-align:center;margin-bottom:4px}
-  .sub{text-align:center;color:#555;font-size:.8rem;margin-bottom:20px}
+  .sub{text-align:center;color:#555;font-size:.8rem;margin-bottom:4px}
+  .status-badge{display:inline-block;padding:4px 18px;border-radius:20px;font-size:.8rem;font-weight:800;letter-spacing:.05em;margin-bottom:18px;${paid?"background:#dcfce7;color:#16a34a;border:2px solid #16a34a":"background:#fef2f2;color:#dc2626;border:2px solid #dc2626"}}
+  .status-wrap{text-align:center}
+  .watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:5rem;font-weight:900;opacity:.05;color:${paid?"#16a34a":"#dc2626"};pointer-events:none;white-space:nowrap}
   h2{font-size:1rem;font-weight:700;margin-bottom:12px;border-bottom:2px solid #B8860B;padding-bottom:6px}
   table{width:100%;border-collapse:collapse;margin-bottom:16px}
   th{background:#B8860B;color:#fff;padding:8px 10px;text-align:left;font-size:.8rem}
@@ -75,11 +78,13 @@ function printInvoice(order: any, payment: any, siteName: string) {
   .footer{text-align:center;color:#888;font-size:.75rem;margin-top:24px;border-top:1px solid #eee;padding-top:12px}
   @media print{body{padding:0}}
 </style></head><body>
+<div class="watermark">${paid?"LUNAS":"BELUM LUNAS"}</div>
 <div class="logo">${siteName}</div>
 <div class="sub">INVOICE PEMBELIAN PRODUK</div>
+<div class="status-wrap"><span class="status-badge">${paid?"✓ LUNAS":"✗ BELUM LUNAS"}</span></div>
 <div class="info-grid">
   <div class="info-item"><label>No. Invoice</label><span>#${order.id.slice(-8).toUpperCase()}</span></div>
-  <div class="info-item"><label>Tanggal</label><span>${fmtDt(payment.created_at || order.created_at)}</span></div>
+  <div class="info-item"><label>Tanggal</label><span>${fmtDt(payment?.created_at || order.created_at)}</span></div>
   <div class="info-item"><label>Pelanggan</label><span>${order.customer_name}</span></div>
   <div class="info-item"><label>Telepon</label><span>${order.customer_phone || "-"}</span></div>
 </div>
@@ -97,13 +102,13 @@ function printInvoice(order: any, payment: any, siteName: string) {
     <tr class="total-row"><td colspan="3">Total</td><td class="right">${fmt(order.total_amount)}</td></tr>
   </tbody>
 </table>
-<h2>Pembayaran</h2>
+${payment ? `<h2>Pembayaran</h2>
 <div class="info-grid">
   <div class="info-item"><label>Metode</label><span>${payment.payment_method}</span></div>
   <div class="info-item"><label>Nominal Tagihan</label><span>${fmt(payment.nominal)}</span></div>
   <div class="info-item"><label>Terbayar</label><span>${fmt(payment.terbayar)}</span></div>
   <div class="info-item"><label>Kembalian</label><span>${fmt(kembalian)}</span></div>
-</div>
+</div>` : `<p style="color:#999;font-size:.8rem;margin-bottom:16px">Pembayaran belum diproses.</p>`}
 <div class="footer">Terima kasih atas kepercayaan Anda • ${siteName}</div>
 <script>window.onload=()=>{window.print();}</script>
 </body></html>`);
@@ -133,6 +138,7 @@ export default function AdminProdukPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [approveOrder, setApproveOrder] = useState<any | null>(null);
+  const [approveStep, setApproveStep] = useState<"review"|"payment">("review");
   const [payForm, setPayForm] = useState({ customer_name:"", nominal:"", terbayar:"", payment_method:"BSI", notes:"", proof_url:"" });
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreview, setProofPreview] = useState("");
@@ -203,12 +209,13 @@ export default function AdminProdukPage() {
   /* ── pesanan handlers ── */
   function openApprove(o: any) {
     setApproveOrder(o);
+    setApproveStep("review");
     const items = Array.isArray(o.items) ? o.items : JSON.parse(o.items || "[]");
     const total = items.reduce((s: number, it: any) => s + it.price * it.quantity, 0);
     setPayForm({ customer_name:o.customer_name, nominal:String(total), terbayar:String(total), payment_method:"BSI", notes:"", proof_url:"" });
     setProofFile(null); setProofPreview(""); setPayErr("");
   }
-  function closeApprove() { setApproveOrder(null); setPayForm({ customer_name:"", nominal:"", terbayar:"", payment_method:"BSI", notes:"", proof_url:"" }); setProofFile(null); setProofPreview(""); setPayErr(""); }
+  function closeApprove() { setApproveOrder(null); setApproveStep("review"); setPayForm({ customer_name:"", nominal:"", terbayar:"", payment_method:"BSI", notes:"", proof_url:"" }); setProofFile(null); setProofPreview(""); setPayErr(""); }
 
   function handleProofPick(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]; if (!f) return;
@@ -248,7 +255,7 @@ export default function AdminProdukPage() {
       }
     }
     const payment = { order_id:approveOrder.id, customer_name:payForm.customer_name, nominal:Number(payForm.nominal), terbayar:Number(payForm.terbayar), payment_method:payForm.payment_method, proof_url:proofUrl||null, created_at:new Date().toISOString() };
-    const orderCopy = { ...approveOrder };
+    const orderCopy = { ...approveOrder, status:"approved" };
     closeApprove();
     loadOrders(); loadProduk();
     setSavingPay(false);
@@ -261,10 +268,9 @@ export default function AdminProdukPage() {
     loadOrders();
   }
 
-  async function showInvoice(o: any) {
+  function showInvoice(o: any) {
     const pays = o.product_payments || [];
-    const pay = pays[pays.length - 1];
-    if (!pay) { alert("Belum ada data pembayaran."); return; }
+    const pay = pays[pays.length - 1] || null;
     setInvoiceModal({ order:o, payment:pay });
   }
 
@@ -451,7 +457,7 @@ export default function AdminProdukPage() {
                       {items.length>3 && <span style={{ fontSize:".76rem", color:"rgba(255,255,255,0.3)", padding:"3px 0" }}>+{items.length-3} lainnya</span>}
                     </div>
                     {/* actions */}
-                    <div style={{ display:"flex", gap:8 }}>
+                    <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                       {o.status === "pending" && (
                         <>
                           <button onClick={() => openApprove(o)} style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:8, background:"rgba(52,211,153,0.1)", border:"1px solid rgba(52,211,153,0.3)", color:"#34d399", cursor:"pointer", fontSize:".8rem", fontWeight:700 }}>
@@ -462,11 +468,10 @@ export default function AdminProdukPage() {
                           </button>
                         </>
                       )}
-                      {o.status === "approved" && (
-                        <button onClick={() => showInvoice(o)} style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:8, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.3)", color:G, cursor:"pointer", fontSize:".8rem", fontWeight:700 }}>
-                          <Printer style={{ width:13, height:13 }} /> Print Invoice
-                        </button>
-                      )}
+                      <button onClick={() => showInvoice(o)} style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:8, background: o.status==="approved" ? "rgba(212,175,55,0.1)" : "rgba(255,255,255,0.04)", border: o.status==="approved" ? "1px solid rgba(212,175,55,0.3)" : "1px solid rgba(255,255,255,0.1)", color: o.status==="approved" ? G : "rgba(255,255,255,0.35)", cursor:"pointer", fontSize:".8rem", fontWeight:700 }}>
+                        <Printer style={{ width:13, height:13 }} />
+                        {o.status==="approved" ? "Invoice (Lunas)" : "Invoice (Belum Bayar)"}
+                      </button>
                       {o.notes && <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".78rem", padding:"7px 0", display:"flex", alignItems:"center", gap:4 }}><AlertCircle style={{ width:12, height:12 }} />{o.notes}</span>}
                     </div>
                   </motion.div>
@@ -590,94 +595,128 @@ export default function AdminProdukPage() {
             style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", backdropFilter:"blur(4px)", zIndex:50, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}
             onClick={e => { if (e.target===e.currentTarget) closeApprove(); }}>
             <motion.div initial={{ opacity:0, scale:.95, y:16 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95, y:16 }} transition={{ type:"spring", stiffness:300, damping:28 }}
-              style={{ width:"100%", maxWidth:560, maxHeight:"90vh", overflowY:"auto", background:"#111", border:"1px solid rgba(52,211,153,0.35)", borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.7)" }}>
+              style={{ width:"100%", maxWidth:560, maxHeight:"90vh", overflowY:"auto", background:"#111", border:`1px solid ${approveStep==="review"?"rgba(251,191,36,0.35)":"rgba(52,211,153,0.35)"}`, borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.7)" }}>
+              {/* header */}
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 22px 14px", borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                  <div style={{ width:32, height:32, borderRadius:9, background:"rgba(52,211,153,0.1)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <CheckCheck style={{ width:14, height:14, color:"#34d399" }} />
+                  <div style={{ width:32, height:32, borderRadius:9, background:approveStep==="review"?"rgba(251,191,36,0.1)":"rgba(52,211,153,0.1)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    {approveStep==="review"
+                      ? <FileText style={{ width:14, height:14, color:"#fbbf24" }} />
+                      : <CheckCheck style={{ width:14, height:14, color:"#34d399" }} />}
                   </div>
-                  <span style={{ color:"#fff", fontWeight:700, fontSize:".95rem" }}>Setujui Pesanan</span>
+                  <div>
+                    <span style={{ color:"#fff", fontWeight:700, fontSize:".95rem" }}>
+                      {approveStep==="review" ? "Cek Pesanan" : "Input Pembayaran"}
+                    </span>
+                    <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:"1px 0 0" }}>
+                      {approveStep==="review" ? "Langkah 1 dari 2 — verifikasi detail pesanan" : "Langkah 2 dari 2 — input data pembayaran"}
+                    </p>
+                  </div>
                 </div>
                 <button onClick={closeApprove} style={{ width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, color:"rgba(255,255,255,0.4)", cursor:"pointer" }}><X style={{ width:14, height:14 }} /></button>
               </div>
+
               <div style={{ padding:"20px 22px", display:"flex", flexDirection:"column", gap:16 }}>
-                {payErr && <div style={{ background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:10, padding:"10px 14px", color:"#f87171", fontSize:".82rem" }}>{payErr}</div>}
 
-                {/* items summary */}
-                <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:12, padding:"12px 14px" }}>
-                  <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".72rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 8px" }}>Detail Pesanan</p>
-                  {(Array.isArray(approveOrder.items)?approveOrder.items:JSON.parse(approveOrder.items||"[]")).map((it: any, j: number) => (
-                    <div key={j} style={{ display:"flex", justifyContent:"space-between", padding:"4px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                      <span style={{ color:"rgba(255,255,255,0.7)", fontSize:".83rem" }}>{it.title}{it.gram_weight?` (${it.gram_weight}gr)`:""} ×{it.quantity}</span>
-                      <span style={{ color:G, fontSize:".83rem", fontWeight:600 }}>{fmt(it.price*it.quantity)}</span>
+                {/* ── STEP 1: REVIEW ── */}
+                {approveStep === "review" && (
+                  <>
+                    <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:12, padding:"14px 16px" }}>
+                      <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".72rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 10px" }}>Detail Pesanan</p>
+                      <div style={{ marginBottom:8 }}>
+                        <p style={{ color:"#fff", fontWeight:700, margin:"0 0 2px" }}>{approveOrder.customer_name}</p>
+                        {approveOrder.customer_phone && <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".8rem", margin:0 }}>{approveOrder.customer_phone}</p>}
+                        <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".75rem", margin:"4px 0 0" }}>#{approveOrder.id.slice(-8).toUpperCase()} · {fmtDt(approveOrder.created_at)}</p>
+                      </div>
+                      <div style={{ borderTop:"1px solid rgba(255,255,255,0.06)", paddingTop:10 }}>
+                        {(Array.isArray(approveOrder.items)?approveOrder.items:JSON.parse(approveOrder.items||"[]")).map((it: any, j: number) => (
+                          <div key={j} style={{ display:"flex", justifyContent:"space-between", padding:"5px 0", borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
+                            <span style={{ color:"rgba(255,255,255,0.75)", fontSize:".84rem" }}>{it.title}{it.gram_weight?` (${it.gram_weight}gr)`:""} <span style={{ color:"rgba(255,255,255,0.35)" }}>×{it.quantity}</span></span>
+                            <span style={{ color:G, fontSize:".84rem", fontWeight:600 }}>{fmt(it.price*it.quantity)}</span>
+                          </div>
+                        ))}
+                        <div style={{ display:"flex", justifyContent:"space-between", paddingTop:10 }}>
+                          <span style={{ color:"rgba(255,255,255,0.5)", fontWeight:700 }}>Total</span>
+                          <span style={{ color:"#fff", fontSize:".95rem", fontWeight:900 }}>{fmt(approveOrder.total_amount)}</span>
+                        </div>
+                      </div>
                     </div>
-                  ))}
-                  <div style={{ display:"flex", justifyContent:"space-between", paddingTop:8 }}>
-                    <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".83rem", fontWeight:700 }}>Total</span>
-                    <span style={{ color:"#fff", fontSize:".9rem", fontWeight:800 }}>{fmt(approveOrder.total_amount)}</span>
-                  </div>
-                </div>
+                    <div style={{ display:"flex", gap:8, paddingTop:4 }}>
+                      <button onClick={() => setApproveStep("payment")}
+                        style={{ flex:1, padding:12, borderRadius:11, background:"linear-gradient(135deg,#34d399,#10b981)", border:"none", color:"#fff", fontWeight:800, fontSize:".88rem", cursor:"pointer" }}>
+                        Lanjut ke Input Pembayaran →
+                      </button>
+                      <button onClick={closeApprove} style={{ padding:"12px 18px", borderRadius:11, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", color:"rgba(255,255,255,0.35)", cursor:"pointer", fontSize:".85rem" }}>Batal</button>
+                    </div>
+                  </>
+                )}
 
-                <div>
-                  <label style={lbl}>Nama Pemesan</label>
-                  <input value={payForm.customer_name} onChange={e=>setPayForm(p=>({...p,customer_name:e.target.value}))} style={field} />
-                </div>
+                {/* ── STEP 2: PAYMENT ── */}
+                {approveStep === "payment" && (
+                  <>
+                    {payErr && <div style={{ background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:10, padding:"10px 14px", color:"#f87171", fontSize:".82rem" }}>{payErr}</div>}
 
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                  <div>
-                    <label style={lbl}>Nominal Tagihan (Rp)</label>
-                    <RupiahInput value={payForm.nominal} onValueChange={v=>setPayForm(p=>({...p,nominal:v}))} style={field} />
-                  </div>
-                  <div>
-                    <label style={lbl}>Terbayar (Rp)</label>
-                    <RupiahInput value={payForm.terbayar} onValueChange={v=>setPayForm(p=>({...p,terbayar:v}))} style={field} />
-                  </div>
-                </div>
+                    <div>
+                      <label style={lbl}>Nama Pemesan</label>
+                      <input value={payForm.customer_name} onChange={e=>setPayForm(p=>({...p,customer_name:e.target.value}))} style={field} />
+                    </div>
 
-                <div>
-                  <label style={lbl}>Metode Pembayaran</label>
-                  <div style={{ position:"relative" }}>
-                    <select value={payForm.payment_method} onChange={e=>setPayForm(p=>({...p,payment_method:e.target.value}))}
-                      style={{ ...field, appearance:"none", paddingRight:36 }}>
-                      {PAY_METHODS.map(m => <option key={m} value={m} style={{ background:"#111" }}>{m}</option>)}
-                    </select>
-                    <ChevronDown style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", width:14, height:14, color:"rgba(255,255,255,0.3)", pointerEvents:"none" }} />
-                  </div>
-                </div>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                      <div>
+                        <label style={lbl}>Nominal Tagihan (Rp)</label>
+                        <RupiahInput value={payForm.nominal} onValueChange={v=>setPayForm(p=>({...p,nominal:v}))} style={field} />
+                      </div>
+                      <div>
+                        <label style={lbl}>Terbayar (Rp)</label>
+                        <RupiahInput value={payForm.terbayar} onValueChange={v=>setPayForm(p=>({...p,terbayar:v}))} style={field} />
+                      </div>
+                    </div>
 
-                {/* bukti bayar upload */}
-                <div>
-                  <label style={lbl}>Upload Bukti Bayar (opsional)</label>
-                  <input ref={proofRef} type="file" accept="image/*" style={{ display:"none" }} onChange={handleProofPick} />
-                  {proofPreview ? (
-                    <div style={{ position:"relative", borderRadius:10, overflow:"hidden", border:"1px solid rgba(255,255,255,0.08)", maxHeight:120 }}>
-                      <img src={proofPreview} alt="Bukti" style={{ width:"100%", height:120, objectFit:"cover", display:"block" }} />
-                      <button onClick={() => { setProofFile(null); setProofPreview(""); if(proofRef.current) proofRef.current.value=""; }}
-                        style={{ position:"absolute", top:6, right:6, width:26, height:26, borderRadius:"50%", background:"rgba(0,0,0,0.7)", border:"none", color:"#fff", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                        <X style={{ width:12, height:12 }} />
+                    <div>
+                      <label style={lbl}>Metode Pembayaran</label>
+                      <div style={{ position:"relative" }}>
+                        <select value={payForm.payment_method} onChange={e=>setPayForm(p=>({...p,payment_method:e.target.value}))}
+                          style={{ ...field, appearance:"none", paddingRight:36 }}>
+                          {PAY_METHODS.map(m => <option key={m} value={m} style={{ background:"#111" }}>{m}</option>)}
+                        </select>
+                        <ChevronDown style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", width:14, height:14, color:"rgba(255,255,255,0.3)", pointerEvents:"none" }} />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={lbl}>Upload Bukti Bayar (opsional)</label>
+                      <input ref={proofRef} type="file" accept="image/*" style={{ display:"none" }} onChange={handleProofPick} />
+                      {proofPreview ? (
+                        <div style={{ position:"relative", borderRadius:10, overflow:"hidden", border:"1px solid rgba(255,255,255,0.08)", maxHeight:120 }}>
+                          <img src={proofPreview} alt="Bukti" style={{ width:"100%", height:120, objectFit:"cover", display:"block" }} />
+                          <button onClick={() => { setProofFile(null); setProofPreview(""); if(proofRef.current) proofRef.current.value=""; }}
+                            style={{ position:"absolute", top:6, right:6, width:26, height:26, borderRadius:"50%", background:"rgba(0,0,0,0.7)", border:"none", color:"#fff", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                            <X style={{ width:12, height:12 }} />
+                          </button>
+                        </div>
+                      ) : (
+                        <button onClick={() => proofRef.current?.click()}
+                          style={{ width:"100%", padding:"18px 14px", borderRadius:10, border:"2px dashed rgba(255,255,255,0.1)", background:"transparent", color:"rgba(255,255,255,0.3)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+                          <Upload style={{ width:16, height:16 }} />
+                          <span style={{ fontSize:".82rem" }}>Upload foto bukti transfer</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <div>
+                      <label style={lbl}>Catatan (opsional)</label>
+                      <textarea rows={2} value={payForm.notes} onChange={e=>setPayForm(p=>({...p,notes:e.target.value}))} style={{ ...field, resize:"vertical", fontFamily:"inherit" }} placeholder="Keterangan tambahan…" />
+                    </div>
+
+                    <div style={{ display:"flex", gap:8, paddingTop:4 }}>
+                      <button onClick={() => setApproveStep("review")} style={{ padding:"12px 16px", borderRadius:11, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", color:"rgba(255,255,255,0.35)", cursor:"pointer", fontSize:".85rem" }}>← Kembali</button>
+                      <button onClick={doApprove} disabled={savingPay}
+                        style={{ flex:1, padding:12, borderRadius:11, background:"linear-gradient(135deg,#34d399,#10b981)", border:"none", color:"#fff", fontWeight:800, fontSize:".88rem", cursor:savingPay?"not-allowed":"pointer", opacity:savingPay?.6:1 }}>
+                        {savingPay?"Memproses…":"Konfirmasi Pembayaran & Setujui"}
                       </button>
                     </div>
-                  ) : (
-                    <button onClick={() => proofRef.current?.click()}
-                      style={{ width:"100%", padding:"18px 14px", borderRadius:10, border:"2px dashed rgba(255,255,255,0.1)", background:"transparent", color:"rgba(255,255,255,0.3)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
-                      <Upload style={{ width:16, height:16 }} />
-                      <span style={{ fontSize:".82rem" }}>Upload foto bukti transfer</span>
-                    </button>
-                  )}
-                </div>
-
-                <div>
-                  <label style={lbl}>Catatan (opsional)</label>
-                  <textarea rows={2} value={payForm.notes} onChange={e=>setPayForm(p=>({...p,notes:e.target.value}))} style={{ ...field, resize:"vertical", fontFamily:"inherit" }} placeholder="Keterangan tambahan…" />
-                </div>
-
-                <div style={{ display:"flex", gap:8, paddingTop:4 }}>
-                  <button onClick={doApprove} disabled={savingPay}
-                    style={{ flex:1, padding:12, borderRadius:11, background:"linear-gradient(135deg,#34d399,#10b981)", border:"none", color:"#fff", fontWeight:800, fontSize:".88rem", cursor:savingPay?"not-allowed":"pointer", opacity:savingPay?.6:1 }}>
-                    {savingPay?"Memproses…":"Setujui & Simpan Pembayaran"}
-                  </button>
-                  <button onClick={closeApprove} style={{ padding:"12px 18px", borderRadius:11, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", color:"rgba(255,255,255,0.35)", cursor:"pointer", fontSize:".85rem" }}>Batal</button>
-                </div>
+                  </>
+                )}
               </div>
             </motion.div>
           </motion.div>
@@ -700,12 +739,17 @@ export default function AdminProdukPage() {
                 <button onClick={()=>setInvoiceModal(null)} style={{ width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, color:"rgba(255,255,255,0.4)", cursor:"pointer" }}><X style={{ width:14, height:14 }} /></button>
               </div>
               <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:12, padding:"14px 16px", marginBottom:16 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                  <span style={{ fontSize:".72rem", fontWeight:800, borderRadius:20, padding:"3px 10px", background: invoiceModal.order.status==="approved" ? "rgba(52,211,153,0.12)" : "rgba(248,113,113,0.1)", color: invoiceModal.order.status==="approved" ? "#34d399" : "#f87171", border:`1px solid ${invoiceModal.order.status==="approved"?"rgba(52,211,153,0.3)":"rgba(248,113,113,0.25)"}` }}>
+                    {invoiceModal.order.status==="approved" ? "✓ LUNAS" : "✗ BELUM LUNAS"}
+                  </span>
+                </div>
                 <p style={{ color:"#fff", fontWeight:700, margin:"0 0 4px" }}>{invoiceModal.order.customer_name}</p>
                 <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".8rem", margin:0 }}>#{invoiceModal.order.id.slice(-8).toUpperCase()} · {fmt(invoiceModal.order.total_amount)}</p>
-                <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".8rem", margin:"4px 0 0" }}>{invoiceModal.payment.payment_method} · Terbayar {fmt(invoiceModal.payment.terbayar)}</p>
+                {invoiceModal.payment && <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".8rem", margin:"4px 0 0" }}>{invoiceModal.payment.payment_method} · Terbayar {fmt(invoiceModal.payment.terbayar)}</p>}
               </div>
               <div style={{ display:"flex", gap:8 }}>
-                <button onClick={() => printInvoice(invoiceModal.order, invoiceModal.payment, settings.siteName || "Koperasi Emas")}
+                <button onClick={() => printInvoice(invoiceModal.order, invoiceModal.payment, settings.siteName || "Koperasi Emas", invoiceModal.order.status === "approved")}
                   style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:12, borderRadius:11, background:`linear-gradient(135deg,${G},${G2})`, border:"none", color:"#0a0a0a", fontWeight:800, cursor:"pointer" }}>
                   <Printer style={{ width:15, height:15 }} /> Print Invoice
                 </button>

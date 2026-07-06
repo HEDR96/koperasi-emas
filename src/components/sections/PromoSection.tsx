@@ -107,9 +107,6 @@ export default function PromoSection() {
       finally { setLoading(false); }
     }
     load();
-    // prefill from logged-in user
-    const u = useAuthStore.getState().user;
-    if (u) { setCustName(u.name || ""); setCustPhone(u.phone || ""); }
   }, []);
 
   function addToCart(prod: ProdukItem) {
@@ -149,7 +146,7 @@ export default function PromoSection() {
     localStorage.setItem(CART_KEY, JSON.stringify({ items: cart, customer_name: custName.trim(), customer_phone: custPhone.trim() }));
     window.open(`https://wa.me/${waNum}?text=${buildWaMessage()}`, "_blank");
     if (user) { router.push("/dashboard/member/promo"); }
-    else { router.push("/auth/login?callbackUrl=/dashboard/member/promo"); }
+    else { router.push("/"); }
     setCartOpen(false);
   }
 
