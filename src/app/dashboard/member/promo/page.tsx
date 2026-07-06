@@ -32,7 +32,12 @@ export default function MemberProdukPage() {
 
   useEffect(() => {
     const raw = localStorage.getItem(CART_KEY);
-    if (raw) { try { setPendingCart(JSON.parse(raw)); } catch {} }
+    if (raw) {
+      try {
+        const cart = JSON.parse(raw) as CartItem[];
+        if (cart.length > 0) autoSubmitCart(cart);
+      } catch {}
+    }
     load();
   }, []);
 
@@ -46,6 +51,31 @@ export default function MemberProdukPage() {
     setProduk(prods || []);
     setOrders(ords || []);
     setLoading(false);
+  }
+
+  async function autoSubmitCart(cart: CartItem[]) {
+    // Tunggu user tersedia (auth bisa lambat)
+    let u = useAuthStore.getState().user;
+    if (!u) {
+      await new Promise<void>(res => {
+        const unsub = useAuthStore.subscribe(s => { if (s.user) { unsub(); res(); } });
+        setTimeout(res, 4000); // fallback 4s
+      });
+      u = useAuthStore.getState().user;
+    }
+    if (!u) return;
+    const total = cart.reduce((s, it) => s + it.price * it.quantity, 0);
+    const { error } = await (supabase.from("product_orders") as any).insert({
+      user_id: u.id,
+      customer_name: u.name || u.email,
+      customer_phone: u.phone || null,
+      items: cart,
+      total_amount: total,
+      status: "pending",
+      source: "landing_page",
+    });
+    localStorage.removeItem(CART_KEY);
+    if (!error) load();
   }
 
   async function confirmCart() {
@@ -111,44 +141,6 @@ export default function MemberProdukPage() {
         </button>
       </div>
 
-      {/* pending cart from landing page */}
-      <AnimatePresence>
-        {pendingCart.length > 0 && (
-          <motion.div initial={{ opacity:0, y:-10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }}
-            style={{ background:"rgba(251,191,36,0.06)", border:"1px solid rgba(251,191,36,0.3)", borderRadius:16, padding:"16px 18px" }}>
-            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, marginBottom:12 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <ShoppingCart style={{ width:18, height:18, color:"#fbbf24" }} />
-                <div>
-                  <p style={{ color:"#fbbf24", fontWeight:700, margin:0, fontSize:".9rem" }}>Keranjang dari halaman utama</p>
-                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", margin:"2px 0 0" }}>{pendingCart.length} produk · Total {fmt(pendingCart.reduce((s,it)=>s+it.price*it.quantity,0))}</p>
-                </div>
-              </div>
-              <button onClick={dismissCart} style={{ width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, color:"rgba(255,255,255,0.4)", cursor:"pointer", flexShrink:0 }}><X style={{ width:12, height:12 }} /></button>
-            </div>
-            <div style={{ display:"flex", flexDirection:"column", gap:4, marginBottom:12 }}>
-              {pendingCart.map((it,i) => (
-                <div key={i} style={{ display:"flex", justifyContent:"space-between" }}>
-                  <span style={{ color:"rgba(255,255,255,0.65)", fontSize:".82rem" }}>{it.title}{it.gram_weight?` (${it.gram_weight}gr)`:""} ×{it.quantity}</span>
-                  <span style={{ color:"#D4AF37", fontSize:".82rem" }}>{fmt(it.price*it.quantity)}</span>
-                </div>
-              ))}
-            </div>
-            {cartErr && <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.3)", borderRadius:8, padding:"8px 12px", color:"#f87171", fontSize:".78rem", marginBottom:4 }}>{cartErr}</div>}
-            <div style={{ display:"flex", gap:8 }}>
-              <button onClick={confirmCart} disabled={confirmingCart}
-                style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:7, padding:"10px", borderRadius:10, background:"linear-gradient(135deg,#D4AF37,#F5D060)", border:"none", color:"#0a0a0a", fontWeight:800, fontSize:".85rem", cursor:"pointer", opacity:confirmingCart?.7:1 }}>
-                <CheckCircle2 style={{ width:14, height:14 }} />
-                {confirmingCart?"Memproses…":"Konfirmasi Pesanan"}
-              </button>
-              <a href={waOrder(pendingCart)} target="_blank" rel="noopener noreferrer"
-                style={{ display:"flex", alignItems:"center", gap:7, padding:"10px 16px", borderRadius:10, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", color:"#25d366", textDecoration:"none", fontSize:".85rem", fontWeight:700 }}>
-                <MessageCircle style={{ width:14, height:14 }} /> Chat WA
-              </a>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* my orders */}
       {orders.length > 0 && (
