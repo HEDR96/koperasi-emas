@@ -34,8 +34,12 @@ export default function MemberProdukPage() {
     const raw = localStorage.getItem(CART_KEY);
     if (raw) {
       try {
-        const cart = JSON.parse(raw) as CartItem[];
-        if (cart.length > 0) autoSubmitCart(cart);
+        const parsed = JSON.parse(raw);
+        // support both old format (array) and new format ({ items, customer_name, customer_phone })
+        const cart: CartItem[] = Array.isArray(parsed) ? parsed : (parsed.items || []);
+        const custName: string = Array.isArray(parsed) ? "" : (parsed.customer_name || "");
+        const custPhone: string = Array.isArray(parsed) ? "" : (parsed.customer_phone || "");
+        if (cart.length > 0) autoSubmitCart(cart, custName, custPhone);
       } catch {}
     }
     load();
@@ -53,13 +57,12 @@ export default function MemberProdukPage() {
     setLoading(false);
   }
 
-  async function autoSubmitCart(cart: CartItem[]) {
-    // Tunggu user tersedia (auth bisa lambat)
+  async function autoSubmitCart(cart: CartItem[], custName: string, custPhone: string) {
     let u = useAuthStore.getState().user;
     if (!u) {
       await new Promise<void>(res => {
         const unsub = useAuthStore.subscribe(s => { if (s.user) { unsub(); res(); } });
-        setTimeout(res, 4000); // fallback 4s
+        setTimeout(res, 4000);
       });
       u = useAuthStore.getState().user;
     }
@@ -67,8 +70,8 @@ export default function MemberProdukPage() {
     const total = cart.reduce((s, it) => s + it.price * it.quantity, 0);
     const { error } = await (supabase.from("product_orders") as any).insert({
       user_id: u.id,
-      customer_name: u.name || u.email,
-      customer_phone: u.phone || null,
+      customer_name: custName || u.name || u.email,
+      customer_phone: custPhone || u.phone || null,
       items: cart,
       total_amount: total,
       status: "pending",
