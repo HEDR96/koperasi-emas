@@ -126,6 +126,8 @@ export default function AdminProdukPage() {
   const [loadingProduk, setLoadingProduk] = useState(true);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
+  const [imgUploading, setImgUploading] = useState(false);
+  const imgUploadRef = useRef<HTMLInputElement>(null);
 
   /* ── pesanan state ── */
   const [orders, setOrders] = useState<any[]>([]);
@@ -164,7 +166,20 @@ export default function AdminProdukPage() {
     setForm({ title:p.title??"", description:p.description??"", image_url:p.image_url??"", gram_weight:p.gram_weight!=null?String(p.gram_weight):"", price:p.price!=null?String(p.price):"", expired_at:p.expired_at?new Date(p.expired_at).toISOString().slice(0,16):"", category:p.gram_weight!=null?"emas":"lain-lain", stok:p.stok!=null?String(p.stok):"" });
     setErr(""); setModal(true);
   }
-  function closeModal() { setModal(false); setEditId(null); setForm(EMPTY_PROD); setErr(""); }
+  function closeModal() { setModal(false); setEditId(null); setForm(EMPTY_PROD); setErr(""); setImgUploading(false); }
+
+  async function handleImgUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]; if (!f) return;
+    setImgUploading(true); setErr("");
+    try {
+      const fd = new FormData(); fd.append("file", f);
+      const res = await fetch("/api/upload/gdrive", { method:"POST", body:fd });
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error || "Upload gagal");
+      setForm(p => ({ ...p, image_url: json.url }));
+    } catch (e: any) { setErr("Upload gambar: " + e.message); }
+    finally { setImgUploading(false); if (imgUploadRef.current) imgUploadRef.current.value = ""; }
+  }
 
   async function save() {
     if (!form.title) { setErr("Nama produk wajib diisi."); return; }
@@ -524,16 +539,29 @@ export default function AdminProdukPage() {
                   <input type="datetime-local" value={form.expired_at} onChange={e=>setForm(p=>({...p,expired_at:e.target.value}))} style={field} />
                 </div>
 
-                {/* gambar gdrive */}
+                {/* gambar upload */}
                 <div>
-                  <label style={lbl}>Link Gambar (Google Drive)</label>
-                  <input value={form.image_url} onChange={e=>setForm(p=>({...p,image_url:e.target.value}))}
-                    style={field} placeholder="https://drive.google.com/file/d/…/view" />
-                  {form.image_url && (
-                    <div style={{ marginTop:8, borderRadius:10, overflow:"hidden", border:"1px solid rgba(255,255,255,0.08)", maxHeight:140 }}>
+                  <label style={lbl}>Foto Produk</label>
+                  <input ref={imgUploadRef} type="file" accept="image/*" style={{ display:"none" }} onChange={handleImgUpload} />
+                  {form.image_url ? (
+                    <div style={{ position:"relative", borderRadius:10, overflow:"hidden", border:"1px solid rgba(255,255,255,0.08)" }}>
                       <img src={gdriveImage(form.image_url)} alt="Preview" style={{ width:"100%", height:140, objectFit:"cover", display:"block" }}
                         onError={e=>{(e.currentTarget as HTMLImageElement).style.display="none";}} />
+                      <button onClick={() => setForm(p=>({...p,image_url:""}))}
+                        style={{ position:"absolute", top:6, right:6, width:26, height:26, borderRadius:"50%", background:"rgba(0,0,0,0.7)", border:"none", color:"#fff", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                        <X style={{ width:12, height:12 }} />
+                      </button>
+                      <button onClick={() => imgUploadRef.current?.click()} disabled={imgUploading}
+                        style={{ position:"absolute", bottom:6, right:6, display:"flex", alignItems:"center", gap:6, padding:"5px 10px", borderRadius:8, background:"rgba(0,0,0,0.7)", border:"1px solid rgba(255,255,255,0.2)", color:"#fff", cursor:"pointer", fontSize:".75rem" }}>
+                        <Upload style={{ width:11, height:11 }} /> Ganti
+                      </button>
                     </div>
+                  ) : (
+                    <button onClick={() => imgUploadRef.current?.click()} disabled={imgUploading}
+                      style={{ width:"100%", padding:"22px 14px", borderRadius:10, border:"2px dashed rgba(212,175,55,0.25)", background:"rgba(212,175,55,0.03)", color:imgUploading?"rgba(212,175,55,0.5)":"rgba(212,175,55,0.6)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8, transition:"all .2s" }}>
+                      <Upload style={{ width:16, height:16 }} />
+                      <span style={{ fontSize:".82rem", fontWeight:600 }}>{imgUploading?"Mengupload ke Google Drive…":"Upload Foto Produk"}</span>
+                    </button>
                   )}
                 </div>
 

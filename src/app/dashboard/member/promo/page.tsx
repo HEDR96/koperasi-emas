@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, RefreshCw, ShoppingCart, CheckCircle2, Clock, X, MessageCircle } from "lucide-react";
+import { Package, RefreshCw, ShoppingCart, CheckCircle2, Clock, X, MessageCircle, Minus, Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSiteSettings } from "@/store/useSettingsStore";
@@ -25,6 +25,10 @@ export default function MemberProdukPage() {
   const [loading, setLoading] = useState(true);
   const [pendingCart, setPendingCart] = useState<CartItem[]>([]);
   const [confirmingCart, setConfirmingCart] = useState(false);
+  const [cartErr, setCartErr] = useState("");
+  const [orderModal, setOrderModal] = useState<{ produk: any; qty: number } | null>(null);
+  const [submittingOrder, setSubmittingOrder] = useState(false);
+  const [orderErr, setOrderErr] = useState("");
 
   useEffect(() => {
     const raw = localStorage.getItem(CART_KEY);
@@ -46,9 +50,9 @@ export default function MemberProdukPage() {
 
   async function confirmCart() {
     if (!pendingCart.length || !user) return;
-    setConfirmingCart(true);
+    setConfirmingCart(true); setCartErr("");
     const total = pendingCart.reduce((s,it) => s + it.price * it.quantity, 0);
-    await (supabase.from("product_orders") as any).insert({
+    const { error } = await (supabase.from("product_orders") as any).insert({
       user_id: user.id,
       customer_name: user.name || user.email,
       customer_phone: user.phone || null,
@@ -57,10 +61,30 @@ export default function MemberProdukPage() {
       status: "pending",
       source: "landing_page",
     });
+    if (error) { setCartErr(error.message); setConfirmingCart(false); return; }
     localStorage.removeItem(CART_KEY);
     setPendingCart([]);
     setConfirmingCart(false);
     load();
+  }
+
+  async function submitDirectOrder() {
+    if (!orderModal || !user) return;
+    const { produk, qty } = orderModal;
+    if (!produk.price) { setOrderErr("Produk belum ada harga."); return; }
+    setSubmittingOrder(true); setOrderErr("");
+    const item = { product_id: produk.id, title: produk.title, gram_weight: produk.gram_weight ?? null, price: produk.price, quantity: qty, image_url: produk.image_url ?? null };
+    const { error } = await (supabase.from("product_orders") as any).insert({
+      user_id: user.id,
+      customer_name: user.name || user.email,
+      customer_phone: user.phone || null,
+      items: [item],
+      total_amount: produk.price * qty,
+      status: "pending",
+      source: "dashboard",
+    });
+    if (error) { setOrderErr(error.message); setSubmittingOrder(false); return; }
+    setOrderModal(null); setSubmittingOrder(false); load();
   }
 
   function dismissCart() { localStorage.removeItem(CART_KEY); setPendingCart([]); }
@@ -110,6 +134,7 @@ export default function MemberProdukPage() {
                 </div>
               ))}
             </div>
+            {cartErr && <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.3)", borderRadius:8, padding:"8px 12px", color:"#f87171", fontSize:".78rem", marginBottom:4 }}>{cartErr}</div>}
             <div style={{ display:"flex", gap:8 }}>
               <button onClick={confirmCart} disabled={confirmingCart}
                 style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:7, padding:"10px", borderRadius:10, background:"linear-gradient(135deg,#D4AF37,#F5D060)", border:"none", color:"#0a0a0a", fontWeight:800, fontSize:".85rem", cursor:"pointer", opacity:confirmingCart?.7:1 }}>
@@ -191,17 +216,69 @@ export default function MemberProdukPage() {
                   {p.stok!=null && <p style={{ color:p.stok>0?"#60a5fa":"#f87171", fontSize:".78rem", margin:"0 0 8px", fontWeight:600 }}>Stok: {p.stok>0?p.stok:"Habis"}</p>}
                   {p.description && <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".82rem", margin:"0 0 10px", lineHeight:1.6 }}>{p.description}</p>}
                   {p.expired_at && <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".74rem", margin:"0 0 10px" }}>Berlaku s/d {fmtDt(p.expired_at)}</p>}
-                  <a href={`https://wa.me/${waNum}?text=${encodeURIComponent(`Halo, saya tertarik dengan produk:\n• ${p.title}${p.gram_weight?` (${p.gram_weight}gr)`:""}\n• Harga: ${p.price?fmt(p.price):"-"}\n\nMohon info lebih lanjut.`)}`}
-                    target="_blank" rel="noopener noreferrer"
-                    style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6, width:"100%", padding:"9px", borderRadius:10, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", color:"#25d366", textDecoration:"none", fontSize:".82rem", fontWeight:700 }}>
-                    <MessageCircle style={{ width:13, height:13 }} /> Chat WA untuk Pesan
-                  </a>
+                  <div style={{ display:"flex", gap:8 }}>
+                    <button onClick={() => { if(p.price && !(p.stok!=null&&p.stok<=0)) { setOrderModal({ produk:p, qty:1 }); setOrderErr(""); } }}
+                      disabled={p.stok!=null&&p.stok<=0}
+                      style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:6, padding:"9px", borderRadius:10, background:p.stok!=null&&p.stok<=0?"rgba(255,255,255,0.04)":"linear-gradient(135deg,#D4AF37,#F5D060)", border:"none", color:p.stok!=null&&p.stok<=0?"rgba(255,255,255,0.3)":"#0a0a0a", fontSize:".82rem", fontWeight:800, cursor:p.stok!=null&&p.stok<=0?"not-allowed":"pointer" }}>
+                      {p.stok!=null&&p.stok<=0?"Stok Habis":"Pesan Sekarang"}
+                    </button>
+                    <a href={`https://wa.me/${waNum}?text=${encodeURIComponent(`Halo, saya tertarik dengan produk:\n• ${p.title}${p.gram_weight?` (${p.gram_weight}gr)`:""}\n• Harga: ${p.price?fmt(p.price):"-"}\n\nMohon info lebih lanjut.`)}`}
+                      target="_blank" rel="noopener noreferrer"
+                      style={{ display:"flex", alignItems:"center", justifyContent:"center", padding:"9px 12px", borderRadius:10, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", color:"#25d366", textDecoration:"none" }}>
+                      <MessageCircle style={{ width:14, height:14 }} />
+                    </a>
+                  </div>
                 </div>
               </motion.div>
             ))}
           </div>
         )}
       </div>
+      {/* modal order langsung */}
+      <AnimatePresence>
+        {orderModal && (
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+            style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", backdropFilter:"blur(4px)", zIndex:50, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}
+            onClick={e => { if(e.target===e.currentTarget) setOrderModal(null); }}>
+            <motion.div initial={{ opacity:0, scale:.95, y:16 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95 }} transition={{ type:"spring", stiffness:300, damping:28 }}
+              style={{ width:"100%", maxWidth:420, background:"#111", border:"1px solid rgba(212,175,55,0.35)", borderRadius:20, overflow:"hidden", boxShadow:"0 24px 80px rgba(0,0,0,0.7)" }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 20px 14px", borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
+                <span style={{ color:"#fff", fontWeight:700, fontSize:".95rem" }}>Pesan Produk</span>
+                <button onClick={() => setOrderModal(null)} style={{ width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:7, color:"rgba(255,255,255,0.4)", cursor:"pointer" }}>
+                  <X style={{ width:13, height:13 }} />
+                </button>
+              </div>
+              <div style={{ padding:"18px 20px", display:"flex", flexDirection:"column", gap:14 }}>
+                {orderErr && <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.3)", borderRadius:8, padding:"8px 12px", color:"#f87171", fontSize:".8rem" }}>{orderErr}</div>}
+                <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:12, padding:"12px 14px" }}>
+                  <p style={{ color:"#fff", fontWeight:700, margin:"0 0 4px" }}>{orderModal.produk.title}{orderModal.produk.gram_weight?` (${orderModal.produk.gram_weight}gr)`:""}</p>
+                  <p style={{ color:"#D4AF37", fontWeight:800, fontSize:"1rem", margin:0 }}>{fmt(orderModal.produk.price)}</p>
+                  {orderModal.produk.stok!=null && <p style={{ color:"#60a5fa", fontSize:".76rem", margin:"4px 0 0" }}>Stok tersedia: {orderModal.produk.stok}</p>}
+                </div>
+                <div>
+                  <p style={{ color:"rgba(255,255,255,0.38)", fontSize:".7rem", fontWeight:700, letterSpacing:".06em", textTransform:"uppercase", margin:"0 0 8px" }}>Jumlah</p>
+                  <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                    <button onClick={() => setOrderModal(p => p ? { ...p, qty: Math.max(1, p.qty-1) } : p)}
+                      style={{ width:36, height:36, borderRadius:9, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", color:"#fff", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <Minus style={{ width:14, height:14 }} />
+                    </button>
+                    <span style={{ color:"#fff", fontWeight:800, fontSize:"1.1rem", minWidth:28, textAlign:"center" }}>{orderModal.qty}</span>
+                    <button onClick={() => setOrderModal(p => { if(!p) return p; const max = p.produk.stok ?? 999; return p.qty < max ? { ...p, qty: p.qty+1 } : p; })}
+                      style={{ width:36, height:36, borderRadius:9, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", color:"#fff", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <Plus style={{ width:14, height:14 }} />
+                    </button>
+                    <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", marginLeft:4 }}>= {fmt(orderModal.produk.price * orderModal.qty)}</span>
+                  </div>
+                </div>
+                <button onClick={submitDirectOrder} disabled={submittingOrder}
+                  style={{ padding:"12px", borderRadius:11, background:"linear-gradient(135deg,#D4AF37,#F5D060)", border:"none", color:"#0a0a0a", fontWeight:800, fontSize:".88rem", cursor:submittingOrder?"not-allowed":"pointer", opacity:submittingOrder?.6:1 }}>
+                  {submittingOrder?"Mengirim…":"Kirim Pesanan"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
