@@ -63,3 +63,24 @@ CREATE POLICY "admin_product_payments" ON product_payments
   ) WITH CHECK (
     EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('master','admin'))
   );
+
+-- 5. Tabel log perubahan stok produk
+CREATE TABLE IF NOT EXISTS product_stock_logs (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id  UUID NOT NULL REFERENCES promos(id) ON DELETE CASCADE,
+  type        TEXT NOT NULL CHECK (type IN ('add','set','deduct')),
+  quantity    INTEGER NOT NULL,
+  notes       TEXT,
+  created_by  UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE product_stock_logs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "admin_stock_logs" ON product_stock_logs;
+CREATE POLICY "admin_stock_logs" ON product_stock_logs
+  FOR ALL USING (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('master','admin'))
+  ) WITH CHECK (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('master','admin'))
+  );

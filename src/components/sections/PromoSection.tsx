@@ -18,7 +18,7 @@ interface ProdukItem {
   id: string; title: string; description: string | null; image_url: string | null;
   gram_weight: number | null; price: number | null; expired_at: string | null; stok: number | null;
 }
-interface CartItem { product_id: string; title: string; gram_weight: number|null; price: number; quantity: number; image_url: string|null; }
+interface CartItem { product_id: string; title: string; gram_weight: number|null; price: number; quantity: number; image_url: string|null; stok: number|null; }
 
 function ProdukCard({ item, index, onAddCart, inCart }: { item: ProdukItem; index: number; onAddCart: (item: ProdukItem) => void; inCart?: boolean }) {
   const [imgError, setImgError] = useState(false);
@@ -90,6 +90,7 @@ export default function PromoSection() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [justAdded, setJustAdded] = useState<string|null>(null);
+  const [stockWarn, setStockWarn] = useState<string|null>(null);
   const [custName, setCustName] = useState("");
   const [custPhone, setCustPhone] = useState("");
   const [nameErr, setNameErr] = useState(false);
@@ -113,8 +114,14 @@ export default function PromoSection() {
     if (!prod.price) return;
     setCart(prev => {
       const existing = prev.find(it => it.product_id === prod.id);
+      const curQty = existing ? existing.quantity : 0;
+      if (prod.stok != null && curQty >= prod.stok) {
+        setStockWarn(prod.id);
+        setTimeout(() => setStockWarn(null), 2000);
+        return prev;
+      }
       if (existing) return prev.map(it => it.product_id===prod.id ? {...it, quantity:it.quantity+1} : it);
-      return [...prev, { product_id:prod.id, title:prod.title, gram_weight:prod.gram_weight, price:prod.price!, quantity:1, image_url:prod.image_url }];
+      return [...prev, { product_id:prod.id, title:prod.title, gram_weight:prod.gram_weight, price:prod.price!, quantity:1, image_url:prod.image_url, stok:prod.stok }];
     });
     setJustAdded(prod.id);
     setTimeout(()=>setJustAdded(null), 1200);
@@ -122,7 +129,16 @@ export default function PromoSection() {
   }
 
   function updateQty(product_id: string, delta: number) {
-    setCart(prev => prev.map(it => it.product_id===product_id ? {...it, quantity:Math.max(0,it.quantity+delta)} : it).filter(it=>it.quantity>0));
+    setCart(prev => prev.map(it => {
+      if (it.product_id !== product_id) return it;
+      const next = it.quantity + delta;
+      if (delta > 0 && it.stok != null && next > it.stok) {
+        setStockWarn(product_id);
+        setTimeout(() => setStockWarn(null), 2000);
+        return it;
+      }
+      return { ...it, quantity: Math.max(0, next) };
+    }).filter(it => it.quantity > 0));
   }
   function removeFromCart(product_id: string) { setCart(prev => prev.filter(it => it.product_id!==product_id)); }
 
@@ -191,6 +207,12 @@ export default function PromoSection() {
                     <motion.div initial={{ opacity:0, scale:.8 }} animate={{ opacity:1, scale:1 }} exit={{ opacity:0, scale:.8 }}
                       style={{ position:"absolute", top:12, left:12, background:"#34d399", color:"#fff", borderRadius:10, padding:"4px 10px", fontSize:".74rem", fontWeight:800, pointerEvents:"none" }}>
                       ✓ Ditambahkan
+                    </motion.div>
+                  )}
+                  {stockWarn===item.id && (
+                    <motion.div initial={{ opacity:0, scale:.8 }} animate={{ opacity:1, scale:1 }} exit={{ opacity:0, scale:.8 }}
+                      style={{ position:"absolute", top:12, left:12, background:"#f87171", color:"#fff", borderRadius:10, padding:"4px 10px", fontSize:".74rem", fontWeight:800, pointerEvents:"none" }}>
+                      Stok penuh!
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -262,11 +284,13 @@ export default function PromoSection() {
                         <div style={{ flex:1, minWidth:0 }}>
                           <p style={{ color:"#fff", fontWeight:700, fontSize:".82rem", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{it.title}{it.gram_weight?` (${it.gram_weight}gr)`:""}</p>
                           <p style={{ color:"#D4AF37", fontWeight:700, fontSize:".8rem", margin:"2px 0 0" }}>{fmtRp(it.price*it.quantity)}</p>
+                          {stockWarn===it.product_id && <p style={{ color:"#f87171", fontSize:".72rem", margin:"2px 0 0" }}>Stok maksimal {it.stok}</p>}
+                          {it.stok!=null && <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", margin:"1px 0 0" }}>Stok: {it.stok}</p>}
                         </div>
                         <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
                           <button onClick={()=>updateQty(it.product_id,-1)} style={{ width:24, height:24, borderRadius:6, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", color:"#fff", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}><Minus style={{ width:10, height:10 }} /></button>
                           <span style={{ color:"#fff", fontWeight:700, minWidth:18, textAlign:"center", fontSize:".83rem" }}>{it.quantity}</span>
-                          <button onClick={()=>updateQty(it.product_id,1)} style={{ width:24, height:24, borderRadius:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", color:"#D4AF37", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}><Plus style={{ width:10, height:10 }} /></button>
+                          <button onClick={()=>updateQty(it.product_id,1)} disabled={it.stok!=null&&it.quantity>=it.stok} style={{ width:24, height:24, borderRadius:6, background:it.stok!=null&&it.quantity>=it.stok?"rgba(255,255,255,0.03)":"rgba(212,175,55,0.1)", border:it.stok!=null&&it.quantity>=it.stok?"1px solid rgba(255,255,255,0.08)":"1px solid rgba(212,175,55,0.25)", color:it.stok!=null&&it.quantity>=it.stok?"rgba(255,255,255,0.2)":"#D4AF37", cursor:it.stok!=null&&it.quantity>=it.stok?"not-allowed":"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}><Plus style={{ width:10, height:10 }} /></button>
                           <button onClick={()=>removeFromCart(it.product_id)} style={{ width:24, height:24, borderRadius:6, background:"rgba(248,113,113,0.06)", border:"1px solid rgba(248,113,113,0.15)", color:"#f87171", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", marginLeft:2 }}><X style={{ width:10, height:10 }} /></button>
                         </div>
                       </motion.div>

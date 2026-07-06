@@ -147,6 +147,16 @@ export default function AdminProdukPage() {
   const proofRef = useRef<HTMLInputElement>(null);
   const [invoiceModal, setInvoiceModal] = useState<{ order: any; payment: any } | null>(null);
   const [orderFilter, setOrderFilter] = useState<"all"|"pending"|"approved"|"rejected">("all");
+  const [detailOrder, setDetailOrder] = useState<any|null>(null);
+
+  /* ── detail produk state ── */
+  const [detailProd, setDetailProd] = useState<any|null>(null);
+  const [detailOrders, setDetailOrders] = useState<any[]>([]);
+  const [stockLogs, setStockLogs] = useState<any[]>([]);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [addStockQty, setAddStockQty] = useState("");
+  const [addStockNote, setAddStockNote] = useState("");
+  const [savingStock, setSavingStock] = useState(false);
 
   /* ── loaders ── */
   async function loadProduk() {
@@ -164,6 +174,37 @@ export default function AdminProdukPage() {
     setLoadingOrders(false);
   }
   useEffect(() => { loadProduk(); loadOrders(); }, []);
+
+  /* ── detail produk ── */
+  async function openDetailProd(p: any) {
+    setDetailProd(p); setLoadingDetail(true); setAddStockQty(""); setAddStockNote("");
+    const [{ data: ords }, { data: logs }] = await Promise.all([
+      (supabase.from("product_orders") as any).select("id,customer_name,total_amount,status,created_at,items").order("created_at",{ascending:false}),
+      (supabase.from("product_stock_logs") as any).select("*").eq("product_id",p.id).order("created_at",{ascending:false}),
+    ]);
+    const filtered = (ords||[]).filter((o: any) => {
+      const items = Array.isArray(o.items) ? o.items : JSON.parse(o.items||"[]");
+      return items.some((it: any) => it.product_id === p.id);
+    });
+    setDetailOrders(filtered); setStockLogs(logs||[]); setLoadingDetail(false);
+  }
+
+  async function doAddStock() {
+    if (!detailProd || !addStockQty || Number(addStockQty) <= 0) return;
+    setSavingStock(true);
+    const qty = Number(addStockQty);
+    const newStok = (detailProd.stok ?? 0) + qty;
+    await (supabase.from("promos") as any).update({ stok: newStok }).eq("id", detailProd.id);
+    await (supabase.from("product_stock_logs") as any).insert({
+      product_id: detailProd.id, type:"add", quantity: qty,
+      notes: addStockNote || null, created_by: user?.id,
+    });
+    setDetailProd((p: any) => ({ ...p, stok: newStok }));
+    setProduk(prev => prev.map(p => p.id===detailProd.id ? {...p, stok:newStok} : p));
+    const { data: logs } = await (supabase.from("product_stock_logs") as any).select("*").eq("product_id",detailProd.id).order("created_at",{ascending:false});
+    setStockLogs(logs||[]);
+    setAddStockQty(""); setAddStockNote(""); setSavingStock(false);
+  }
 
   /* ── produk CRUD ── */
   function openNew() { setEditId(null); setForm(EMPTY_PROD); setErr(""); setModal(true); }
@@ -368,6 +409,9 @@ export default function AdminProdukPage() {
                     </div>
                   </div>
                   <div style={{ display:"flex", gap:6, flexShrink:0 }}>
+                    <button onClick={() => openDetailProd(p)} style={{ width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(96,165,250,0.07)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:8, color:"#60a5fa", cursor:"pointer" }} title="Detail">
+                      <FileText style={{ width:13, height:13 }} />
+                    </button>
                     <button onClick={() => openEdit(p)} style={{ width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(212,175,55,0.07)", border:"1px solid rgba(212,175,55,0.18)", borderRadius:8, color:G, cursor:"pointer" }}>
                       <Pencil style={{ width:13, height:13 }} />
                     </button>
@@ -468,6 +512,9 @@ export default function AdminProdukPage() {
                           </button>
                         </>
                       )}
+                      <button onClick={() => setDetailOrder(o)} style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:8, background:"rgba(96,165,250,0.08)", border:"1px solid rgba(96,165,250,0.2)", color:"#60a5fa", cursor:"pointer", fontSize:".8rem", fontWeight:700 }}>
+                        <FileText style={{ width:13, height:13 }} /> Detail
+                      </button>
                       <button onClick={() => showInvoice(o)} style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:8, background: o.status==="approved" ? "rgba(212,175,55,0.1)" : "rgba(255,255,255,0.04)", border: o.status==="approved" ? "1px solid rgba(212,175,55,0.3)" : "1px solid rgba(255,255,255,0.1)", color: o.status==="approved" ? G : "rgba(255,255,255,0.35)", cursor:"pointer", fontSize:".8rem", fontWeight:700 }}>
                         <Printer style={{ width:13, height:13 }} />
                         {o.status==="approved" ? "Invoice (Lunas)" : "Invoice (Belum Bayar)"}
@@ -754,6 +801,197 @@ export default function AdminProdukPage() {
                   <Printer style={{ width:15, height:15 }} /> Print Invoice
                 </button>
                 <button onClick={()=>setInvoiceModal(null)} style={{ padding:"12px 18px", borderRadius:11, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", color:"rgba(255,255,255,0.35)", cursor:"pointer", fontSize:".85rem" }}>Tutup</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ═══ MODAL: DETAIL PESANAN ═══ */}
+      <AnimatePresence>
+        {detailOrder && (
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+            style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", backdropFilter:"blur(4px)", zIndex:50, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}
+            onClick={e=>{ if(e.target===e.currentTarget) setDetailOrder(null); }}>
+            <motion.div initial={{ opacity:0, scale:.95, y:12 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95 }} transition={{ type:"spring", stiffness:300, damping:28 }}
+              style={{ width:"100%", maxWidth:560, maxHeight:"88vh", overflowY:"auto", background:"#111", border:"1px solid rgba(96,165,250,0.3)", borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.7)" }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 22px 14px", borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  <div style={{ width:32, height:32, borderRadius:9, background:"rgba(96,165,250,0.1)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <FileText style={{ width:14, height:14, color:"#60a5fa" }} />
+                  </div>
+                  <div>
+                    <span style={{ color:"#fff", fontWeight:700, fontSize:".95rem" }}>Detail Pembelian</span>
+                    <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:"1px 0 0" }}>#{detailOrder.id.slice(-8).toUpperCase()}</p>
+                  </div>
+                </div>
+                <button onClick={()=>setDetailOrder(null)} style={{ width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, color:"rgba(255,255,255,0.4)", cursor:"pointer" }}><X style={{ width:13, height:13 }} /></button>
+              </div>
+              <div style={{ padding:"20px 22px", display:"flex", flexDirection:"column", gap:14 }}>
+                {/* info pelanggan */}
+                <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:12, padding:"14px 16px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                  {[
+                    ["Pelanggan", detailOrder.customer_name],
+                    ["Telepon", detailOrder.customer_phone||"-"],
+                    ["Tanggal", fmtDt(detailOrder.created_at)],
+                    ["Sumber", detailOrder.source||"dashboard"],
+                    ["Status", detailOrder.status.toUpperCase()],
+                    ["Total", fmt(detailOrder.total_amount)],
+                  ].map(([k,v]) => (
+                    <div key={k}>
+                      <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".05em", margin:"0 0 2px" }}>{k}</p>
+                      <p style={{ color:"#fff", fontWeight:600, fontSize:".85rem", margin:0 }}>{v}</p>
+                    </div>
+                  ))}
+                </div>
+                {/* items */}
+                <div>
+                  <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 8px" }}>Item Pesanan</p>
+                  {(Array.isArray(detailOrder.items)?detailOrder.items:JSON.parse(detailOrder.items||"[]")).map((it: any, j: number) => (
+                    <div key={j} style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+                      <span style={{ color:"rgba(255,255,255,0.75)", fontSize:".84rem" }}>{it.title}{it.gram_weight?` (${it.gram_weight}gr)`:""} <span style={{ color:"rgba(255,255,255,0.4)" }}>×{it.quantity}</span></span>
+                      <span style={{ color:G, fontSize:".84rem", fontWeight:700 }}>{fmt(it.price*it.quantity)}</span>
+                    </div>
+                  ))}
+                </div>
+                {/* pembayaran */}
+                {(detailOrder.product_payments||[]).length > 0 && (
+                  <div>
+                    <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 8px" }}>Pembayaran</p>
+                    {detailOrder.product_payments.map((pay: any, j: number) => (
+                      <div key={j} style={{ background:"rgba(52,211,153,0.04)", border:"1px solid rgba(52,211,153,0.15)", borderRadius:10, padding:"12px 14px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+                        {[
+                          ["Metode", pay.payment_method],
+                          ["Nominal", fmt(pay.nominal)],
+                          ["Terbayar", fmt(pay.terbayar)],
+                          ["Kembalian", fmt(Math.max(0,pay.terbayar-pay.nominal))],
+                          ["Tanggal", fmtDt(pay.created_at)],
+                          ["Catatan", pay.notes||"-"],
+                        ].map(([k,v]) => (
+                          <div key={k}>
+                            <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:700, margin:"0 0 2px" }}>{k}</p>
+                            <p style={{ color:"#fff", fontSize:".83rem", fontWeight:600, margin:0 }}>{v}</p>
+                          </div>
+                        ))}
+                        {pay.proof_url && <div style={{ gridColumn:"1/-1" }}>
+                          <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:700, margin:"0 0 6px" }}>BUKTI BAYAR</p>
+                          <img src={pay.proof_url} alt="Bukti" style={{ maxWidth:"100%", maxHeight:140, borderRadius:8, objectFit:"cover" }} />
+                        </div>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {detailOrder.notes && <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".82rem" }}>Catatan: {detailOrder.notes}</p>}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ═══ MODAL: DETAIL PRODUK ═══ */}
+      <AnimatePresence>
+        {detailProd && (
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+            style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", backdropFilter:"blur(4px)", zIndex:50, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}
+            onClick={e=>{ if(e.target===e.currentTarget) setDetailProd(null); }}>
+            <motion.div initial={{ opacity:0, scale:.95, y:12 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95 }} transition={{ type:"spring", stiffness:300, damping:28 }}
+              style={{ width:"100%", maxWidth:640, maxHeight:"90vh", overflowY:"auto", background:"#111", border:"1px solid rgba(212,175,55,0.3)", borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.7)" }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 22px 14px", borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  {detailProd.image_url && <img src={gdriveImage(detailProd.image_url)} alt="" style={{ width:36, height:36, borderRadius:8, objectFit:"cover" }} onError={e=>{(e.currentTarget as HTMLImageElement).style.display="none";}} />}
+                  <div>
+                    <span style={{ color:"#fff", fontWeight:700, fontSize:".95rem" }}>{detailProd.title}</span>
+                    <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:"1px 0 0" }}>
+                      {detailProd.gram_weight!=null?`${detailProd.gram_weight}gr · `:""}
+                      {detailProd.price!=null?`${fmt(detailProd.price)} · `:""}
+                      Stok: {detailProd.stok??"-"}
+                    </p>
+                  </div>
+                </div>
+                <button onClick={()=>setDetailProd(null)} style={{ width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, color:"rgba(255,255,255,0.4)", cursor:"pointer" }}><X style={{ width:13, height:13 }} /></button>
+              </div>
+
+              <div style={{ padding:"20px 22px", display:"flex", flexDirection:"column", gap:20 }}>
+
+                {/* tambah stok */}
+                <div style={{ background:"rgba(212,175,55,0.04)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:14, padding:"16px 18px" }}>
+                  <p style={{ color:G, fontSize:".78rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 12px" }}>Tambah Stok</p>
+                  <div style={{ display:"flex", gap:8, alignItems:"flex-end" }}>
+                    <div style={{ flex:1 }}>
+                      <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".7rem", fontWeight:700, margin:"0 0 5px" }}>Jumlah</p>
+                      <input type="number" min={1} value={addStockQty} onChange={e=>setAddStockQty(e.target.value)} style={{ ...field, width:"100%" }} placeholder="cth: 10" />
+                    </div>
+                    <div style={{ flex:2 }}>
+                      <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".7rem", fontWeight:700, margin:"0 0 5px" }}>Catatan</p>
+                      <input value={addStockNote} onChange={e=>setAddStockNote(e.target.value)} style={{ ...field, width:"100%" }} placeholder="Restock dari supplier..." />
+                    </div>
+                    <button onClick={doAddStock} disabled={savingStock||!addStockQty}
+                      style={{ padding:"11px 16px", borderRadius:10, background:`linear-gradient(135deg,${G},${G2})`, border:"none", color:"#0a0a0a", fontWeight:800, fontSize:".83rem", cursor:savingStock||!addStockQty?"not-allowed":"pointer", opacity:savingStock||!addStockQty?.6:1, flexShrink:0 }}>
+                      {savingStock?"...":"+ Tambah"}
+                    </button>
+                  </div>
+                  <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".75rem", margin:"8px 0 0" }}>Stok saat ini: <strong style={{ color:"#fff" }}>{detailProd.stok??"-"}</strong>{addStockQty&&Number(addStockQty)>0?<> → <strong style={{ color:G }}>{(detailProd.stok??0)+Number(addStockQty)}</strong></>:""}</p>
+                </div>
+
+                {/* log penambahan stok */}
+                <div>
+                  <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 10px" }}>Riwayat Penambahan Stok</p>
+                  {loadingDetail ? <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".82rem" }}>Memuat...</p>
+                  : stockLogs.length===0 ? <p style={{ color:"rgba(255,255,255,0.2)", fontSize:".82rem" }}>Belum ada log stok.</p>
+                  : stockLogs.map((l: any) => (
+                    <div key={l.id} style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+                      <div>
+                        <span style={{ color: l.type==="add"?"#34d399":l.type==="deduct"?"#f87171":"#fbbf24", fontSize:".8rem", fontWeight:700 }}>
+                          {l.type==="add"?"+":l.type==="deduct"?"-":"="}{l.quantity}
+                        </span>
+                        {l.notes && <span style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", marginLeft:8 }}>{l.notes}</span>}
+                      </div>
+                      <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".76rem" }}>{fmtDt(l.created_at)}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* riwayat pembelian produk ini */}
+                <div>
+                  <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 10px" }}>Riwayat Pembelian Produk Ini</p>
+                  {loadingDetail ? <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".82rem" }}>Memuat...</p>
+                  : detailOrders.length===0 ? <p style={{ color:"rgba(255,255,255,0.2)", fontSize:".82rem" }}>Belum ada pembelian.</p>
+                  : detailOrders.map((o: any) => {
+                    const sc = o.status==="approved"?"#34d399":o.status==="rejected"?"#f87171":"#fbbf24";
+                    const items = Array.isArray(o.items)?o.items:JSON.parse(o.items||"[]");
+                    const relevant = items.filter((it: any)=>it.product_id===detailProd.id);
+                    const qty = relevant.reduce((s: number, it: any)=>s+it.quantity, 0);
+                    return (
+                      <div key={o.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+                        <div>
+                          <p style={{ color:"#fff", fontSize:".83rem", fontWeight:600, margin:0 }}>{o.customer_name} <span style={{ color:"rgba(255,255,255,0.3)" }}>×{qty}</span></p>
+                          <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".74rem", margin:"2px 0 0" }}>{fmtDt(o.created_at)}</p>
+                        </div>
+                        <div style={{ textAlign:"right" }}>
+                          <span style={{ fontSize:".68rem", fontWeight:700, borderRadius:20, padding:"2px 8px", background:`${sc}1a`, color:sc, border:`1px solid ${sc}44` }}>{o.status.toUpperCase()}</span>
+                          <p style={{ color:G, fontSize:".8rem", fontWeight:700, margin:"3px 0 0" }}>{fmt(o.total_amount)}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* info produk */}
+                <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:12, padding:"14px 16px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                  {[
+                    ["Dibuat", fmtDt(detailProd.created_at)],
+                    ["Diperbarui", fmtDt(detailProd.updated_at||detailProd.created_at)],
+                    ["Status", detailProd.is_active?"Aktif":"Nonaktif"],
+                    ["Stok Saat Ini", detailProd.stok??"-"],
+                    ["Kadaluarsa", fmtExp(detailProd.expired_at)],
+                    ["Kategori", detailProd.gram_weight!=null?"Emas":"Lain-lain"],
+                  ].map(([k,v]) => (
+                    <div key={k}>
+                      <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", margin:"0 0 2px" }}>{k}</p>
+                      <p style={{ color:"#fff", fontSize:".83rem", fontWeight:600, margin:0 }}>{v}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </motion.div>
           </motion.div>
