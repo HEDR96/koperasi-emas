@@ -1,75 +1,207 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Megaphone, RefreshCw } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Package, RefreshCw, ShoppingCart, CheckCircle2, Clock, X, MessageCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useSiteSettings } from "@/store/useSettingsStore";
 import { gdriveImage } from "@/lib/utils";
 
-const fmtExp = (s: string | null) => s ? new Date(s).toLocaleString("id-ID",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}) : null;
-const fmtRp = (n: number) => new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n);
+const fmt = (n: number) => new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n);
+const fmtDt = (s: string) => new Date(s).toLocaleString("id-ID",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
 
-export default function MemberPromoPage() {
-  const [promos, setPromos] = useState<any[]>([]);
+const CART_KEY = "koperasi_product_cart";
+
+interface CartItem { product_id: string; title: string; gram_weight: number|null; price: number; quantity: number; image_url: string|null; }
+
+export default function MemberProdukPage() {
+  const { user } = useAuthStore();
+  const settings = useSiteSettings();
+  const waNum = settings.whatsapp?.replace(/^0/,"62").replace(/[^0-9]/g,"") || "6281297533899";
+
+  const [produk, setProduk] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pendingCart, setPendingCart] = useState<CartItem[]>([]);
+  const [confirmingCart, setConfirmingCart] = useState(false);
+
+  useEffect(() => {
+    const raw = localStorage.getItem(CART_KEY);
+    if (raw) { try { setPendingCart(JSON.parse(raw)); } catch {} }
+    load();
+  }, []);
 
   async function load() {
     setLoading(true);
     const nowIso = new Date().toISOString();
-    const { data } = await (supabase.from("promos") as any)
-      .select("*").eq("is_active", true)
-      .or(`expired_at.is.null,expired_at.gt.${nowIso}`)
-      .order("created_at",{ascending:false});
-    setPromos(data || []);
+    const [{ data: prods }, { data: ords }] = await Promise.all([
+      (supabase.from("promos") as any).select("*").eq("is_active",true).or(`expired_at.is.null,expired_at.gt.${nowIso}`).order("created_at",{ascending:false}),
+      user?.id ? (supabase.from("product_orders") as any).select("*").eq("user_id",user.id).order("created_at",{ascending:false}) : Promise.resolve({ data:[] }),
+    ]);
+    setProduk(prods || []);
+    setOrders(ords || []);
     setLoading(false);
   }
-  useEffect(() => { load(); }, []);
+
+  async function confirmCart() {
+    if (!pendingCart.length || !user) return;
+    setConfirmingCart(true);
+    const total = pendingCart.reduce((s,it) => s + it.price * it.quantity, 0);
+    await (supabase.from("product_orders") as any).insert({
+      user_id: user.id,
+      customer_name: user.name || user.email,
+      customer_phone: user.phone || null,
+      items: pendingCart,
+      total_amount: total,
+      status: "pending",
+      source: "landing_page",
+    });
+    localStorage.removeItem(CART_KEY);
+    setPendingCart([]);
+    setConfirmingCart(false);
+    load();
+  }
+
+  function dismissCart() { localStorage.removeItem(CART_KEY); setPendingCart([]); }
+
+  function waOrder(items: CartItem[]) {
+    const lines = ["Halo, saya ingin memesan produk berikut:", ""];
+    items.forEach((it,i) => lines.push(`${i+1}. ${it.title}${it.gram_weight?` (${it.gram_weight}gr)`:""} ×${it.quantity} — ${fmt(it.price*it.quantity)}`));
+    const total = items.reduce((s,it)=>s+it.price*it.quantity,0);
+    lines.push("","Total: "+fmt(total),"","Mohon konfirmasi. Terima kasih.");
+    return `https://wa.me/${waNum}?text=${encodeURIComponent(lines.join("\n"))}`;
+  }
+
+  const statusColor = (s: string) => s==="approved"?"#34d399":s==="rejected"?"#f87171":s==="pending"?"#fbbf24":"rgba(255,255,255,0.3)";
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Promo Anggota</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Penawaran & promo aktif untuk Anda</p>
+          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Produk</h1>
+          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Produk & penawaran aktif untuk Anda</p>
         </div>
         <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:13, height:13 }} /> Refresh
         </button>
       </div>
 
-      {loading ? <p style={{ color:"rgba(255,255,255,0.3)" }}>Memuat...</p>
-        : promos.length === 0 ? (
+      {/* pending cart from landing page */}
+      <AnimatePresence>
+        {pendingCart.length > 0 && (
+          <motion.div initial={{ opacity:0, y:-10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }}
+            style={{ background:"rgba(251,191,36,0.06)", border:"1px solid rgba(251,191,36,0.3)", borderRadius:16, padding:"16px 18px" }}>
+            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, marginBottom:12 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <ShoppingCart style={{ width:18, height:18, color:"#fbbf24" }} />
+                <div>
+                  <p style={{ color:"#fbbf24", fontWeight:700, margin:0, fontSize:".9rem" }}>Keranjang dari halaman utama</p>
+                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", margin:"2px 0 0" }}>{pendingCart.length} produk · Total {fmt(pendingCart.reduce((s,it)=>s+it.price*it.quantity,0))}</p>
+                </div>
+              </div>
+              <button onClick={dismissCart} style={{ width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, color:"rgba(255,255,255,0.4)", cursor:"pointer", flexShrink:0 }}><X style={{ width:12, height:12 }} /></button>
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", gap:4, marginBottom:12 }}>
+              {pendingCart.map((it,i) => (
+                <div key={i} style={{ display:"flex", justifyContent:"space-between" }}>
+                  <span style={{ color:"rgba(255,255,255,0.65)", fontSize:".82rem" }}>{it.title}{it.gram_weight?` (${it.gram_weight}gr)`:""} ×{it.quantity}</span>
+                  <span style={{ color:"#D4AF37", fontSize:".82rem" }}>{fmt(it.price*it.quantity)}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ display:"flex", gap:8 }}>
+              <button onClick={confirmCart} disabled={confirmingCart}
+                style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:7, padding:"10px", borderRadius:10, background:"linear-gradient(135deg,#D4AF37,#F5D060)", border:"none", color:"#0a0a0a", fontWeight:800, fontSize:".85rem", cursor:"pointer", opacity:confirmingCart?.7:1 }}>
+                <CheckCircle2 style={{ width:14, height:14 }} />
+                {confirmingCart?"Memproses…":"Konfirmasi Pesanan"}
+              </button>
+              <a href={waOrder(pendingCart)} target="_blank" rel="noopener noreferrer"
+                style={{ display:"flex", alignItems:"center", gap:7, padding:"10px 16px", borderRadius:10, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", color:"#25d366", textDecoration:"none", fontSize:".85rem", fontWeight:700 }}>
+                <MessageCircle style={{ width:14, height:14 }} /> Chat WA
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* my orders */}
+      {orders.length > 0 && (
+        <div>
+          <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".75rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 10px" }}>Pesanan Saya</p>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {orders.map((o,i) => {
+              const items = Array.isArray(o.items)?o.items:JSON.parse(o.items||"[]");
+              const sc = statusColor(o.status);
+              return (
+                <motion.div key={o.id} initial={{ opacity:0, y:4 }} animate={{ opacity:1, y:0 }} transition={{ delay:i*.04 }}
+                  style={{ background:"rgba(255,255,255,0.02)", border:`1px solid ${o.status==="pending"?"rgba(251,191,36,0.2)":o.status==="approved"?"rgba(52,211,153,0.15)":"rgba(255,255,255,0.06)"}`, borderRadius:14, padding:"14px 16px" }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
+                    <div>
+                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                        <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem" }}>#{o.id.slice(-8).toUpperCase()}</span>
+                        <span style={{ fontSize:".67rem", fontWeight:700, borderRadius:20, padding:"2px 8px", background:`${sc}1a`, color:sc, border:`1px solid ${sc}44` }}>{o.status.toUpperCase()}</span>
+                      </div>
+                      <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:"3px 0 0" }}>{fmtDt(o.created_at)}</p>
+                    </div>
+                    <span style={{ color:"#D4AF37", fontWeight:700, fontSize:".9rem" }}>{fmt(o.total_amount)}</span>
+                  </div>
+                  <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                    {items.slice(0,3).map((it: any, j: number) => (
+                      <span key={j} style={{ fontSize:".76rem", background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:6, padding:"3px 9px", color:"rgba(255,255,255,0.55)" }}>
+                        {it.title}{it.gram_weight?` ${it.gram_weight}gr`:""} ×{it.quantity}
+                      </span>
+                    ))}
+                  </div>
+                  {o.status==="pending" && (
+                    <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:10 }}>
+                      <Clock style={{ width:12, height:12, color:"#fbbf24" }} />
+                      <span style={{ color:"#fbbf24", fontSize:".76rem" }}>Menunggu konfirmasi dari admin</span>
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* produk list */}
+      <div>
+        <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".75rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 10px" }}>Produk Tersedia</p>
+        {loading ? (
+          <p style={{ color:"rgba(255,255,255,0.3)" }}>Memuat...</p>
+        ) : produk.length === 0 ? (
           <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:16, padding:"48px", textAlign:"center" }}>
-            <Megaphone style={{ width:38, height:38, color:"rgba(255,255,255,0.15)", margin:"0 auto 12px" }} />
-            <p style={{ color:"rgba(255,255,255,0.4)", margin:0 }}>Belum ada promo aktif saat ini.</p>
+            <Package style={{ width:38, height:38, color:"rgba(255,255,255,0.15)", margin:"0 auto 12px" }} />
+            <p style={{ color:"rgba(255,255,255,0.4)", margin:0 }}>Belum ada produk aktif saat ini.</p>
           </div>
         ) : (
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))", gap:16 }}>
-            {promos.map((p,i)=>(
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))", gap:16 }}>
+            {produk.map((p,i) => (
               <motion.div key={p.id} initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay:i*.05 }}
                 style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:16, overflow:"hidden" }}>
                 {p.image_url && <img src={gdriveImage(p.image_url)} alt={p.title} style={{ width:"100%", height:140, objectFit:"cover" }} onError={e=>{(e.currentTarget as HTMLImageElement).style.display="none";}} />}
-                <div style={{ padding:"16px 18px" }}>
-                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10, marginBottom:8 }}>
-                    <p style={{ color:"#fff", fontWeight:700, fontSize:"1rem", margin:0 }}>{p.title}</p>
-                    {p.gram_weight != null && (
-                      <span style={{ background:"linear-gradient(135deg,#D4AF37,#F5D060)", color:"#0a0a0a", borderRadius:8, padding:"3px 10px", fontSize:".75rem", fontWeight:800, flexShrink:0 }}>
-                        {p.gram_weight} gram
-                      </span>
-                    )}
+                <div style={{ padding:"14px 16px" }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8, marginBottom:8 }}>
+                    <p style={{ color:"#fff", fontWeight:700, fontSize:".95rem", margin:0, lineHeight:1.3 }}>{p.title}</p>
+                    {p.gram_weight!=null && <span style={{ background:"linear-gradient(135deg,#D4AF37,#F5D060)", color:"#0a0a0a", borderRadius:8, padding:"3px 10px", fontSize:".75rem", fontWeight:800, flexShrink:0 }}>{p.gram_weight}gr</span>}
                   </div>
-                  {p.price != null && <p style={{ color:"#D4AF37", fontWeight:900, fontSize:"1.05rem", margin:"0 0 6px" }}>{fmtRp(p.price)}</p>}
-                  {p.description && <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".85rem", margin:0, lineHeight:1.6 }}>{p.description}</p>}
-                  {p.expired_at && (
-                    <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".74rem", margin:"10px 0 0" }}>
-                      Berlaku s/d {fmtExp(p.expired_at)}
-                    </p>
-                  )}
+                  {p.price!=null && <p style={{ color:"#D4AF37", fontWeight:900, fontSize:"1rem", margin:"0 0 6px" }}>{fmt(p.price)}</p>}
+                  {p.stok!=null && <p style={{ color:p.stok>0?"#60a5fa":"#f87171", fontSize:".78rem", margin:"0 0 8px", fontWeight:600 }}>Stok: {p.stok>0?p.stok:"Habis"}</p>}
+                  {p.description && <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".82rem", margin:"0 0 10px", lineHeight:1.6 }}>{p.description}</p>}
+                  {p.expired_at && <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".74rem", margin:"0 0 10px" }}>Berlaku s/d {fmtDt(p.expired_at)}</p>}
+                  <a href={`https://wa.me/${waNum}?text=${encodeURIComponent(`Halo, saya tertarik dengan produk:\n• ${p.title}${p.gram_weight?` (${p.gram_weight}gr)`:""}\n• Harga: ${p.price?fmt(p.price):"-"}\n\nMohon info lebih lanjut.`)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6, width:"100%", padding:"9px", borderRadius:10, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", color:"#25d366", textDecoration:"none", fontSize:".82rem", fontWeight:700 }}>
+                    <MessageCircle style={{ width:13, height:13 }} /> Chat WA untuk Pesan
+                  </a>
                 </div>
               </motion.div>
             ))}
           </div>
         )}
+      </div>
     </div>
   );
 }

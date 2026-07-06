@@ -155,6 +155,7 @@ export interface Database {
           gram_weight: number | null;
           price: number | null;
           expired_at: string | null;
+          stok: number | null;
           is_active: boolean;
           created_at: string;
         };
@@ -163,6 +164,46 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["promos"]["Insert"]>;
+      };
+      product_orders: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          customer_name: string;
+          customer_phone: string | null;
+          items: Array<{ product_id: string; title: string; gram_weight: number | null; price: number; quantity: number; image_url: string | null }>;
+          total_amount: number;
+          status: "pending" | "approved" | "rejected" | "cancelled";
+          notes: string | null;
+          source: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database["public"]["Tables"]["product_orders"]["Row"], "id" | "created_at" | "updated_at"> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["product_orders"]["Insert"]>;
+      };
+      product_payments: {
+        Row: {
+          id: string;
+          order_id: string;
+          customer_name: string | null;
+          nominal: number;
+          terbayar: number;
+          payment_method: string;
+          proof_url: string | null;
+          notes: string | null;
+          verified_by: string | null;
+          created_at: string;
+        };
+        Insert: Omit<Database["public"]["Tables"]["product_payments"]["Row"], "id" | "created_at"> & {
+          id?: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["product_payments"]["Insert"]>;
       };
       news: {
         Row: {

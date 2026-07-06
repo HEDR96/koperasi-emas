@@ -13,6 +13,7 @@ import {
   getMarkup, withMarkup,
   buildDerivedCicilan, getCicilanParams,
 } from "@/lib/harga";
+import { isDemoMode, DEMO_HARGA_EMAS_BERAT, DEMO_MARKUP, DEMO_CICILAN_PARAMS, DEMO_BUYBACK_PRICE_PER_GRAM } from "@/lib/demo";
 import { Calculator, ArrowLeftRight, MessageCircle, ShoppingCart } from "lucide-react";
 
 type SimType = "beli" | "cicilan" | "buyback";
@@ -61,6 +62,24 @@ export default function SimulationSection() {
   useEffect(() => {
     (async () => {
       setLoadingCicilan(true);
+      if (isDemoMode()) {
+        const derived = buildDerivedCicilan(DEMO_HARGA_EMAS_BERAT, DEMO_MARKUP.nonAnggota, DEMO_CICILAN_PARAMS, "nonAnggota");
+        const flat: DerivedPlan[] = derived.flatMap(d =>
+          d.tenors.map(t => ({
+            key: `${d.gram}-${t.tenor}`,
+            gram: d.gram, tenor: t.tenor,
+            hargaAnggota: d.hargaAnggota,
+            totalSebelumDp: t.totalSebelumDp,
+            dp: t.dp,
+            total: t.total,
+            angsuran: t.angsuran,
+          }))
+        );
+        setCicilanPlans(flat);
+        if (flat.length) { setSelectedGram(flat[0].gram); setSelectedTenor(flat[0].tenor); }
+        setLoadingCicilan(false);
+        return;
+      }
       try {
         const [{ data: e }, markup, params] = await Promise.all([
           (supabase.from("harga_emas_berat") as any)
@@ -103,6 +122,15 @@ export default function SimulationSection() {
   useEffect(() => {
     (async () => {
       setLoadingBeli(true);
+      if (isDemoMode()) {
+        const rows = DEMO_HARGA_EMAS_BERAT
+          .map(r => ({ gram: r.gram, harga: r.harga }))
+          .sort((a, b) => a.gram - b.gram);
+        setBeliRows(rows);
+        if (rows.length) setBeliGram(String(rows[0].gram));
+        setLoadingBeli(false);
+        return;
+      }
       try {
         const [{ data: e }, markup] = await Promise.all([
           (supabase.from("harga_emas_berat") as any)
@@ -126,6 +154,11 @@ export default function SimulationSection() {
   useEffect(() => {
     (async () => {
       setLoadingBuyback(true);
+      if (isDemoMode()) {
+        setBuybackPrice(DEMO_BUYBACK_PRICE_PER_GRAM);
+        setLoadingBuyback(false);
+        return;
+      }
       try {
         // Try per-gram buyback table first
         const { data } = await (supabase.from("harga_emas_berat") as any)
@@ -472,9 +505,15 @@ export default function SimulationSection() {
                         <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>0882-1446-0345</span>
                       </a>
                     </div>
-                    <Link href="/auth/login" style={{ display:"block" }}>
-                      <Button variant="gold" fullWidth>Ajukan Buyback Sekarang</Button>
-                    </Link>
+                    {isDemoMode() ? (
+                      <a href={`https://wa.me/${WA_ADMIN}?text=${buildBuybackMsg()}`} target="_blank" rel="noopener noreferrer" style={{ display:"block" }}>
+                        <Button variant="gold" fullWidth>Ajukan Buyback Sekarang</Button>
+                      </a>
+                    ) : (
+                      <Link href="/auth/login" style={{ display:"block" }}>
+                        <Button variant="gold" fullWidth>Ajukan Buyback Sekarang</Button>
+                      </Link>
+                    )}
                   </div>
                 )}
               </Card>

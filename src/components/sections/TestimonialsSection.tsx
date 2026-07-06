@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useSiteSettings } from "@/store/useSettingsStore";
+import { isDemoMode, DEMO_TESTIMONIALS } from "@/lib/demo";
 
 interface Testimonial {
   id: number;
@@ -35,6 +36,7 @@ export default function TestimonialsSection() {
   const [direction, setDirection] = useState(1);
 
   useEffect(() => {
+    if (isDemoMode()) { setItems(DEMO_TESTIMONIALS); return; }
     (supabase.from("testimonials") as any)
       .select("id,nama,peran,inisial,rating,komentar,emas_saved,tahun_gabung")
       .eq("is_active", true)

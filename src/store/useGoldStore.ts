@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import type { GoldPrice } from "@/types";
 import type { GoldPriceRow } from "@/lib/database.types";
 import { MOCK_GOLD_PRICES } from "@/lib/constants";
+import { isDemoMode } from "@/lib/demo";
 
 interface GoldState {
   prices: GoldPrice;
@@ -23,6 +24,10 @@ export const useGoldStore = create<GoldState>((set) => ({
 
   fetchPrices: async () => {
     set({ isLoading: true });
+    if (isDemoMode()) {
+      set({ isLoading: false, lastFetch: new Date().toISOString(), prices: MOCK_GOLD_PRICES });
+      return;
+    }
     try {
       const { data, error } = await supabase
         .from("gold_prices")

@@ -5,6 +5,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
 import { ChevronDown, Shield, Award, TrendingUp } from "lucide-react";
 import { useSiteSettings } from "@/store/useSettingsStore";
+import { isDemoMode } from "@/lib/demo";
 
 /* ── Particle (fixed positions — no hydration mismatch) ── */
 const PARTICLES = [
@@ -93,10 +94,10 @@ export default function HeroSection() {
           initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay:.65 }}
           style={{ display:"flex", flexWrap:"wrap", gap:12, justifyContent:"center", marginBottom:"4rem" }}
         >
-          <Link href="/auth/login">
+          <Link href={isDemoMode() ? "#simulasi" : "/auth/login"}>
             <button className="btn-gold pulse-glow" style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"14px 32px", borderRadius:14, fontSize:"1rem", border:"none", cursor:"pointer" }}>
               <TrendingUp style={{ width:20, height:20 }} />
-              Masuk & Mulai Investasi
+              {isDemoMode() ? "Coba Simulasi Investasi" : "Masuk & Mulai Investasi"}
             </button>
           </Link>
           <Link href="#harga-emas">

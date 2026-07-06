@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/constants";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSiteName } from "@/store/useSettingsStore";
+import { isDemoMode } from "@/lib/demo";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -56,7 +57,12 @@ export default function Navbar() {
 
           {/* Right */}
           <div style={{ display:"flex", alignItems:"center", gap:10, flexShrink:0 }}>
-            {isAuthenticated && user ? (
+            {isDemoMode() ? (
+              <button className="desktop-only" type="button"
+                onClick={() => alert("Ini halaman demo portofolio — fitur login & dashboard tidak diaktifkan di sini. Lihat screenshot dashboard di galeri portofolio AFSS.")}
+                style={{ padding:"8px 18px", borderRadius:10, fontSize:".85rem", border:"1px solid rgba(212,175,55,0.3)", background:"transparent", color:"rgba(212,175,55,0.6)", cursor:"pointer" }}
+              >Login (Demo)</button>
+            ) : isAuthenticated && user ? (
               <Link href={`/dashboard/${user.role}`}>
                 <button className="btn-gold" style={{ padding:"8px 18px", borderRadius:10, fontSize:".85rem", border:"none", cursor:"pointer" }}>Dashboard</button>
               </Link>
@@ -97,9 +103,15 @@ export default function Navbar() {
                 </motion.div>
               ))}
               <div style={{ display:"flex", gap:10, marginTop:16 }}>
-                <Link href="/auth/login" onClick={() => setOpen(false)} style={{ flex:1 }}>
-                  <button className="btn-gold" style={{ width:"100%", padding:"11px", borderRadius:11, fontSize:".9rem", border:"none", cursor:"pointer" }}>Login</button>
-                </Link>
+                {isDemoMode() ? (
+                  <button type="button" style={{ flex:1, padding:"11px", borderRadius:11, fontSize:".9rem", border:"1px solid rgba(212,175,55,0.3)", background:"transparent", color:"rgba(212,175,55,0.6)", cursor:"pointer" }}
+                    onClick={() => { setOpen(false); alert("Ini halaman demo portofolio — fitur login & dashboard tidak diaktifkan di sini."); }}
+                  >Login (Demo)</button>
+                ) : (
+                  <Link href="/auth/login" onClick={() => setOpen(false)} style={{ flex:1 }}>
+                    <button className="btn-gold" style={{ width:"100%", padding:"11px", borderRadius:11, fontSize:".9rem", border:"none", cursor:"pointer" }}>Login</button>
+                  </Link>
+                )}
               </div>
             </div>
           </motion.div>

@@ -26,7 +26,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Harga Emas",      href:"/dashboard/master/harga",  icon:Coins },
     ]},
     { group:"Konten Landing", items:[
-      { label:"Promo",      href:"/dashboard/master/promo",     icon:Megaphone },
+      { label:"Produk",     href:"/dashboard/master/promo",     icon:Megaphone },
       { label:"Testimoni",  href:"/dashboard/master/testimoni", icon:Star },
       { label:"FAQ",        href:"/dashboard/master/faq",       icon:HelpCircle },
       { label:"Foto Gedung",href:"/dashboard/master/konten",    icon:Image },
@@ -71,7 +71,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Kelola Gadai",   href:"/dashboard/admin/gadai",    icon:Landmark },
     ]},
     { group:"Konten", items:[
-      { label:"Upload Promo", href:"/dashboard/admin/promo",  icon:Upload },
+      { label:"Kelola Produk", href:"/dashboard/admin/promo",  icon:Upload },
       { label:"Berita",       href:"/dashboard/admin/berita", icon:Newspaper },
       { label:"Chat",         href:"/dashboard/admin/chat",   icon:MessageSquare },
     ]},

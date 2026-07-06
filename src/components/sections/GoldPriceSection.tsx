@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Clock, RefreshCw, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { getMarkup, withMarkup } from "@/lib/harga";
+import { isDemoMode, DEMO_HARGA_EMAS_BERAT } from "@/lib/demo";
 
 interface HargaBerat {
   id: number;
@@ -24,6 +25,17 @@ export default function GoldPriceSection() {
 
   async function load() {
     setLoading(true);
+    if (isDemoMode()) {
+      const now = new Date().toISOString();
+      const rows: HargaBerat[] = DEMO_HARGA_EMAS_BERAT.map((r, i) => ({
+        id: i + 1, gram: r.gram, harga: r.harga, created_at: now,
+        prevHarga: Math.round(r.harga * 0.995),
+      }));
+      setPrices(rows);
+      setLastUpdate(now);
+      setLoading(false);
+      return;
+    }
     try {
       const [{ data: all }, markup] = await Promise.all([
         (supabase.from("harga_emas_berat") as any)
