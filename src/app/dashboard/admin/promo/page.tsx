@@ -143,6 +143,8 @@ export default function AdminProdukPage() {
   const [err, setErr] = useState("");
   const [imgUploading, setImgUploading] = useState(false);
   const imgUploadRef = useRef<HTMLInputElement>(null);
+  const [produkFilter, setProdukFilter] = useState<"all"|"pending"|"active"|"inactive">("all");
+  const [actingProdId, setActingProdId] = useState<string|null>(null);
 
   /* ── pesanan state ── */
   const [orders, setOrders] = useState<any[]>([]);
@@ -178,7 +180,7 @@ export default function AdminProdukPage() {
   async function loadProduk() {
     setLoadingProduk(true);
     const { data } = await (supabase.from("promos") as any)
-      .select("*").order("created_at", { ascending: false });
+      .select("*, submitter:profiles!submitted_by(name)").order("created_at", { ascending: false });
     setProduk(data || []);
     setLoadingProduk(false);
   }
@@ -273,6 +275,37 @@ export default function AdminProdukPage() {
   }
   async function toggle(p: any) { await (supabase.from("promos") as any).update({ is_active:!p.is_active }).eq("id", p.id); loadProduk(); }
   async function remove(id: string) { if (!confirm("Hapus produk ini?")) return; await (supabase.from("promos") as any).delete().eq("id", id); loadProduk(); }
+
+  /* ── approve/tolak produk yang diajukan member ── */
+  async function approveProduk(p: any) {
+    setActingProdId(p.id);
+    await (supabase.from("promos") as any).update({
+      approval_status: "approved", is_active: true, approved_by: user?.id, approved_at: new Date().toISOString(),
+    }).eq("id", p.id);
+    try {
+      await (supabase.from("notifications") as any).insert({
+        user_id: p.submitted_by, title: "Produk Disetujui",
+        body: `Produk "${p.title}" yang Anda ajukan telah disetujui dan sudah tayang.`,
+        type: "transaction", is_read: false, link: "/dashboard/member/promo",
+      });
+    } catch {}
+    setActingProdId(null); loadProduk();
+  }
+  async function rejectProduk(p: any) {
+    if (!confirm(`Tolak produk "${p.title}"?`)) return;
+    setActingProdId(p.id);
+    await (supabase.from("promos") as any).update({
+      approval_status: "rejected", is_active: false, approved_by: user?.id, approved_at: new Date().toISOString(),
+    }).eq("id", p.id);
+    try {
+      await (supabase.from("notifications") as any).insert({
+        user_id: p.submitted_by, title: "Produk Ditolak",
+        body: `Produk "${p.title}" yang Anda ajukan ditolak admin.`,
+        type: "transaction", is_read: false, link: "/dashboard/member/promo",
+      });
+    } catch {}
+    setActingProdId(null); loadProduk();
+  }
 
   /* ── pesanan handlers ── */
   function openApprove(o: any) {
@@ -409,6 +442,11 @@ export default function AdminProdukPage() {
   const filteredOrders = orderFilter === "all" ? orders : orders.filter(o => o.status === orderFilter);
   const totalProduk = produk.length;
   const aktifProduk = produk.filter(p => p.is_active).length;
+  const pendingProduk = produk.filter(p => p.approval_status === "pending").length;
+  const filteredProduk = produkFilter === "all" ? produk
+    : produkFilter === "pending" ? produk.filter(p => p.approval_status === "pending")
+    : produkFilter === "active" ? produk.filter(p => p.is_active)
+    : produk.filter(p => !p.is_active);
   const pendingOrders = orders.filter(o => o.status === "pending").length;
   const approvedOrders = orders.filter(o => o.status === "approved").length;
 
@@ -448,6 +486,9 @@ export default function AdminProdukPage() {
             {key==="pesanan" && pendingOrders > 0 && (
               <span style={{ background:"#f87171", color:"#fff", borderRadius:20, padding:"1px 7px", fontSize:".68rem", fontWeight:800 }}>{pendingOrders}</span>
             )}
+            {key==="produk" && pendingProduk > 0 && (
+              <span style={{ background:"#fbbf24", color:"#0a0a0a", borderRadius:20, padding:"1px 7px", fontSize:".68rem", fontWeight:800 }}>{pendingProduk}</span>
+            )}
           </button>
         ))}
       </div>
@@ -456,11 +497,12 @@ export default function AdminProdukPage() {
       {tab === "produk" && (
         <>
           {/* stats */}
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
             {[
               { label:"Total Produk", value:totalProduk, icon:<Sparkles style={{ width:15, height:15 }} />, color:"rgba(212,175,55,0.8)" },
               { label:"Aktif",        value:aktifProduk, icon:<CheckCircle2 style={{ width:15, height:15 }} />, color:"#34d399" },
               { label:"Nonaktif",     value:totalProduk-aktifProduk, icon:<ToggleLeft style={{ width:15, height:15 }} />, color:"rgba(255,255,255,0.25)" },
+              { label:"Menunggu Persetujuan", value:pendingProduk, icon:<FileText style={{ width:15, height:15 }} />, color:"#fbbf24" },
             ].map(s => (
               <div key={s.label} style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:12, padding:"14px 16px", display:"flex", alignItems:"center", gap:12 }}>
                 <div style={{ width:34, height:34, borderRadius:9, background:"rgba(255,255,255,0.05)", display:"flex", alignItems:"center", justifyContent:"center", color:s.color, flexShrink:0 }}>{s.icon}</div>
@@ -472,33 +514,58 @@ export default function AdminProdukPage() {
             ))}
           </div>
 
+          {/* filter */}
+          <div style={{ display:"flex", gap:6 }}>
+            {(["all","pending","active","inactive"] as const).map(f => (
+              <button key={f} onClick={() => setProdukFilter(f)}
+                style={{ padding:"6px 14px", borderRadius:8, border:`1px solid ${produkFilter===f?"rgba(212,175,55,0.4)":"rgba(255,255,255,0.1)"}`, background:produkFilter===f?"rgba(212,175,55,0.1)":"transparent", color:produkFilter===f?G:"rgba(255,255,255,0.4)", cursor:"pointer", fontSize:".8rem", fontWeight:600 }}>
+                {f==="all"?"Semua":f==="pending"?"Menunggu Persetujuan":f==="active"?"Aktif":"Nonaktif"}
+              </button>
+            ))}
+          </div>
+
           {/* list */}
           {loadingProduk ? (
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>{[1,2,3].map(i=><div key={i} style={{ height:72, borderRadius:12, background:"rgba(255,255,255,0.03)" }} />)}</div>
-          ) : produk.length === 0 ? (
+          ) : filteredProduk.length === 0 ? (
             <div style={{ textAlign:"center", padding:"56px 20px", background:"rgba(255,255,255,0.02)", border:"1px dashed rgba(255,255,255,0.08)", borderRadius:16 }}>
               <Zap style={{ width:28, height:28, color:"rgba(212,175,55,0.25)", margin:"0 auto 10px" }} />
               <p style={{ color:"rgba(255,255,255,0.25)", margin:0, fontSize:".88rem" }}>Belum ada produk</p>
             </div>
           ) : (
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-              {produk.map((p, i) => (
+              {filteredProduk.map((p, i) => (
                 <motion.div key={p.id} layout initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0 }} transition={{ delay:i*.04 }}
-                  style={{ display:"flex", alignItems:"center", gap:14, background:"rgba(255,255,255,0.03)", border:`1px solid ${p.is_active?"rgba(52,211,153,0.15)":"rgba(255,255,255,0.06)"}`, borderRadius:14, padding:"12px 16px" }}>
+                  style={{ display:"flex", alignItems:"center", gap:14, background:"rgba(255,255,255,0.03)", border:`1px solid ${p.approval_status==="pending"?"rgba(251,191,36,0.3)":p.is_active?"rgba(52,211,153,0.15)":"rgba(255,255,255,0.06)"}`, borderRadius:14, padding:"12px 16px" }}>
                   <div style={{ width:54, height:54, borderRadius:10, overflow:"hidden", flexShrink:0, background:"rgba(212,175,55,0.06)", display:"flex", alignItems:"center", justifyContent:"center" }}>
                     {p.image_url
                       ? <img src={gdriveImage(p.image_url)} alt={p.title} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{(e.currentTarget as HTMLImageElement).style.display="none";}} />
                       : <ImageOff style={{ width:18, height:18, color:"rgba(255,255,255,0.15)" }} />}
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5, flexWrap:"wrap" }}>
                       <p style={{ color:"#fff", fontWeight:700, fontSize:".9rem", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{p.title}</p>
-                      <span style={{ flexShrink:0, fontSize:".66rem", fontWeight:700, borderRadius:20, padding:"2px 8px", background:p.is_active?"rgba(52,211,153,0.12)":"rgba(255,255,255,0.05)", color:p.is_active?"#34d399":"rgba(255,255,255,0.25)", border:`1px solid ${p.is_active?"rgba(52,211,153,0.25)":"rgba(255,255,255,0.08)"}` }}>
-                        {p.is_active?"AKTIF":"NONAKTIF"}
-                      </span>
+                      {p.approval_status === "pending" ? (
+                        <span style={{ flexShrink:0, fontSize:".66rem", fontWeight:700, borderRadius:20, padding:"2px 8px", background:"rgba(251,191,36,0.15)", color:"#fbbf24", border:"1px solid rgba(251,191,36,0.35)" }}>
+                          MENUNGGU PERSETUJUAN
+                        </span>
+                      ) : p.approval_status === "rejected" ? (
+                        <span style={{ flexShrink:0, fontSize:".66rem", fontWeight:700, borderRadius:20, padding:"2px 8px", background:"rgba(248,113,113,0.12)", color:"#f87171", border:"1px solid rgba(248,113,113,0.3)" }}>
+                          DITOLAK
+                        </span>
+                      ) : (
+                        <span style={{ flexShrink:0, fontSize:".66rem", fontWeight:700, borderRadius:20, padding:"2px 8px", background:p.is_active?"rgba(52,211,153,0.12)":"rgba(255,255,255,0.05)", color:p.is_active?"#34d399":"rgba(255,255,255,0.25)", border:`1px solid ${p.is_active?"rgba(52,211,153,0.25)":"rgba(255,255,255,0.08)"}` }}>
+                          {p.is_active?"AKTIF":"NONAKTIF"}
+                        </span>
+                      )}
                       {p.is_gold_auto && (
                         <span style={{ flexShrink:0, fontSize:".66rem", fontWeight:700, borderRadius:20, padding:"2px 8px", background:"rgba(96,165,250,0.12)", color:"#60a5fa", border:"1px solid rgba(96,165,250,0.25)" }}>
                           OTOMATIS
+                        </span>
+                      )}
+                      {p.submitted_by && (
+                        <span style={{ flexShrink:0, fontSize:".66rem", fontWeight:700, borderRadius:20, padding:"2px 8px", background:"rgba(167,139,250,0.12)", color:"#a78bfa", border:"1px solid rgba(167,139,250,0.3)" }}>
+                          Diajukan: {p.submitter?.name || "Member"}
                         </span>
                       )}
                     </div>
@@ -520,6 +587,18 @@ export default function AdminProdukPage() {
                     )}
                   </div>
                   <div style={{ display:"flex", gap:6, flexShrink:0 }}>
+                    {p.approval_status === "pending" && (
+                      <>
+                        <button onClick={() => approveProduk(p)} disabled={actingProdId===p.id}
+                          style={{ display:"flex", alignItems:"center", gap:5, padding:"0 12px", height:32, background:"rgba(52,211,153,0.1)", border:"1px solid rgba(52,211,153,0.3)", borderRadius:8, color:"#34d399", cursor:actingProdId===p.id?"not-allowed":"pointer", fontSize:".78rem", fontWeight:700 }}>
+                          <CheckCheck style={{ width:13, height:13 }} /> Setujui
+                        </button>
+                        <button onClick={() => rejectProduk(p)} disabled={actingProdId===p.id}
+                          style={{ display:"flex", alignItems:"center", gap:5, padding:"0 12px", height:32, background:"rgba(248,113,113,0.07)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:8, color:"#f87171", cursor:actingProdId===p.id?"not-allowed":"pointer", fontSize:".78rem", fontWeight:700 }}>
+                          <XCircle style={{ width:13, height:13 }} /> Tolak
+                        </button>
+                      </>
+                    )}
                     <button onClick={() => openDetailProd(p)} style={{ width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(96,165,250,0.07)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:8, color:"#60a5fa", cursor:"pointer" }} title="Detail">
                       <FileText style={{ width:13, height:13 }} />
                     </button>
@@ -1193,7 +1272,8 @@ export default function AdminProdukPage() {
                     ["Status", detailProd.is_active?"Aktif":"Nonaktif"],
                     ["Stok Saat Ini", detailProd.stok??"-"],
                     ["Kadaluarsa", fmtExp(detailProd.expired_at)],
-                    ["Sumber", detailProd.is_gold_auto?"Otomatis (Harga Emas)":"Manual"],
+                    ["Sumber", detailProd.is_gold_auto?"Otomatis (Harga Emas)":detailProd.submitted_by?`Diajukan member: ${detailProd.submitter?.name||"-"}`:"Manual (Admin)"],
+                    ...(detailProd.submitted_by ? [["Status Persetujuan", detailProd.approval_status==="pending"?"Menunggu Persetujuan":detailProd.approval_status==="rejected"?"Ditolak":"Disetujui"]] : []),
                   ].map(([k,v]) => (
                     <div key={k}>
                       <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", margin:"0 0 2px" }}>{k}</p>

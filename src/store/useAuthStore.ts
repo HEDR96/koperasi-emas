@@ -17,6 +17,7 @@ export interface AuthUser {
   status: string;
   phone?: string;
   nik?: string;
+  productQuota: number;
 }
 
 interface AuthState {
@@ -51,6 +52,7 @@ function profileToUser(profile: Profile, email: string): AuthUser {
     status: profile.status,
     phone: profile.phone ?? undefined,
     nik: profile.nik ?? undefined,
+    productQuota: Number((profile as any).product_quota ?? 3),
   };
 }
 

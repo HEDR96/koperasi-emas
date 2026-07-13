@@ -24,6 +24,7 @@ interface MemberRow {
   rupiah_balance: number;
   created_at: string;
   role?: string;
+  product_quota: number;
 }
 
 interface MemberDetail extends MemberRow {
@@ -69,6 +70,9 @@ export default function MemberManagementPage() {
   // Cicilan/beli otomatis: pilih tipe (beli/cicilan) + berat (gram) → harga & angsuran auto.
   const C_EMPTY = { open:false, type:"cicilan", gram:"", tenor:"6", saving:false, err:"" };
   const [cForm, setCForm] = useState(C_EMPTY);
+  // Kuota produk (Tambah Produk member) — bisa diedit langsung dari profil.
+  const [quotaInput, setQuotaInput] = useState("");
+  const [savingQuota, setSavingQuota] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -104,7 +108,7 @@ export default function MemberManagementPage() {
     setLoading(true);
     try {
       const { data } = await (supabase.from("profiles") as any)
-        .select("id,name,nik,phone,status,gold_grams,rupiah_balance,created_at,role")
+        .select("id,name,nik,phone,status,gold_grams,rupiah_balance,created_at,role,product_quota")
         .or("role.eq.member,is_member.eq.true")
         .order("created_at",{ ascending:false });
       const list = data ?? [];
@@ -146,6 +150,7 @@ export default function MemberManagementPage() {
 
   async function openDetail(m: MemberRow) {
     setDetail({ ...m, transactions:[], savings:[], installments:[], simpanan:[], gadai:[] });
+    setQuotaInput(String(m.product_quota ?? 3));
     setDetailLoading(true);
     try {
       const [txRes, savRes, insRes, simRes, gadaiRes] = await Promise.all([
@@ -165,6 +170,24 @@ export default function MemberManagementPage() {
       .update({ status, status_changed_by: user?.id ?? null, status_changed_at: new Date().toISOString() })
       .eq("id", id);
     load();
+  }
+
+  // Kuota produk yang boleh diajukan member di menu Tambah Produk.
+  async function updateProductQuota(m: MemberDetail) {
+    const q = Math.max(0, Number(quotaInput) || 0);
+    setSavingQuota(true);
+    await (supabase.from("profiles") as any).update({ product_quota: q }).eq("id", m.id);
+    setDetail(d => d ? ({ ...d, product_quota: q }) : d);
+    setMembers(list => list.map(x => x.id===m.id ? { ...x, product_quota:q } : x));
+    setFiltered(list => list.map(x => x.id===m.id ? { ...x, product_quota:q } : x));
+    try {
+      await (supabase.from("notifications") as any).insert({
+        user_id: m.id, title:"Kuota Produk Diperbarui",
+        body:`Kuota produk Anda di menu Tambah Produk sekarang ${q}.`,
+        type:"transaction", is_read:false, link:"/dashboard/member/promo",
+      });
+    } catch {}
+    setSavingQuota(false);
   }
 
   // ── Aksi: Ajukan Gadai dari profil (admin atas nama anggota) ──
@@ -428,6 +451,17 @@ export default function MemberManagementPage() {
                       <span style={{ color:"#fff", fontWeight:600, fontSize:".83rem" }}>{v}</span>
                     </div>
                   ))}
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"11px 16px" }}>
+                    <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".83rem" }}>Kuota Produk (Tambah Produk)</span>
+                    <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                      <input type="number" min={0} value={quotaInput} onChange={e=>setQuotaInput(e.target.value)}
+                        style={{ width:56, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:7, padding:"5px 8px", color:"#fff", fontSize:".82rem", textAlign:"center", outline:"none" }} />
+                      <button onClick={()=>updateProductQuota(detail)} disabled={savingQuota || Number(quotaInput)===detail.product_quota}
+                        style={{ background:"rgba(212,175,55,0.12)", border:"1px solid rgba(212,175,55,0.3)", borderRadius:7, padding:"5px 10px", color:"#D4AF37", cursor: savingQuota||Number(quotaInput)===detail.product_quota ? "not-allowed" : "pointer", fontSize:".76rem", fontWeight:700, opacity: savingQuota||Number(quotaInput)===detail.product_quota ? .5 : 1 }}>
+                        {savingQuota ? "..." : "Simpan"}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               {/* Simpanan */}
               {(() => {
