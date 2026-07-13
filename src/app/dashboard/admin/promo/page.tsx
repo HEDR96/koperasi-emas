@@ -163,11 +163,27 @@ export default function AdminProdukPage() {
   const [invoiceModal, setInvoiceModal] = useState<{ order: any; payment: any } | null>(null);
   const [orderFilter, setOrderFilter] = useState<"all"|"pending"|"approved"|"rejected">("all");
   const [detailOrder, setDetailOrder] = useState<any|null>(null);
+  const [payNotesEdit, setPayNotesEdit] = useState<{ id: string; value: string } | null>(null);
+  const [savingPayNotes, setSavingPayNotes] = useState(false);
+
+  async function savePayNotes() {
+    if (!payNotesEdit) return;
+    setSavingPayNotes(true);
+    const { error } = await (supabase.from("product_payments") as any)
+      .update({ notes: payNotesEdit.value || null }).eq("id", payNotesEdit.id);
+    if (!error) {
+      setDetailOrder((d: any) => d ? ({ ...d, product_payments: d.product_payments.map((p: any) =>
+        p.id === payNotesEdit.id ? { ...p, notes: payNotesEdit.value || null } : p) }) : d);
+      setPayNotesEdit(null);
+    }
+    setSavingPayNotes(false);
+  }
 
   /* ── input pesanan manual (walk-in / bukan dari member) ── */
   const [manualModal, setManualModal] = useState(false);
   const EMPTY_MANUAL_ITEM = { product_id:"", quantity:"1" };
   const [manualForm, setManualForm] = useState({ user_id:"", customer_name:"", customer_phone:"", items:[{ ...EMPTY_MANUAL_ITEM }], notes:"" });
+  const [manualBuyerType, setManualBuyerType] = useState<"member"|"umum">("member");
   const [savingManual, setSavingManual] = useState(false);
   const [manualErr, setManualErr] = useState("");
 
@@ -336,7 +352,7 @@ export default function AdminProdukPage() {
   function onOngkirChange(ongkir: string) { recomputeNominal(payForm.voucher_id, ongkir); }
 
   /* ── input pesanan manual — beli langsung di toko, dicatat lalu masuk alur approve seperti biasa ── */
-  function openManual() { setManualForm({ user_id:"", customer_name:"", customer_phone:"", items:[{ ...EMPTY_MANUAL_ITEM }], notes:"" }); setManualErr(""); setManualModal(true); }
+  function openManual() { setManualForm({ user_id:"", customer_name:"", customer_phone:"", items:[{ ...EMPTY_MANUAL_ITEM }], notes:"" }); setManualBuyerType("member"); setManualErr(""); setManualModal(true); }
   function closeManual() { setManualModal(false); setManualErr(""); }
 
   function addManualItem() { setManualForm(p => ({ ...p, items:[...p.items, { ...EMPTY_MANUAL_ITEM }] })); }
@@ -357,6 +373,7 @@ export default function AdminProdukPage() {
   const manualMissingPrice = manualItemsResolved.some(r => r.product && !r.product.price);
 
   async function saveManual() {
+    if (manualBuyerType === "member" && !manualForm.user_id) { setManualErr("Pilih anggota, atau ganti Jenis Pembeli ke Bukan Anggota."); return; }
     if (!manualForm.customer_name.trim()) { setManualErr("Nama pembeli wajib diisi."); return; }
     if (!manualHasProduct) { setManualErr("Pilih minimal satu produk yang dibeli."); return; }
     if (manualMissingPrice) { setManualErr("Ada produk yang belum punya harga."); return; }
@@ -862,25 +879,30 @@ export default function AdminProdukPage() {
                 {manualErr && <div style={{ background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:10, padding:"10px 14px", color:"#f87171", fontSize:".82rem" }}>{manualErr}</div>}
 
                 <div>
-                  <label style={lbl}>Anggota (opsional)</label>
+                  <label style={lbl}>Jenis Pembeli</label>
                   <div style={{ display:"flex", gap:8 }}>
-                    <div style={{ flex:1 }}>
-                      <MemberPicker value={manualForm.user_id} onChange={m => setManualForm(p => ({
-                        ...p, user_id: m?.id || "",
-                        customer_name: m ? m.name : p.customer_name,
-                        customer_phone: m ? (m.phone || "") : p.customer_phone,
-                      }))} />
-                    </div>
-                    {manualForm.user_id && (
-                      <button type="button" onClick={() => setManualForm(p => ({ ...p, user_id:"" }))}
-                        title="Batalkan pilihan anggota — jadikan pembeli umum"
-                        style={{ width:38, height:38, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.25)", borderRadius:10, color:"#f87171", cursor:"pointer" }}>
-                        <X style={{ width:14, height:14 }} />
+                    {([["member","Anggota Terdaftar"],["umum","Bukan Anggota (Umum)"]] as const).map(([val,label]) => (
+                      <button key={val} type="button" onClick={() => {
+                          setManualBuyerType(val);
+                          if (val === "umum") setManualForm(p => ({ ...p, user_id:"" }));
+                        }}
+                        style={{ flex:1, padding:"9px 12px", borderRadius:10, border:`1px solid ${manualBuyerType===val?"rgba(212,175,55,0.4)":"rgba(255,255,255,0.1)"}`, background:manualBuyerType===val?"rgba(212,175,55,0.12)":"rgba(255,255,255,0.03)", color:manualBuyerType===val?G:"rgba(255,255,255,0.5)", cursor:"pointer", fontSize:".82rem", fontWeight:manualBuyerType===val?700:400 }}>
+                        {label}
                       </button>
-                    )}
+                    ))}
                   </div>
-                  <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:"6px 0 0" }}>Pilih kalau pembeli adalah anggota terdaftar — kosongkan untuk pembeli umum.</p>
                 </div>
+
+                {manualBuyerType === "member" && (
+                  <div>
+                    <label style={lbl}>Pilih Anggota *</label>
+                    <MemberPicker value={manualForm.user_id} onChange={m => setManualForm(p => ({
+                      ...p, user_id: m?.id || "",
+                      customer_name: m ? m.name : p.customer_name,
+                      customer_phone: m ? (m.phone || "") : p.customer_phone,
+                    }))} />
+                  </div>
+                )}
 
                 <div>
                   <label style={lbl}>Nama Pembeli *</label>
@@ -953,8 +975,8 @@ export default function AdminProdukPage() {
                 <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".74rem", margin:0 }}>Pesanan akan masuk sebagai <b>Pending</b> — lanjutkan ke tombol Setujui untuk proses pembayaran & stok seperti pesanan biasa.</p>
 
                 <div style={{ display:"flex", gap:8, paddingTop:4 }}>
-                  <button onClick={saveManual} disabled={savingManual||!manualForm.customer_name||!manualHasProduct||manualStockExceeded}
-                    style={{ flex:1, padding:12, borderRadius:11, background:`linear-gradient(135deg,${G},${G2})`, border:"none", color:"#0a0a0a", fontWeight:800, fontSize:".88rem", cursor:savingManual||!manualForm.customer_name||!manualHasProduct||manualStockExceeded?"not-allowed":"pointer", opacity:savingManual||manualStockExceeded?.6:1 }}>
+                  <button onClick={saveManual} disabled={savingManual||!manualForm.customer_name||!manualHasProduct||manualStockExceeded||(manualBuyerType==="member"&&!manualForm.user_id)}
+                    style={{ flex:1, padding:12, borderRadius:11, background:`linear-gradient(135deg,${G},${G2})`, border:"none", color:"#0a0a0a", fontWeight:800, fontSize:".88rem", cursor:savingManual||!manualForm.customer_name||!manualHasProduct||manualStockExceeded||(manualBuyerType==="member"&&!manualForm.user_id)?"not-allowed":"pointer", opacity:savingManual||manualStockExceeded?.6:1 }}>
                     {savingManual?"Menyimpan…":"Simpan Pesanan"}
                   </button>
                   <button onClick={closeManual} style={{ padding:"12px 18px", borderRadius:11, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", color:"rgba(255,255,255,0.35)", cursor:"pointer", fontSize:".85rem" }}>Batal</button>
@@ -1211,16 +1233,43 @@ export default function AdminProdukPage() {
                           ["Terbayar", fmt(pay.terbayar)],
                           ["Kembalian", fmt(Math.max(0,pay.terbayar-pay.nominal))],
                           ["Tanggal", fmtDt(pay.created_at)],
-                          ["Catatan", pay.notes||"-"],
+                          ...(pay.ongkir ? [["Ongkir", fmt(pay.ongkir)]] : []),
                         ].map(([k,v]) => (
                           <div key={k}>
                             <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:700, margin:"0 0 2px" }}>{k}</p>
                             <p style={{ color:"#fff", fontSize:".83rem", fontWeight:600, margin:0 }}>{v}</p>
                           </div>
                         ))}
+                        <div style={{ gridColumn:"1/-1" }}>
+                          <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:700, margin:"0 0 4px" }}>Catatan</p>
+                          {payNotesEdit && payNotesEdit.id === pay.id ? (
+                            <div style={{ display:"flex", gap:6 }}>
+                              <textarea rows={2} value={payNotesEdit.value} onChange={e=>setPayNotesEdit({ id:pay.id, value:e.target.value })}
+                                style={{ ...field, flex:1, resize:"vertical", fontFamily:"inherit", fontSize:".83rem", padding:"7px 10px" }} />
+                              <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+                                <button onClick={savePayNotes} disabled={savingPayNotes}
+                                  style={{ background:"rgba(52,211,153,0.15)", border:"1px solid rgba(52,211,153,0.35)", borderRadius:7, padding:"5px 10px", color:"#34d399", cursor:"pointer", fontSize:".74rem", fontWeight:700 }}>
+                                  {savingPayNotes ? "…" : "Simpan"}
+                                </button>
+                                <button onClick={()=>setPayNotesEdit(null)}
+                                  style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:7, padding:"5px 10px", color:"rgba(255,255,255,0.4)", cursor:"pointer", fontSize:".74rem" }}>
+                                  Batal
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                              <p style={{ color:"#fff", fontSize:".83rem", fontWeight:600, margin:0, flex:1 }}>{pay.notes||"-"}</p>
+                              <button onClick={()=>setPayNotesEdit({ id:pay.id, value:pay.notes||"" })}
+                                style={{ background:"rgba(96,165,250,0.1)", border:"1px solid rgba(96,165,250,0.25)", borderRadius:7, padding:"4px 10px", color:"#60a5fa", cursor:"pointer", fontSize:".72rem", fontWeight:600 }}>
+                                Edit
+                              </button>
+                            </div>
+                          )}
+                        </div>
                         {pay.proof_url && <div style={{ gridColumn:"1/-1" }}>
                           <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:700, margin:"0 0 6px" }}>BUKTI BAYAR</p>
-                          <img src={pay.proof_url} alt="Bukti" style={{ maxWidth:"100%", maxHeight:140, borderRadius:8, objectFit:"cover" }} />
+                          <img src={gdriveImage(pay.proof_url)} alt="Bukti" style={{ maxWidth:"100%", maxHeight:140, borderRadius:8, objectFit:"cover" }} />
                         </div>}
                       </div>
                     ))}

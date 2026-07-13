@@ -36,6 +36,8 @@ export default function AdminGadaiPage() {
   const [pmts, setPmts] = useState<any[]>([]);
   const [pmtLoading, setPmtLoading] = useState(false);
   const [staff, setStaff] = useState<Record<string,string>>({});
+  const [catatanEdit, setCatatanEdit] = useState("");
+  const [savingCatatan, setSavingCatatan] = useState(false);
 
   // Nama penginput: staff (admin/master) atau anggota sendiri bila ia yang mengajukan.
   const recorderName = (g: any) => g?.recorded_by ? (staff[g.recorded_by] || (g.recorded_by === g.user_id ? (g.profiles?.name || "Anggota") : "—")) : "—";
@@ -44,7 +46,7 @@ export default function AdminGadaiPage() {
     setLoading(true);
     const [{ data }, staffMap] = await Promise.all([
       (supabase.from("gadai") as any)
-        .select("id, user_id, dana_cair, sisa_tagihan, nilai_jaminan, gram_setara, tenor, angsuran_per_bulan, status, created_at, transaction_date, recorded_by, profiles:profiles!user_id(name)")
+        .select("id, user_id, dana_cair, sisa_tagihan, nilai_jaminan, gram_setara, tenor, angsuran_per_bulan, status, created_at, transaction_date, recorded_by, keterangan, catatan_admin, profiles:profiles!user_id(name)")
         .order("created_at",{ascending:false}).limit(200),
       getStaffMap(),
     ]);
@@ -70,14 +72,25 @@ export default function AdminGadaiPage() {
       lunas: `Selamat! Gadai ${fmt(row.dana_cair)} telah dinyatakan LUNAS.`,
     };
     if (msg[status]) await notify(row.user_id, "Update Gadai", msg[status]);
+    setDetail((d: any) => d && d.id === row.id ? ({ ...d, status, ...patch }) : d);
     await load(); setActing(null);
   }
 
   async function openDetail(g: any) {
-    setDetail(g); setPmtLoading(true); setPmts([]);
+    setDetail(g); setPmtLoading(true); setPmts([]); setCatatanEdit(g.catatan_admin || "");
     const { data } = await (supabase.from("gadai_pembayaran") as any)
       .select("id, angsuran_ke, amount, paid_at").eq("gadai_id", g.id).order("paid_at",{ascending:true});
     setPmts(data || []); setPmtLoading(false);
+  }
+
+  async function saveCatatanAdmin(g: any) {
+    setSavingCatatan(true);
+    const { error } = await (supabase.from("gadai") as any).update({ catatan_admin: catatanEdit || null }).eq("id", g.id);
+    if (!error) {
+      setDetail((d: any) => d ? ({ ...d, catatan_admin: catatanEdit || null }) : d);
+      setRows(list => list.map(r => r.id === g.id ? { ...r, catatan_admin: catatanEdit || null } : r));
+    }
+    setSavingCatatan(false);
   }
 
   async function recordGadaiPayment(g: any) {
@@ -169,12 +182,10 @@ export default function AdminGadaiPage() {
                         </button>
                       </>
                     )}
-                    {["disetujui","aktif","lunas"].includes(g.status) && (
-                      <button onClick={()=>openDetail(g)}
-                        style={{ display:"flex", alignItems:"center", gap:4, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:8, padding:"6px 12px", color:"rgba(255,255,255,0.7)", cursor:"pointer", fontSize:".78rem", fontWeight:600 }}>
-                        Detail / Bayar
-                      </button>
-                    )}
+                    <button onClick={()=>openDetail(g)}
+                      style={{ display:"flex", alignItems:"center", gap:4, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:8, padding:"6px 12px", color:"rgba(255,255,255,0.7)", cursor:"pointer", fontSize:".78rem", fontWeight:600 }}>
+                      Detail{g.status!=="pengajuan" ? " / Bayar" : ""}
+                    </button>
                   </div>
                 </motion.div>
               );
@@ -223,7 +234,18 @@ export default function AdminGadaiPage() {
                   ))}
                 </div>
 
-                {detail.sisa_tagihan > 0 ? (
+                {detail.status === "pengajuan" ? (
+                  <div style={{ display:"flex", gap:8, marginBottom:18 }}>
+                    <button onClick={()=>setStatus(detail,"aktif")} disabled={acting===detail.id}
+                      style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px", borderRadius:11, background:"linear-gradient(135deg,#34d399,#6ee7b7)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".92rem", cursor:acting===detail.id?"not-allowed":"pointer", opacity:acting===detail.id?.7:1 }}>
+                      <Check style={{ width:16, height:16 }} /> Setujui & Cairkan
+                    </button>
+                    <button onClick={()=>setStatus(detail,"ditolak")} disabled={acting===detail.id}
+                      style={{ padding:"12px 18px", borderRadius:11, background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.25)", color:"#f87171", fontWeight:700, fontSize:".92rem", cursor:acting===detail.id?"not-allowed":"pointer" }}>
+                      <X style={{ width:16, height:16 }} />
+                    </button>
+                  </div>
+                ) : detail.sisa_tagihan > 0 ? (
                   <button onClick={()=>recordGadaiPayment(detail)} disabled={acting===detail.id}
                     style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px", borderRadius:11, background:"linear-gradient(135deg,#34d399,#6ee7b7)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".92rem", cursor:acting===detail.id?"not-allowed":"pointer", opacity:acting===detail.id?.7:1, marginBottom:18 }}>
                     <Check style={{ width:16, height:16 }} /> Catat Bayar Angsuran ke-{paid+1} ({fmt(detail.angsuran_per_bulan)})
@@ -233,6 +255,24 @@ export default function AdminGadaiPage() {
                     <CheckCircle style={{ width:16, height:16 }} /> Lunas
                   </div>
                 )}
+
+                {detail.keterangan && (
+                  <div style={{ marginBottom:14 }}>
+                    <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".72rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 4px" }}>Keterangan Anggota</p>
+                    <p style={{ color:"rgba(255,255,255,0.7)", fontSize:".85rem", margin:0 }}>{detail.keterangan}</p>
+                  </div>
+                )}
+
+                <div style={{ marginBottom:18 }}>
+                  <label style={{ color:"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", display:"block", marginBottom:8 }}>Catatan Admin</label>
+                  <textarea rows={2} value={catatanEdit} onChange={e=>setCatatanEdit(e.target.value)}
+                    style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".9rem", outline:"none", boxSizing:"border-box", resize:"vertical", fontFamily:"inherit" }}
+                    placeholder="Keterangan tambahan…" />
+                  <button onClick={()=>saveCatatanAdmin(detail)} disabled={savingCatatan || catatanEdit === (detail.catatan_admin||"")}
+                    style={{ marginTop:8, background:"rgba(212,175,55,0.12)", border:"1px solid rgba(212,175,55,0.3)", borderRadius:8, padding:"7px 14px", color:"#D4AF37", cursor: savingCatatan || catatanEdit===(detail.catatan_admin||"") ? "not-allowed" : "pointer", fontSize:".8rem", fontWeight:700, opacity: savingCatatan || catatanEdit===(detail.catatan_admin||"") ? .5 : 1 }}>
+                    {savingCatatan ? "Menyimpan…" : "Simpan Catatan"}
+                  </button>
+                </div>
 
                 <h3 style={{ color:"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", marginBottom:10 }}>Jadwal Angsuran</h3>
                 <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:18 }}>

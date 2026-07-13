@@ -30,6 +30,7 @@ const FILTERS = ["semua","pending","berjalan","lunas"] as const;
 interface Item {
   id: string; kind: "cicilan" | "gadai"; user_id: string; name: string; memberName: string;
   total: number; monthly: number; downPayment: number; tenor: number; paid: number; sisa: number; status: string; created_at: string;
+  notes: string | null;
 }
 
 export default function AdminCicilanPage() {
@@ -41,9 +42,12 @@ export default function AdminCicilanPage() {
   const [acting, setActing] = useState<string | null>(null);
 
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ user_id:"", gram:"", tenor:"12" });
+  const [form, setForm] = useState({ user_id:"", gram:"", tenor:"12", notes:"" });
   const [saving, setSaving] = useState(false);
   const [formErr, setFormErr] = useState("");
+
+  const [notesEdit, setNotesEdit] = useState("");
+  const [savingNotes, setSavingNotes] = useState(false);
 
   // Data harga emas + parameter cicilan (untuk auto-fill)
   const [goldRows, setGoldRows] = useState<{ gram:number; harga:number }[]>([]);
@@ -77,14 +81,14 @@ export default function AdminCicilanPage() {
       downPayment: r.down_payment || 0,
       tenor:r.tenor, paid:r.paid_installments, sisa:Math.max(0,(r.tenor-r.paid_installments)*r.monthly_amount),
       status: r.status === "completed" ? "lunas" : (r.status === "overdue" ? "terlambat" : r.status === "pending" ? "pending" : "berjalan"),
-      created_at:r.created_at,
+      created_at:r.created_at, notes: r.notes || null,
     };
   }
 
   async function load() {
     setLoading(true);
     const { data } = await (supabase.from("installments") as any)
-      .select("id, user_id, product_name, total_amount, monthly_amount, down_payment, tenor, paid_installments, status, created_at, profiles:profiles!user_id(name)")
+      .select("id, user_id, product_name, total_amount, monthly_amount, down_payment, tenor, paid_installments, status, created_at, notes, profiles:profiles!user_id(name)")
       .order("created_at",{ascending:false}).limit(300);
     setRows((data||[]).map(normCicilan));
     setLoading(false);
@@ -115,6 +119,7 @@ export default function AdminCicilanPage() {
       paid_installments: 0,
       status: "active",
       next_due_date: due.toISOString().slice(0,10),
+      notes: form.notes || null,
     });
     if (error) { setFormErr(error.message); }
     else {
@@ -125,14 +130,24 @@ export default function AdminCicilanPage() {
           type:"cicilan", is_read:false, link:"/dashboard/member/cicilan",
         });
       } catch {}
-      setForm({ user_id:"", gram:"", tenor:"12" });
+      setForm({ user_id:"", gram:"", tenor:"12", notes:"" });
       setShowForm(false); load();
     }
     setSaving(false);
   }
 
+  async function saveNotes(it: Item) {
+    setSavingNotes(true);
+    const { error } = await (supabase.from("installments") as any).update({ notes: notesEdit || null }).eq("id", it.id);
+    if (!error) {
+      setDetail(d => d ? ({ ...d, notes: notesEdit || null }) : d);
+      setRows(list => list.map(r => r.id === it.id ? { ...r, notes: notesEdit || null } : r));
+    }
+    setSavingNotes(false);
+  }
+
   async function openDetail(it: Item) {
-    setDetail(it); setDetailLoading(true); setPayments([]);
+    setDetail(it); setDetailLoading(true); setPayments([]); setNotesEdit(it.notes || "");
     if (it.kind === "cicilan") {
       const { data } = await (supabase.from("cicilan_pembayaran") as any)
         .select("id, angsuran_ke, amount, paid_at").eq("installment_id", it.id).order("angsuran_ke",{ascending:true});
@@ -342,6 +357,12 @@ export default function AdminCicilanPage() {
                   </div>
                 )}
 
+                {/* Catatan */}
+                <div>
+                  <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Catatan (opsional)</label>
+                  <textarea rows={2} value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))} style={{ ...inp, resize:"vertical", fontFamily:"inherit" }} placeholder="Keterangan tambahan…" />
+                </div>
+
                 <button onClick={createCicilan} disabled={saving || !form.user_id || !form.gram}
                   style={{ padding:"12px", borderRadius:11, background:"linear-gradient(135deg,#a78bfa,#c4b5fd)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".95rem", cursor:saving||!form.user_id||!form.gram?"not-allowed":"pointer", opacity:saving?.7:1 }}>
                   {saving ? "Menyimpan..." : "Buat Cicilan"}
@@ -406,6 +427,15 @@ export default function AdminCicilanPage() {
                     <CheckCircle style={{ width:16, height:16 }} /> Sudah Lunas
                   </div>
                 )}
+
+                <div style={{ marginBottom:18 }}>
+                  <label style={{ color:"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", display:"block", marginBottom:8 }}>Catatan</label>
+                  <textarea rows={2} value={notesEdit} onChange={e=>setNotesEdit(e.target.value)} style={{ ...inp, resize:"vertical", fontFamily:"inherit" }} placeholder="Keterangan tambahan…" />
+                  <button onClick={()=>saveNotes(detail)} disabled={savingNotes || notesEdit === (detail.notes||"")}
+                    style={{ marginTop:8, background:"rgba(212,175,55,0.12)", border:"1px solid rgba(212,175,55,0.3)", borderRadius:8, padding:"7px 14px", color:"#D4AF37", cursor: savingNotes || notesEdit===(detail.notes||"") ? "not-allowed" : "pointer", fontSize:".8rem", fontWeight:700, opacity: savingNotes || notesEdit===(detail.notes||"") ? .5 : 1 }}>
+                    {savingNotes ? "Menyimpan…" : "Simpan Catatan"}
+                  </button>
+                </div>
 
                 <h3 style={{ color:"rgba(255,255,255,0.6)", fontSize:".8rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", marginBottom:10 }}>Jadwal Angsuran</h3>
                 <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
