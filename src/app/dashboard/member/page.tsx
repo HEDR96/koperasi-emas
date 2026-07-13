@@ -77,7 +77,10 @@ export default function MemberDashboardPage() {
       setEmasGram(Math.max(0, net));
       setRecent(txs.slice(0, 6));
 
-      setTotalSimpanan((simRes.data || []).reduce((s: number, r: any) => s + (r.amount || 0), 0));
+      // Total Simpanan = tabel simpanan + sisa transaksi lama type='tabungan' (sebelum migrasi ke tabel simpanan)
+      const simFromTable = (simRes.data || []).reduce((s: number, r: any) => s + (r.amount || 0), 0);
+      const simFromLegacy = txs.reduce((s, t) => s + (t.status === "completed" && t.type === "tabungan" ? Number(t.amount || 0) : 0), 0);
+      setTotalSimpanan(simFromTable + simFromLegacy);
 
       const perGram = (rows: any[], fallback = 0) => {
         if (!rows?.length) return fallback;

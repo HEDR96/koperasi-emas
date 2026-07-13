@@ -47,7 +47,9 @@ export default function StatistikPage() {
       const gramSold   = txs.filter((t: any) => t.type==="buy" && t.gram).reduce((s: number, t: any) => s + Number(t.gram), 0);
       const buybackVol = txs.filter((t: any) => t.type==="buyback").reduce((s: number, t: any) => s + Number(t.amount||0), 0);
       const txVolume   = txs.reduce((s: number, t: any) => s + Number(t.amount||0), 0);
-      const simpanan   = sims.reduce((s: number, r: any) => s + Number(r.amount||0), 0);
+      // Total Simpanan = tabel simpanan + sisa transaksi lama type='tabungan' (sebelum migrasi ke tabel simpanan)
+      const simpananLegacy = txs.filter((t: any) => t.type==="tabungan").reduce((s: number, t: any) => s + Number(t.amount||0), 0);
+      const simpanan   = sims.reduce((s: number, r: any) => s + Number(r.amount||0), 0) + simpananLegacy;
       const gadaiDana  = gadais.reduce((s: number, r: any) => s + Number(r.dana_cair||0), 0);
 
       setStats({

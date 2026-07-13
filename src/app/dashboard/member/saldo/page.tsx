@@ -30,7 +30,7 @@ export default function MemberSaldoPage() {
     try {
       const [profRes, txRes, simRes, bbRes] = await Promise.all([
         (supabase.from("profiles") as any).select("rupiah_balance").eq("id", user.id).single(),
-        (supabase.from("transactions") as any).select("type, gram, status").eq("user_id", user.id).eq("status","completed"),
+        (supabase.from("transactions") as any).select("type, gram, amount, status").eq("user_id", user.id).eq("status","completed"),
         (supabase.from("simpanan") as any).select("amount").eq("user_id", user.id).eq("status","completed"),
         (supabase.from("harga_emas_berat") as any).select("gram, harga").eq("kategori","buyback").order("created_at",{ascending:false}).limit(30),
       ]);
@@ -42,7 +42,10 @@ export default function MemberSaldoPage() {
         return acc;
       }, 0);
       setEmasGram(Math.max(0, net));
-      setSimpanan((simRes.data||[]).reduce((s: number, r: any) => s + (r.amount||0), 0));
+      // Total Simpanan = tabel simpanan + sisa transaksi lama type='tabungan' (sebelum migrasi ke tabel simpanan)
+      const simFromTable = (simRes.data||[]).reduce((s: number, r: any) => s + (r.amount||0), 0);
+      const simFromLegacy = (txRes.data||[]).reduce((s: number, t: any) => s + (t.type === "tabungan" ? Number(t.amount||0) : 0), 0);
+      setSimpanan(simFromTable + simFromLegacy);
       let hb = 0;
       if (bbRes.data?.length) {
         const one = bbRes.data.find((r: any) => Number(r.gram) === 1) || bbRes.data[0];

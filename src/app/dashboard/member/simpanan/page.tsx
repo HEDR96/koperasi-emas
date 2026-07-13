@@ -48,13 +48,27 @@ export default function SimpananPage() {
     setLoading(true);
     try {
       // Simpanan data
-      const { data: simpananData } = await (supabase.from("simpanan") as any)
-        .select("id, type, amount, status, transaction_date, created_at, description")
-        .eq("user_id", user.id)
-        .eq("status", "completed")
-        .order("transaction_date", { ascending: false });
+      const [{ data: simpananData }, { data: legacyData }] = await Promise.all([
+        (supabase.from("simpanan") as any)
+          .select("id, type, amount, status, transaction_date, created_at, description")
+          .eq("user_id", user.id)
+          .eq("status", "completed")
+          .order("transaction_date", { ascending: false }),
+        (supabase.from("transactions") as any)
+          .select("id, amount, status, transaction_date, created_at, notes")
+          .eq("user_id", user.id)
+          .eq("type", "tabungan")
+          .eq("status", "completed")
+          .order("transaction_date", { ascending: false }),
+      ]);
 
-      const rowData: SimpananRow[] = simpananData || [];
+      // Gabungkan tabel simpanan + sisa transaksi lama type='tabungan' (sebelum migrasi ke tabel simpanan)
+      const legacyRows: SimpananRow[] = (legacyData || []).map((t: any) => ({
+        id: `tx-${t.id}`, type: "tabungan", amount: t.amount, status: t.status,
+        transaction_date: t.transaction_date, created_at: t.created_at, description: t.notes,
+      }));
+      const rowData: SimpananRow[] = [...(simpananData || []), ...legacyRows]
+        .sort((a, b) => new Date(b.transaction_date || b.created_at).getTime() - new Date(a.transaction_date || a.created_at).getTime());
       setRows(rowData);
       const total = rowData.reduce((s: number, r: SimpananRow) => s + (r.amount || 0), 0);
       setTotalSimpanan(total);
