@@ -13,6 +13,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import RupiahInput from "@/components/ui/RupiahInput";
 import MemberPicker from "@/components/ui/MemberPicker";
+import Select from "@/components/ui/Select";
 import { useSiteSettings } from "@/store/useSettingsStore";
 import { gdriveImage } from "@/lib/utils";
 import { applyDiscount, discountAmount, fmtDiscount, type Voucher } from "@/lib/voucher";
@@ -300,11 +301,13 @@ export default function AdminProdukPage() {
   const manualProduct = produk.find(p => p.id === manualForm.product_id) || null;
   const manualQty = Math.max(1, Number(manualForm.quantity) || 1);
   const manualTotal = manualProduct ? (manualProduct.price || 0) * manualQty : 0;
+  const manualStockExceeded = !!manualProduct && manualProduct.stok != null && manualQty > manualProduct.stok;
 
   async function saveManual() {
     if (!manualForm.customer_name.trim()) { setManualErr("Nama pembeli wajib diisi."); return; }
     if (!manualProduct) { setManualErr("Pilih produk yang dibeli."); return; }
     if (!manualProduct.price) { setManualErr("Produk ini belum ada harga."); return; }
+    if (manualStockExceeded) { setManualErr(`Stok tidak cukup — tersisa ${manualProduct.stok}. Tambah stok dulu di menu Kelola Produk atau kurangi jumlah.`); return; }
     setSavingManual(true); setManualErr("");
     const item = { product_id: manualProduct.id, title: manualProduct.title, gram_weight: manualProduct.gram_weight ?? null, price: manualProduct.price, quantity: manualQty, image_url: manualProduct.image_url ?? null };
     const { error } = await (supabase.from("product_orders") as any).insert({
@@ -507,10 +510,10 @@ export default function AdminProdukPage() {
                     </div>
                     {vouchers.length > 0 && (
                       <div style={{ marginTop:6 }}>
-                        <select defaultValue="" onChange={e=>{ e.target.value=""; }} style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:7, padding:"3px 8px", color:"rgba(255,255,255,0.5)", fontSize:".72rem", maxWidth:260 }}>
-                          <option value="" disabled>Voucher aktif untuk produk…</option>
+                        <select defaultValue="" onChange={e=>{ e.target.value=""; }} style={{ background:"#1a1a1a", border:"1px solid rgba(255,255,255,0.1)", borderRadius:7, padding:"3px 8px", color:"rgba(255,255,255,0.5)", fontSize:".72rem", maxWidth:260 }}>
+                          <option value="" disabled style={{ background:"#1a1a1a", color:"rgba(255,255,255,0.5)" }}>Voucher aktif untuk produk…</option>
                           {vouchers.map(v => (
-                            <option key={v.id} value={v.id} style={{ background:"#111" }}>{v.code} — {fmtDiscount(v.discount_type, v.discount_value)}{v.description?` (${v.description})`:""}</option>
+                            <option key={v.id} value={v.id} style={{ background:"#1a1a1a", color:"#fff" }}>{v.code} — {fmtDiscount(v.discount_type, v.discount_value)}{v.description?` (${v.description})`:""}</option>
                           ))}
                         </select>
                       </div>
@@ -757,11 +760,22 @@ export default function AdminProdukPage() {
 
                 <div>
                   <label style={lbl}>Anggota (opsional)</label>
-                  <MemberPicker value={manualForm.user_id} onChange={m => setManualForm(p => ({
-                    ...p, user_id: m?.id || "",
-                    customer_name: m ? m.name : p.customer_name,
-                    customer_phone: m ? (m.phone || "") : p.customer_phone,
-                  }))} />
+                  <div style={{ display:"flex", gap:8 }}>
+                    <div style={{ flex:1 }}>
+                      <MemberPicker value={manualForm.user_id} onChange={m => setManualForm(p => ({
+                        ...p, user_id: m?.id || "",
+                        customer_name: m ? m.name : p.customer_name,
+                        customer_phone: m ? (m.phone || "") : p.customer_phone,
+                      }))} />
+                    </div>
+                    {manualForm.user_id && (
+                      <button type="button" onClick={() => setManualForm(p => ({ ...p, user_id:"" }))}
+                        title="Batalkan pilihan anggota — jadikan pembeli umum"
+                        style={{ width:38, height:38, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.25)", borderRadius:10, color:"#f87171", cursor:"pointer" }}>
+                        <X style={{ width:14, height:14 }} />
+                      </button>
+                    )}
+                  </div>
                   <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:"6px 0 0" }}>Pilih kalau pembeli adalah anggota terdaftar — kosongkan untuk pembeli umum.</p>
                 </div>
 
@@ -777,23 +791,21 @@ export default function AdminProdukPage() {
 
                 <div>
                   <label style={lbl}>Produk *</label>
-                  <div style={{ position:"relative" }}>
-                    <select value={manualForm.product_id} onChange={e=>setManualForm(p=>({...p,product_id:e.target.value}))}
-                      style={{ ...field, appearance:"none", paddingRight:36 }}>
-                      <option value="" style={{ background:"#111" }}>Pilih produk</option>
-                      {produk.filter(p=>p.is_active).map(p => (
-                        <option key={p.id} value={p.id} style={{ background:"#111" }}>
-                          {p.title}{p.gram_weight!=null?` (${p.gram_weight}gr)`:""} — {p.price!=null?fmt(p.price):"belum ada harga"}{p.stok!=null?` · stok ${p.stok}`:""}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", width:14, height:14, color:"rgba(255,255,255,0.3)", pointerEvents:"none" }} />
-                  </div>
+                  <Select value={manualForm.product_id} onChange={v=>setManualForm(p=>({...p,product_id:v}))}
+                    options={produk.filter(p=>p.is_active).map(p => ({
+                      value: p.id,
+                      label: `${p.title}${p.gram_weight!=null?` (${p.gram_weight}gr)`:""} — ${p.price!=null?fmt(p.price):"belum ada harga"}${p.stok!=null?` · stok ${p.stok}`:""}`,
+                    }))} placeholder="Pilih produk" />
                 </div>
 
                 <div>
                   <label style={lbl}>Jumlah</label>
-                  <input type="number" min={1} value={manualForm.quantity} onChange={e=>setManualForm(p=>({...p,quantity:e.target.value}))} style={field} />
+                  <input type="number" min={1} value={manualForm.quantity} onChange={e=>setManualForm(p=>({...p,quantity:e.target.value}))} style={{...field, borderColor: manualStockExceeded ? "rgba(248,113,113,0.5)" : undefined}} />
+                  {manualProduct?.stok != null && (
+                    <p style={{ color: manualStockExceeded ? "#f87171" : "rgba(255,255,255,0.3)", fontSize:".72rem", margin:"6px 0 0" }}>
+                      Stok tersedia: {manualProduct.stok}{manualStockExceeded ? " — jumlah melebihi stok" : ""}
+                    </p>
+                  )}
                 </div>
 
                 {manualProduct && (
@@ -811,8 +823,8 @@ export default function AdminProdukPage() {
                 <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".74rem", margin:0 }}>Pesanan akan masuk sebagai <b>Pending</b> — lanjutkan ke tombol Setujui untuk proses pembayaran & stok seperti pesanan biasa.</p>
 
                 <div style={{ display:"flex", gap:8, paddingTop:4 }}>
-                  <button onClick={saveManual} disabled={savingManual||!manualForm.customer_name||!manualForm.product_id}
-                    style={{ flex:1, padding:12, borderRadius:11, background:`linear-gradient(135deg,${G},${G2})`, border:"none", color:"#0a0a0a", fontWeight:800, fontSize:".88rem", cursor:savingManual||!manualForm.customer_name||!manualForm.product_id?"not-allowed":"pointer", opacity:savingManual?.6:1 }}>
+                  <button onClick={saveManual} disabled={savingManual||!manualForm.customer_name||!manualForm.product_id||manualStockExceeded}
+                    style={{ flex:1, padding:12, borderRadius:11, background:`linear-gradient(135deg,${G},${G2})`, border:"none", color:"#0a0a0a", fontWeight:800, fontSize:".88rem", cursor:savingManual||!manualForm.customer_name||!manualForm.product_id||manualStockExceeded?"not-allowed":"pointer", opacity:savingManual||manualStockExceeded?.6:1 }}>
                     {savingManual?"Menyimpan…":"Simpan Pesanan"}
                   </button>
                   <button onClick={closeManual} style={{ padding:"12px 18px", borderRadius:11, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", color:"rgba(255,255,255,0.35)", cursor:"pointer", fontSize:".85rem" }}>Batal</button>
@@ -910,16 +922,9 @@ export default function AdminProdukPage() {
                     <div>
                       <label style={lbl}>Voucher (opsional)</label>
                       {vouchers.length > 0 ? (
-                        <div style={{ position:"relative" }}>
-                          <select value={payForm.voucher_id} onChange={e=>onVoucherPick(e.target.value)}
-                            style={{ ...field, appearance:"none", paddingRight:36 }}>
-                            <option value="" style={{ background:"#111" }}>Tanpa voucher</option>
-                            {vouchers.map(v => (
-                              <option key={v.id} value={v.id} style={{ background:"#111" }}>{v.code} — {fmtDiscount(v.discount_type, v.discount_value)}{v.description?` (${v.description})`:""}</option>
-                            ))}
-                          </select>
-                          <ChevronDown style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", width:14, height:14, color:"rgba(255,255,255,0.3)", pointerEvents:"none" }} />
-                        </div>
+                        <Select value={payForm.voucher_id} onChange={onVoucherPick}
+                          options={[{ value:"", label:"Tanpa voucher" }, ...vouchers.map(v=>({ value:v.id, label:`${v.code} — ${fmtDiscount(v.discount_type, v.discount_value)}${v.description?` (${v.description})`:""}` }))]}
+                          placeholder="Tanpa voucher" />
                       ) : (
                         <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".78rem", margin:0 }}>Belum ada voucher aktif untuk produk.</p>
                       )}
@@ -930,13 +935,8 @@ export default function AdminProdukPage() {
 
                     <div>
                       <label style={lbl}>Metode Pembayaran</label>
-                      <div style={{ position:"relative" }}>
-                        <select value={payForm.payment_method} onChange={e=>setPayForm(p=>({...p,payment_method:e.target.value}))}
-                          style={{ ...field, appearance:"none", paddingRight:36 }}>
-                          {PAY_METHODS.map(m => <option key={m} value={m} style={{ background:"#111" }}>{m}</option>)}
-                        </select>
-                        <ChevronDown style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", width:14, height:14, color:"rgba(255,255,255,0.3)", pointerEvents:"none" }} />
-                      </div>
+                      <Select value={payForm.payment_method} onChange={v=>setPayForm(p=>({...p,payment_method:v}))}
+                        options={PAY_METHODS.map(m => ({ value:m, label:m }))} />
                     </div>
 
                     <div>

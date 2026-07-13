@@ -19,7 +19,7 @@ interface PendingTx {
 
 const TYPE_LABEL: Record<string, string> = {
   buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan",
-  Simpanan:"Simpanan", transfer:"Transfer", referral_bonus:"Bonus Referral",
+  tabungan:"Simpanan (lama)", transfer:"Transfer", referral_bonus:"Bonus Referral",
 };
 
 function fmt(n: number) {

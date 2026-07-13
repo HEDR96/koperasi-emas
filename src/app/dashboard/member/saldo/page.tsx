@@ -12,7 +12,7 @@ const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
 const fmtGram = (n: number) => `${n.toFixed(1)} gram`;
 
-const GRAM_IN = new Set(["buy", "cicilan", "Simpanan"]);
+const GRAM_IN = new Set(["buy", "cicilan", "tabungan"]);
 
 export default function MemberSaldoPage() {
   const { user } = useAuthStore();

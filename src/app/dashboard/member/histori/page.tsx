@@ -14,7 +14,8 @@ interface TxRow {
 
 const TYPE_LABEL: Record<string,string> = {
   buy:"Beli Emas", buyback:"Jual Kembali", cicilan:"Cicilan",
-  tabungan:"Setor Simpanan", Simpanan:"Simpanan", transfer:"Transfer", referral_bonus:"Bonus Referral",
+  tabungan:"Simpanan (lama)", transfer:"Transfer", referral_bonus:"Bonus Referral",
+  pokok:"Simpanan Pokok", wajib:"Simpanan Wajib", sukarela:"Simpanan Sukarela", simpanan:"Simpanan", setoran:"Setor Simpanan",
 };
 const STATUS_COLOR: Record<string,string> = {
   pending:"#fbbf24", processing:"#60a5fa", completed:"#34d399", rejected:"#f87171",
@@ -47,11 +48,24 @@ export default function MemberHistoriPage() {
     if (!user?.id) return;
     setLoading(true);
     try {
-      const { data } = await (supabase.from("transactions") as any)
-        .select("id,type,amount,gram,status,payment_method,notes,created_at,transaction_date")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      setTxs(data ?? []);
+      const [{ data: tx }, { data: sim }] = await Promise.all([
+        (supabase.from("transactions") as any)
+          .select("id,type,amount,gram,status,payment_method,notes,created_at,transaction_date")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
+        (supabase.from("simpanan") as any)
+          .select("id,type,amount,status,description,created_at,transaction_date")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
+      ]);
+      const simRows: TxRow[] = (sim ?? []).map((s: any) => ({
+        id: s.id, type: s.type, amount: s.amount, gram: null,
+        status: s.status, payment_method: null, notes: s.description,
+        created_at: s.created_at, transaction_date: s.transaction_date,
+      }));
+      const merged = [...(tx ?? []), ...simRows]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setTxs(merged);
     } catch {}
     setLoading(false);
   }

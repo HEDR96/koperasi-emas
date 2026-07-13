@@ -20,7 +20,7 @@ interface TxRow { id: string; type: string; amount: number; gram: number | null;
 
 const TYPE_LABEL: Record<string,string> = {
   buy:"Beli Emas", buyback:"Jual Kembali", cicilan:"Cicilan",
-  tabungan:"Setor Simpanan", Simpanan:"Simpanan", transfer:"Transfer", referral_bonus:"Bonus Referral",
+  tabungan:"Simpanan (lama)", transfer:"Transfer", referral_bonus:"Bonus Referral",
 };
 const STATUS_COLOR: Record<string,string> = {
   pending:"#fbbf24", processing:"#60a5fa", completed:"#34d399", rejected:"#f87171",
@@ -30,7 +30,7 @@ const STATUS_LABEL: Record<string,string> = {
 };
 
 // Tipe yang menambah emas tersimpan saat completed
-const GRAM_IN = new Set(["buy", "cicilan", "Simpanan"]);
+const GRAM_IN = new Set(["buy", "cicilan", "tabungan"]);
 
 export default function MemberDashboardPage() {
   const { user } = useAuthStore();

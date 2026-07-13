@@ -181,8 +181,18 @@ async function fetchSimpanan(from: string, to: string, userId?: string) {
     .select("id, type, amount, status, description, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
     .limit(5000);
   if (userId) base = base.eq("user_id", userId);
-  const { data } = await applyDateFilter(base, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
-  return (data || []).sort((a: any, b: any) => {
+  const { data: simRows } = await applyDateFilter(base, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
+
+  // Simpanan (lama) — transaksi tabungan lama sebelum dipindah ke tabel simpanan.
+  let legacyBase = (supabase.from("transactions") as any)
+    .select("id, type, amount, status, notes, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
+    .eq("type", "tabungan").limit(5000);
+  if (userId) legacyBase = legacyBase.eq("user_id", userId);
+  const { data: legacyRows } = await applyDateFilter(legacyBase, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
+  const legacyMapped = (legacyRows || []).map((r: any) => ({ ...r, description: r.notes }));
+
+  const merged = [...(simRows || []), ...legacyMapped];
+  return merged.sort((a: any, b: any) => {
     const da = a.transaction_date || a.created_at;
     const db = b.transaction_date || b.created_at;
     return da < db ? -1 : 1;
@@ -244,12 +254,15 @@ async function xlsxGadai(rows: any[], from: string, to: string) {
   await downloadXLSX("Gadai Emas", headers, data, `Laporan_Gadai_${from}_sd_${to}.xlsx`, fmt);
 }
 
+const SIMPANAN_JENIS_LABEL: Record<string,string> = { pokok:"Pokok", wajib:"Wajib", sukarela:"Sukarela", simpanan:"Simpanan", setoran:"Setor Simpanan", tabungan:"Simpanan (lama)" };
+
 async function xlsxSimpanan(rows: any[], from: string, to: string) {
-  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Jumlah (Rp)","Keterangan","Status","Tgl Input"];
-  const fmt: ColFmt[] = ["auto","auto","auto","phone","rupiah","auto","auto","auto"];
+  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Jenis","Jumlah (Rp)","Keterangan","Status","Tgl Input"];
+  const fmt: ColFmt[] = ["auto","auto","auto","phone","auto","rupiah","auto","auto","auto"];
   const data = rows.map((r, i) => [
     i + 1, tglIndo(r.transaction_date || r.created_at),
     r.profiles?.name || "-", r.profiles?.phone || "-",
+    SIMPANAN_JENIS_LABEL[r.type] || r.type || "-",
     r.amount, r.description || "-", r.status, tglIndo(r.created_at),
   ]);
   await downloadXLSX("Simpanan", headers, data, `Laporan_Simpanan_${from}_sd_${to}.xlsx`, fmt);

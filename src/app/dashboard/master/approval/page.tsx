@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RefreshCw, Check, X, Coins, Landmark, Wallet, CreditCard, Truck, Tag } from "lucide-react";
+import { RefreshCw, Check, X, Coins, Landmark, CreditCard, Truck, Tag } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -16,17 +16,16 @@ const fmtDate = (s: string) =>
   new Date(s).toLocaleDateString("id-ID", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
 
 const TX_TYPE_LABEL: Record<string,string> = {
-  buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan", tabungan:"Simpanan", transfer:"Transfer", referral_bonus:"Bonus Referral",
+  buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan", tabungan:"Simpanan (lama)", transfer:"Transfer", referral_bonus:"Bonus Referral",
 };
-const SIM_LABEL: Record<string,string> = { pokok:"Simpanan Pokok", wajib:"Simpanan Wajib", sukarela:"Simpanan Sukarela" };
 
-type Tab = "all" | "beli" | "cicilan" | "gadai" | "buyback" | "simpanan";
+// Approval Simpanan dipusatkan di menu Input Simpanan (bukan di sini) supaya tidak ada 2 tempat approve yang sama.
+type Tab = "all" | "beli" | "cicilan" | "gadai" | "buyback";
 
 export default function ApprovalPage() {
   const { user } = useAuthStore();
   const [tab, setTab] = useState<Tab>("all");
   const [txs, setTxs]       = useState<any[]>([]);
-  const [sims, setSims]     = useState<any[]>([]);
   const [gadais, setGadais] = useState<any[]>([]);
   const [cics, setCics]     = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,13 +45,10 @@ export default function ApprovalPage() {
 
   async function load() {
     setLoading(true); setLoadErr("");
-    const [txRes, simRes, gadaiRes, cicRes] = await Promise.all([
+    const [txRes, gadaiRes, cicRes] = await Promise.all([
       (supabase.from("transactions") as any)
         .select("id, user_id, type, amount, gram, payment_method, created_at, transaction_date, profiles:profiles!user_id(name)")
         .in("status",["pending","processing"]).order("created_at",{ascending:false}),
-      (supabase.from("simpanan") as any)
-        .select("id, user_id, type, amount, description, created_at, transaction_date, profiles:profiles!user_id(name)")
-        .eq("status","pending").order("created_at",{ascending:false}),
       (supabase.from("gadai") as any)
         .select("id, user_id, dana_cair, sisa_tagihan, tenor, angsuran_per_bulan, gram_setara, keterangan, created_at, transaction_date, profiles:profiles!user_id(name)")
         .eq("status","pengajuan").order("created_at",{ascending:false}),
@@ -60,10 +56,9 @@ export default function ApprovalPage() {
         .select("id, user_id, product_name, total_amount, monthly_amount, tenor, created_at, profiles:profiles!user_id(name)")
         .eq("status","pending").order("created_at",{ascending:false}),
     ]);
-    const errs = [txRes.error, simRes.error, gadaiRes.error, cicRes.error].filter(Boolean);
+    const errs = [txRes.error, gadaiRes.error, cicRes.error].filter(Boolean);
     if (errs.length) setLoadErr(errs.map((e:any) => e.message).join(" | "));
     setTxs(txRes.data || []);
-    setSims(simRes.data || []);
     setGadais(gadaiRes.data || []);
     setCics(cicRes.data || []);
     setLoading(false);
@@ -122,18 +117,6 @@ export default function ApprovalPage() {
     await load();
   }
 
-  // Simpanan
-  async function actSim(row: any, approve: boolean) {
-    setActing(row.id);
-    await (supabase.from("simpanan") as any)
-      .update({ status: approve ? "completed" : "rejected", verified_by: user?.id })
-      .eq("id", row.id);
-    await notify(row.user_id, approve ? "Simpanan Diverifikasi" : "Simpanan Ditolak",
-      `${SIM_LABEL[row.type]||row.type} ${fmt(row.amount)} telah ${approve?"diverifikasi":"ditolak"}.`,
-      "/dashboard/member/simpanan");
-    await load(); setActing(null);
-  }
-
   // Gadai
   async function actGadai(row: any, approve: boolean) {
     setActing(row.id);
@@ -164,12 +147,11 @@ export default function ApprovalPage() {
   }
 
   const TABS: { id: Tab; label: string; count: number; icon: any; color: string }[] = [
-    { id:"all",      label:"Semua",        count: txs.length + sims.length + gadais.length + cics.length, icon:Coins,      color:"#fff" },
+    { id:"all",      label:"Semua",        count: txs.length + gadais.length + cics.length, icon:Coins,      color:"#fff" },
     { id:"beli",     label:"Beli Emas",    count: beliRows.length,    icon:Coins,      color:"#D4AF37" },
     { id:"cicilan",  label:"Cicilan Emas", count: cics.length,         icon:CreditCard, color:"#a78bfa" },
     { id:"gadai",    label:"Gadai",        count: gadais.length,       icon:Landmark,   color:"#60a5fa" },
     { id:"buyback",  label:"Buyback",      count: buybackRows.length,  icon:Coins,      color:"#34d399" },
-    { id:"simpanan", label:"Simpanan",     count: sims.length,         icon:Wallet,     color:"#f59e0b" },
   ];
 
   function ActionBtns({ onApprove, onReject, id }: { onApprove: () => void; onReject: () => void; id: string }) {
@@ -207,22 +189,6 @@ export default function ApprovalPage() {
     <div style={{ display:"flex", alignItems:"center", gap:16 }}>
       <span style={{ color, fontWeight:800, fontSize:"1rem" }}>{fmt(row.amount)}</span>
       <ActionBtns id={row.id} onApprove={()=>actTx(row,true)} onReject={()=>actTx(row,false)} />
-    </div>
-  </>, row.id);
-
-  const simRow = (row: any) => card(<>
-    <div>
-      <p style={{ color:"#fff", fontWeight:700, fontSize:".9rem", margin:0 }}>
-        {row.profiles?.name || "-"}
-        <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}> - {SIM_LABEL[row.type]||row.type}</span>
-      </p>
-      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", margin:"3px 0 0" }}>
-        {row.description || "-"} - {fmtDate(row.transaction_date || row.created_at)}
-      </p>
-    </div>
-    <div style={{ display:"flex", alignItems:"center", gap:16 }}>
-      <span style={{ color:"#f59e0b", fontWeight:800, fontSize:"1rem" }}>{fmt(row.amount)}</span>
-      <ActionBtns id={row.id} onApprove={()=>actSim(row,true)} onReject={()=>actSim(row,false)} />
     </div>
   </>, row.id);
 
@@ -270,14 +236,13 @@ export default function ApprovalPage() {
 
   function renderContent() {
     if (tab === "all") {
-      const total = beliRows.length + buybackRows.length + otherTxRows.length + cics.length + gadais.length + sims.length;
+      const total = beliRows.length + buybackRows.length + otherTxRows.length + cics.length + gadais.length;
       if (total === 0) return emptyMsg("Tidak ada item yang menunggu persetujuan.");
       return <>
         {beliRows.length > 0    && <>{secHeader("Beli Emas", beliRows.length)}{beliRows.map(r=>txRow(r,"#D4AF37"))}</>}
         {cics.length > 0        && <>{secHeader("Cicilan Emas", cics.length)}{cics.map(cicRow)}</>}
         {gadais.length > 0      && <>{secHeader("Gadai", gadais.length)}{gadais.map(gadaiRow)}</>}
         {buybackRows.length > 0 && <>{secHeader("Buyback", buybackRows.length)}{buybackRows.map(r=>txRow(r,"#34d399"))}</>}
-        {sims.length > 0        && <>{secHeader("Simpanan", sims.length)}{sims.map(simRow)}</>}
         {otherTxRows.length > 0 && <>{secHeader("Lainnya", otherTxRows.length)}{otherTxRows.map(r=>txRow(r,"#fff"))}</>}
       </>;
     }
@@ -285,7 +250,6 @@ export default function ApprovalPage() {
     if (tab === "cicilan")  return cics.length        === 0 ? emptyMsg("Tidak ada pengajuan Cicilan Emas.") : cics.map(cicRow);
     if (tab === "gadai")    return gadais.length      === 0 ? emptyMsg("Tidak ada pengajuan Gadai.") : gadais.map(gadaiRow);
     if (tab === "buyback")  return buybackRows.length === 0 ? emptyMsg("Tidak ada permintaan Buyback.") : buybackRows.map(r=>txRow(r,"#34d399"));
-    if (tab === "simpanan") return sims.length        === 0 ? emptyMsg("Tidak ada setoran Simpanan pending.") : sims.map(simRow);
     return null;
   }
 
@@ -294,7 +258,10 @@ export default function ApprovalPage() {
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
           <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Pusat Approval</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Tinjau & setujui transaksi, simpanan, dan gadai</p>
+          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>
+            Tinjau & setujui transaksi, cicilan, dan gadai. Approval setoran Simpanan ada di{" "}
+            <a href="/dashboard/master/simpanan" style={{ color:"#D4AF37" }}>menu Input Simpanan</a>.
+          </p>
         </div>
         <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:14, height:14 }} /> Refresh

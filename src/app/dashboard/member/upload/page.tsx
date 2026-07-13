@@ -17,7 +17,7 @@ const inp: React.CSSProperties = {
   width:"100%", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)",
   borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".9rem", outline:"none", boxSizing:"border-box",
 };
-const TYPE_LABEL: Record<string,string> = { buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan", Simpanan:"Simpanan" };
+const TYPE_LABEL: Record<string,string> = { buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan", tabungan:"Simpanan (lama)" };
 
 export default function MemberUploadPage() {
   const { user } = useAuthStore();

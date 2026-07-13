@@ -14,7 +14,7 @@ const fmtDate = (s: string) =>
 
 interface TxRow { id: string; type: string; amount: number; gram: number | null; status: string; created_at: string; transaction_date: string | null; notes: string | null; }
 
-const GRAM_IN = new Set(["buy", "cicilan", "Simpanan"]);
+const GRAM_IN = new Set(["buy", "cicilan", "tabungan"]);
 const STATUS_COLOR: Record<string,string> = { pending:"#fbbf24", processing:"#60a5fa", completed:"#34d399", rejected:"#f87171" };
 const STATUS_LABEL: Record<string,string> = { pending:"Menunggu", processing:"Diproses", completed:"Selesai", rejected:"Ditolak" };
 
