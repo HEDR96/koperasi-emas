@@ -9,6 +9,7 @@ import {
   getMarkup, saveMarkup, type Markup,
   buildDerivedCicilan, CICILAN_TENORS,
   getCicilanParams, type CicilanParams, CICILAN_PARAM_DEFAULTS,
+  syncGoldProducts,
 } from "@/lib/harga";
 import RupiahInput from "@/components/ui/RupiahInput";
 
@@ -97,6 +98,22 @@ export default function HargaEmasPage() {
 
   useEffect(() => { load(); }, []);
 
+  // Sinkron produk emas otomatis (menu Produk) dengan harga emas + markup anggota terbaru.
+  // Fetch langsung dari DB (bukan dari state React) supaya selalu pakai data paling baru.
+  async function syncGoldProductsNow() {
+    try {
+      const [{ data: e }, mk] = await Promise.all([
+        ((supabase as any).rpc("get_latest_harga_berat", { kat: "emas" }) as any),
+        getMarkup(),
+      ]);
+      const seen = new Set<number>();
+      const rows = (e || [])
+        .filter((r: any) => { const g = Number(r.gram); if (seen.has(g)) return false; seen.add(g); return true; })
+        .map((r: any) => ({ gram: Number(r.gram), harga: Number(r.harga) }));
+      await syncGoldProducts(rows, mk.anggota);
+    } catch {}
+  }
+
   // ─── Save Harga Emas ───
   async function saveHargaEmas() {
     if (!newGram || !newHarga) return;
@@ -104,7 +121,8 @@ export default function HargaEmasPage() {
     await (supabase.from("harga_emas_berat") as any).insert({ gram: Number(newGram), harga: Number(newHarga), kategori:"emas", updated_by: user?.id });
     setNewGram(""); setNewHarga("");
     setSavedEmas(true); setTimeout(() => setSavedEmas(false), 2000);
-    load();
+    await load();
+    await syncGoldProductsNow();
     setSavingEmas(false);
   }
 
@@ -121,6 +139,7 @@ export default function HargaEmasPage() {
     if (!error) {
       setMarkup(next);
       setSavedMarkup(true); setTimeout(() => setSavedMarkup(false), 2000);
+      await syncGoldProductsNow();
     }
     setSavingMarkup(false);
   }

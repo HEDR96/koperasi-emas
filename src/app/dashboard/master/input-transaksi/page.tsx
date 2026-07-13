@@ -13,6 +13,7 @@ import {
   getMarkup, withMarkup, getCicilanParams, cicilanHargaTenor, cicilanDpTenor,
   type CicilanParams, CICILAN_PARAM_DEFAULTS,
 } from "@/lib/harga";
+import { applyDiscount, discountAmount, fmtDiscount, type Voucher } from "@/lib/voucher";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n);
@@ -44,10 +45,10 @@ const STATUS_OPTS = [
 ];
 
 const EMPTY = {
-  user_id:"", type:"buy", gram:"", amount:"", price_per_gram:"",
+  user_id:"", type:"buy", gram:"", amount:"", price_per_gram:"", product_id:"",
   // Default "pending" supaya transaksi yang diinput masuk ke Pusat Approval.
   // Admin bisa memilih "Selesai" untuk mencatat transaksi historis tanpa approval.
-  payment_method:DEFAULT_PAYMENT_METHOD, notes:"", status:"pending", tenor:"6", dp:"",
+  payment_method:DEFAULT_PAYMENT_METHOD, notes:"", status:"pending", tenor:"6", dp:"", voucher_id:"",
   created_at: new Date().toISOString().slice(0,16),
 };
 
@@ -64,6 +65,10 @@ export default function InputTransaksiPage() {
   const [goldRows, setGoldRows]           = useState<{ gram:number; harga:number }[]>([]);
   const [buybackPerGram, setBuybackPerGram] = useState(0);
   const [cicilanParams, setCicilanParams] = useState<CicilanParams>(CICILAN_PARAM_DEFAULTS);
+
+  // Produk emas (untuk pilih produk saat Beli Emas) & voucher aktif (untuk cicilan).
+  const [goldProducts, setGoldProducts] = useState<any[]>([]);
+  const [vouchers, setVouchers]         = useState<Voucher[]>([]);
 
   async function loadRecent() {
     const [{ data }, staffMap] = await Promise.all([
@@ -99,13 +104,28 @@ export default function InputTransaksiPage() {
     setCicilanParams(params);
   }
 
-  useEffect(() => { loadRecent(); loadGold(); }, []);
+  async function loadProductsAndVouchers() {
+    const [{ data: prods }, { data: vch }] = await Promise.all([
+      (supabase.from("promos") as any).select("*").not("gram_weight", "is", null).eq("is_active", true).order("gram_weight", { ascending: true }),
+      (supabase.from("vouchers") as any).select("*").eq("is_active", true).eq("target", "angsuran").order("created_at", { ascending: false }),
+    ]);
+    setGoldProducts(prods || []);
+    setVouchers(vch || []);
+  }
+
+  useEffect(() => { loadRecent(); loadGold(); loadProductsAndVouchers(); }, []);
 
   const cicilanTenor   = Number(form.tenor) || 1;
-  const cicilanAngsuran = form.amount ? Math.ceil(Number(form.amount) / cicilanTenor) : 0;
+  const selectedVoucher = vouchers.find(v => v.id === form.voucher_id) || null;
+  const cicilanAmountFinal = selectedVoucher && form.amount
+    ? applyDiscount(Number(form.amount), selectedVoucher.discount_type, selectedVoucher.discount_value)
+    : Number(form.amount) || 0;
+  const cicilanAngsuran = cicilanAmountFinal ? Math.ceil(cicilanAmountFinal / cicilanTenor) : 0;
 
-  // Opsi gram dari daftar harga emas.
+  // Opsi gram dari daftar harga emas (dipakai untuk buyback/cicilan).
   const gramOpts = goldRows.map(r => ({ value:String(r.gram), label:`${r.gram} gram` }));
+  // Opsi produk emas (dipakai untuk Beli Emas — pilih produk, bukan gram manual).
+  const productOpts = goldProducts.map(p => ({ value:String(p.id), label:`${p.title} — ${p.gram_weight}gr — ${fmt(p.price||0)}${p.stok!=null?` (stok ${p.stok})`:""}` }));
 
   // Hitung nominal & harga/gram otomatis sesuai berat + tipe transaksi.
   //  • Beli Emas  → nominal = harga emas jual berat tsb.
@@ -138,7 +158,7 @@ export default function InputTransaksiPage() {
         // Buat cicilan (installment) yang bisa dilacak di Kelola Cicilan.
         // Status "completed" pada form → cicilan langsung "active"; selain itu "pending"
         // supaya muncul di Pusat Approval untuk disetujui dulu.
-        const total = Number(form.amount);
+        const total = cicilanAmountFinal;
         const langsungAktif = form.status === "completed";
         const due = new Date(form.created_at); due.setMonth(due.getMonth() + 1);
         const { error: err } = await (supabase.from("installments") as any).insert({
@@ -151,6 +171,7 @@ export default function InputTransaksiPage() {
           down_payment:   form.dp ? Number(form.dp) : 0,
           paid_installments: 0,
           status:         langsungAktif ? "active" : "pending",
+          ...(selectedVoucher ? { voucher_id: selectedVoucher.id, voucher_code: selectedVoucher.code, discount_amount: discountAmount(Number(form.amount), selectedVoucher.discount_type, selectedVoucher.discount_value) } : {}),
           ...(langsungAktif ? { next_due_date: due.toISOString().slice(0,10) } : {}),
         });
         if (err) { setError(err.message); setSaving(false); return; }
@@ -186,6 +207,19 @@ export default function InputTransaksiPage() {
       const { error: err } = await (supabase.from("transactions") as any).insert(payload);
       if (err) { setError(err.message); }
       else {
+        // Beli Emas dari produk & langsung selesai → potong stok produk terkait.
+        if (form.type === "buy" && form.status === "completed" && form.product_id) {
+          const prod = goldProducts.find(p => String(p.id) === form.product_id);
+          if (prod?.stok != null) {
+            const newStok = Math.max(0, prod.stok - 1);
+            await (supabase.from("promos") as any).update({ stok: newStok }).eq("id", prod.id);
+            await (supabase.from("product_stock_logs") as any).insert({
+              product_id: prod.id, type: "deduct", quantity: 1,
+              notes: "Beli Emas via Input Transaksi", created_by: user?.id,
+            });
+            loadProductsAndVouchers();
+          }
+        }
         setSaved(true);
         setTimeout(() => setSaved(false), 2500);
         setForm(EMPTY);
@@ -242,7 +276,7 @@ export default function InputTransaksiPage() {
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
               <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tipe Transaksi *</label>
-              <Select value={form.type} onChange={v=>setForm(p=>({...p,type:v,gram:"",amount:"",price_per_gram:"",dp:""}))} options={TYPE_OPTS} />
+              <Select value={form.type} onChange={v=>setForm(p=>({...p,type:v,gram:"",amount:"",price_per_gram:"",dp:"",product_id:"",voucher_id:""}))} options={TYPE_OPTS} />
             </div>
             <div>
               <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Status</label>
@@ -250,15 +284,21 @@ export default function InputTransaksiPage() {
             </div>
           </div>
 
-          {/* ─── BELI EMAS: form sederhana — pilih gram → harga otomatis ─── */}
+          {/* ─── BELI EMAS: form sederhana — pilih produk → harga & berat otomatis ─── */}
           {form.type === "buy" && (
             <>
               <div>
-                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Pilih Berat Emas *</label>
-                {gramOpts.length > 0 ? (
-                  <Select value={form.gram} onChange={v=>setForm(p=>({...p,gram:v,...autoFields(v,"buy",p.tenor)}))} options={gramOpts} placeholder="Pilih berat emas" />
+                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Pilih Produk Emas *</label>
+                {productOpts.length > 0 ? (
+                  <Select value={form.product_id} onChange={v=>{
+                    const prod = goldProducts.find(p=>String(p.id)===v);
+                    if (!prod) return;
+                    const gram = Number(prod.gram_weight)||0;
+                    const price = Number(prod.price)||0;
+                    setForm(p=>({ ...p, product_id:v, gram:String(gram), amount:String(price), price_per_gram: gram ? String(Math.round(price/gram)) : "" }));
+                  }} options={productOpts} placeholder="Pilih produk emas" />
                 ) : (
-                  <p style={{ color:"#f87171", fontSize:".8rem" }}>Harga emas belum tersedia. Tambahkan harga di menu Harga.</p>
+                  <p style={{ color:"#f87171", fontSize:".8rem" }}>Belum ada produk emas. Tambahkan harga di menu Harga Emas — produk akan dibuat otomatis.</p>
                 )}
               </div>
 
@@ -370,6 +410,17 @@ export default function InputTransaksiPage() {
                 </div>
                 <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", margin:"5px 0 0" }}>Terisi otomatis sesuai DP yang disetujui; ubah bila nominal yang disetor berbeda.</p>
               </div>
+              {/* Voucher potongan angsuran */}
+              <div>
+                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Voucher (opsional)</label>
+                {vouchers.length > 0 ? (
+                  <Select value={form.voucher_id} onChange={v=>setForm(p=>({...p,voucher_id:v}))}
+                    options={[{ value:"", label:"Tanpa voucher" }, ...vouchers.map(v=>({ value:v.id, label:`${v.code} — ${fmtDiscount(v.discount_type,v.discount_value)}${v.description?` (${v.description})`:""}` }))]}
+                    placeholder="Tanpa voucher" />
+                ) : (
+                  <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".78rem", margin:0 }}>Belum ada voucher aktif untuk angsuran.</p>
+                )}
+              </div>
               {form.amount && Number(form.amount) > 0 && (
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", paddingTop:8, borderTop:"1px solid rgba(255,255,255,0.07)" }}>
                   <span style={{ color:"rgba(255,255,255,0.6)", fontSize:".85rem", fontWeight:600 }}>Angsuran/bulan</span>
@@ -377,7 +428,7 @@ export default function InputTransaksiPage() {
                 </div>
               )}
               <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:0 }}>
-                Total / tenor = {form.amount?fmt(Number(form.amount)):"Rp 0"} / {cicilanTenor} = {fmt(cicilanAngsuran)}/bln · DP {form.dp?fmt(Number(form.dp)):"Rp 0"} · akan masuk ke Kelola Cicilan.
+                Total{selectedVoucher?" (setelah voucher)":""} / tenor = {fmt(cicilanAmountFinal)} / {cicilanTenor} = {fmt(cicilanAngsuran)}/bln · DP {form.dp?fmt(Number(form.dp)):"Rp 0"} · akan masuk ke Kelola Cicilan.
               </p>
             </div>
           )}

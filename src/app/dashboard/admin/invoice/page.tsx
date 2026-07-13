@@ -12,7 +12,7 @@ const fmtDate = (s: string) =>
   new Date(s).toLocaleDateString("id-ID", { day:"2-digit", month:"long", year:"numeric", hour:"2-digit", minute:"2-digit" });
 
 const TYPE_LABEL: Record<string,string> = {
-  buy:"Pembelian Emas", buyback:"Buyback Emas", cicilan:"Cicilan Emas", Simpanan:"Setoran Simpanan", transfer:"Transfer", referral_bonus:"Bonus Referral",
+  buy:"Pembelian Emas", buyback:"Buyback Emas", cicilan:"Cicilan Emas", tabungan:"Simpanan (lama)", transfer:"Transfer", referral_bonus:"Bonus Referral",
 };
 
 export default function AdminInvoicePage() {
@@ -25,7 +25,7 @@ export default function AdminInvoicePage() {
   async function load() {
     setLoading(true);
     const { data } = await (supabase.from("transactions") as any)
-      .select("id, type, amount, gram, price_per_gram, payment_method, status, created_at, transaction_date, profiles(name, nik, phone)")
+      .select("id, type, amount, gram, price_per_gram, payment_method, status, notes, created_at, transaction_date, profiles(name, nik, phone)")
       .eq("status","completed").order("created_at",{ascending:false}).limit(200);
     setRows(data || []);
     setLoading(false);
@@ -120,6 +120,12 @@ export default function AdminInvoicePage() {
                   <span style={{ color:"rgba(255,255,255,0.7)", fontWeight:600 }}>Total</span>
                   <span style={{ color:"#D4AF37", fontWeight:900, fontSize:"1.3rem" }}>{fmt(inv.amount)}</span>
                 </div>
+                {inv.notes && (
+                  <div style={{ marginTop:12, padding:"10px 14px", background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:10 }}>
+                    <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".05em", margin:"0 0 4px" }}>Catatan</p>
+                    <p style={{ color:"rgba(255,255,255,0.75)", fontSize:".82rem", margin:0 }}>{inv.notes}</p>
+                  </div>
+                )}
               </div>
               <div style={{ display:"flex", gap:10, padding:"0 28px 24px" }}>
                 <button onClick={()=>setInv(null)} style={{ flex:1, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"10px", color:"rgba(255,255,255,0.6)", cursor:"pointer", fontSize:".86rem" }}>Tutup</button>

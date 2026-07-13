@@ -90,12 +90,24 @@ export default function MemberRequestPage() {
     if (!user?.id) return;
     setLoadingReq(true);
     try {
-      const { data } = await (supabase.from("transactions") as any)
-        .select("id,type,amount,gram,status,notes,payment_method,created_at,transaction_date")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(20);
-      setMyRequests(data ?? []);
+      const [{ data: tx }, { data: sim }] = await Promise.all([
+        (supabase.from("transactions") as any)
+          .select("id,type,amount,gram,status,notes,payment_method,created_at,transaction_date")
+          .eq("user_id", user.id).in("type", ["buy","buyback"])
+          .order("created_at", { ascending: false }).limit(20),
+        (supabase.from("simpanan") as any)
+          .select("id,type,amount,status,description,created_at")
+          .eq("user_id", user.id).eq("type", "setoran")
+          .order("created_at", { ascending: false }).limit(20),
+      ]);
+      const simRows: TxRow[] = (sim ?? []).map((s: any) => ({
+        id: s.id, type: "tabungan", amount: s.amount, gram: null,
+        status: s.status, notes: s.description, payment_method: null, created_at: s.created_at,
+      }));
+      const merged = [...(tx ?? []), ...simRows]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 20);
+      setMyRequests(merged);
     } catch {}
     setLoadingReq(false);
   }
@@ -148,15 +160,24 @@ export default function MemberRequestPage() {
 
     setSubmitting(true);
     try {
-      const { error: txErr } = await (supabase.from("transactions") as any).insert({
-        user_id: user!.id,
-        type: form.type,
-        amount: Number(form.amount),
-        gram: form.gram ? Number(form.gram) : null,
-        status: "pending",
-        payment_method: form.type !== "buyback" ? form.paymentMethod : null,
-        notes: form.notes || null,
-      });
+      // Setor Simpanan → dicatat di tabel simpanan (bukan transactions), supaya satu sistem dengan Input Simpanan admin.
+      const txErr = form.type === "tabungan"
+        ? (await (supabase.from("simpanan") as any).insert({
+            user_id: user!.id,
+            type: "setoran",
+            amount: Number(form.amount),
+            description: form.notes || null,
+            status: "pending",
+          })).error
+        : (await (supabase.from("transactions") as any).insert({
+            user_id: user!.id,
+            type: form.type,
+            amount: Number(form.amount),
+            gram: form.gram ? Number(form.gram) : null,
+            status: "pending",
+            payment_method: form.type !== "buyback" ? form.paymentMethod : null,
+            notes: form.notes || null,
+          })).error;
 
       if (txErr) { setError("Gagal mengirim permintaan: " + txErr.message); setSubmitting(false); return; }
 
@@ -172,7 +193,7 @@ export default function MemberRequestPage() {
               body: `${user?.name} mengajukan ${selectedType.label} sebesar ${fmt(Number(form.amount))}.`,
               type: "transaction",
               is_read: false,
-              link: "/dashboard/admin/transaksi",
+              link: form.type === "tabungan" ? "/dashboard/admin/simpanan" : "/dashboard/admin/transaksi",
             }))
           );
         }

@@ -62,6 +62,47 @@ export function markupFor(map: MarkupMap, gram: number): number {
   return Number(map?.[String(Number(gram))]) || 0;
 }
 
+// ─────────────────────────────────────────────────────────────
+// PRODUK EMAS OTOMATIS — setiap baris Harga Emas disinkronkan jadi
+// satu produk di menu Produk (promos, is_gold_auto=true). Harga produk
+// selalu mengikuti harga emas + markup anggota terbaru; title/deskripsi/
+// foto/stok yang sudah diisi admin TIDAK ditimpa, hanya price yang diupdate.
+// ─────────────────────────────────────────────────────────────
+export async function syncGoldProducts(
+  rows: { gram: number; harga: number }[],
+  markupMap: MarkupMap
+): Promise<void> {
+  try {
+    const { data: existing } = await (supabase.from("promos") as any)
+      .select("id, gram_weight")
+      .eq("is_gold_auto", true);
+    const byGram = new Map<number, string>();
+    (existing || []).forEach((p: any) => byGram.set(Number(p.gram_weight), p.id));
+
+    for (const r of rows) {
+      const gram = Number(r.gram);
+      const price = withMarkup(Number(r.harga), gram, markupMap);
+      const existingId = byGram.get(gram);
+      if (existingId) {
+        await (supabase.from("promos") as any).update({ price }).eq("id", existingId);
+      } else {
+        const gramLabel = gram % 1 === 0 ? String(gram) : gram.toFixed(2);
+        await (supabase.from("promos") as any).insert({
+          title: `Emas Antam ${gramLabel}gr`,
+          gram_weight: gram,
+          price,
+          stok: 0,
+          is_active: true,
+          is_gold_auto: true,
+          discount_percent: 0,
+        });
+      }
+    }
+  } catch {
+    // sinkronisasi produk emas gagal diam-diam — admin masih bisa lihat/atur manual di menu Produk
+  }
+}
+
 // Harga tampil = harga dasar + markup tier (nominal, tidak dikali berat).
 export function withMarkup(base: number, gram: number, map: MarkupMap): number {
   return Math.round(Number(base) + markupFor(map, gram));

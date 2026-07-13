@@ -9,7 +9,7 @@ import {
   BarChart2, Users, ShieldCheck, Coins, CheckSquare,
   Bell, Settings, Upload, MessageSquare, PlusCircle,
   Send, History, Star, HelpCircle, Image, Landmark, CreditCard, UserCircle,
-  Wallet, UserCheck, Newspaper, FileText, Receipt, Activity, Megaphone, FileSpreadsheet,
+  Wallet, UserCheck, Newspaper, FileText, Receipt, Activity, Megaphone, FileSpreadsheet, Ticket, Package,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSiteName } from "@/store/useSettingsStore";
@@ -36,6 +36,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Input Transaksi",    href:"/dashboard/master/input-transaksi",  icon:PlusCircle },
       { label:"Input Simpanan",      href:"/dashboard/master/simpanan",         icon:Wallet },
       { label:"Kelola Cicilan",     href:"/dashboard/master/cicilan",          icon:CreditCard },
+      { label:"Voucher",            href:"/dashboard/master/voucher",          icon:Ticket },
       { label:"Riwayat",            href:"/dashboard/master/riwayat",          icon:History },
       { label:"Laporan",            href:"/dashboard/master/laporan",          icon:FileSpreadsheet },
     ]},
@@ -69,6 +70,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
       { label:"Input Simpanan", href:"/dashboard/admin/simpanan", icon:Wallet },
       { label:"Kelola Cicilan", href:"/dashboard/admin/cicilan",  icon:CreditCard },
       { label:"Kelola Gadai",   href:"/dashboard/admin/gadai",    icon:Landmark },
+      { label:"Voucher",        href:"/dashboard/admin/voucher",  icon:Ticket },
     ]},
     { group:"Konten", items:[
       { label:"Kelola Produk", href:"/dashboard/admin/promo",  icon:Upload },
@@ -83,6 +85,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
     { group:"Utama", items:[
       { label:"Dashboard",  href:"/dashboard/member",          icon:LayoutDashboard },
       { label:"Harga Emas", href:"/dashboard/member/harga",    icon:Coins },
+      { label:"Produk",     href:"/dashboard/member/promo",    icon:Package },
     ]},
     { group:"Keuangan", items:[
       { label:"Simpanan",    href:"/dashboard/member/simpanan", icon:Wallet },

@@ -14,6 +14,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import RupiahInput from "@/components/ui/RupiahInput";
 import { useSiteSettings } from "@/store/useSettingsStore";
 import { gdriveImage } from "@/lib/utils";
+import { applyDiscount, discountAmount, fmtDiscount, type Voucher } from "@/lib/voucher";
 
 /* ── formatting ── */
 const fmt = (n: number) =>
@@ -37,7 +38,7 @@ const lbl: React.CSSProperties = {
   display:"block", marginBottom:5,
 };
 
-const EMPTY_PROD = { title:"", description:"", image_url:"", gram_weight:"", price:"", expired_at:"", category:"emas", stok:"" };
+const EMPTY_PROD = { title:"", description:"", image_url:"", gram_weight:"", price:"", expired_at:"", stok:"" };
 const PAY_METHODS = ["BSI", "Cash", "Kartu Kredit", "Kartu Debit"];
 
 /* ── upload bukti bayar ke Google Drive ── */
@@ -108,7 +109,13 @@ ${payment ? `<h2>Pembayaran</h2>
   <div class="info-item"><label>Nominal Tagihan</label><span>${fmt(payment.nominal)}</span></div>
   <div class="info-item"><label>Terbayar</label><span>${fmt(payment.terbayar)}</span></div>
   <div class="info-item"><label>Kembalian</label><span>${fmt(kembalian)}</span></div>
+  ${payment.voucher_code ? `<div class="info-item"><label>Voucher</label><span>${payment.voucher_code} (-${fmt(payment.discount_amount||0)})</span></div>` : ""}
 </div>` : `<p style="color:#999;font-size:.8rem;margin-bottom:16px">Pembayaran belum diproses.</p>`}
+${(order.notes || payment?.notes) ? `<h2>Catatan</h2>
+<div style="margin-bottom:16px">
+  ${order.notes ? `<p style="margin-bottom:6px"><b>Pesanan:</b> ${order.notes}</p>` : ""}
+  ${payment?.notes ? `<p><b>Pembayaran:</b> ${payment.notes}</p>` : ""}
+</div>` : ""}
 <div class="footer">Terima kasih atas kepercayaan Anda • ${siteName}</div>
 <script>window.onload=()=>{window.print();}</script>
 </body></html>`);
@@ -125,6 +132,7 @@ export default function AdminProdukPage() {
 
   /* ── produk state ── */
   const [produk, setProduk] = useState<any[]>([]);
+  const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [form, setForm] = useState(EMPTY_PROD);
   const [editId, setEditId] = useState<string | null>(null);
   const [modal, setModal] = useState(false);
@@ -139,7 +147,7 @@ export default function AdminProdukPage() {
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [approveOrder, setApproveOrder] = useState<any | null>(null);
   const [approveStep, setApproveStep] = useState<"review"|"payment">("review");
-  const [payForm, setPayForm] = useState({ customer_name:"", nominal:"", terbayar:"", payment_method:"BSI", notes:"", proof_url:"" });
+  const [payForm, setPayForm] = useState({ customer_name:"", nominal:"", terbayar:"", payment_method:"BSI", notes:"", proof_url:"", voucher_id:"" });
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreview, setProofPreview] = useState("");
   const [savingPay, setSavingPay] = useState(false);
@@ -173,7 +181,12 @@ export default function AdminProdukPage() {
     setOrders(data || []);
     setLoadingOrders(false);
   }
-  useEffect(() => { loadProduk(); loadOrders(); }, []);
+  async function loadVouchers() {
+    const { data } = await (supabase.from("vouchers") as any)
+      .select("*").eq("is_active", true).eq("target", "produk").order("created_at", { ascending: false });
+    setVouchers(data || []);
+  }
+  useEffect(() => { loadProduk(); loadOrders(); loadVouchers(); }, []);
 
   /* ── detail produk ── */
   async function openDetailProd(p: any) {
@@ -207,10 +220,13 @@ export default function AdminProdukPage() {
   }
 
   /* ── produk CRUD ── */
+  const editingProd = editId ? produk.find(p => p.id === editId) : null;
+  const isAutoGold = !!editingProd?.is_gold_auto;
+
   function openNew() { setEditId(null); setForm(EMPTY_PROD); setErr(""); setModal(true); }
   function openEdit(p: any) {
     setEditId(p.id);
-    setForm({ title:p.title??"", description:p.description??"", image_url:p.image_url??"", gram_weight:p.gram_weight!=null?String(p.gram_weight):"", price:p.price!=null?String(p.price):"", expired_at:p.expired_at?new Date(p.expired_at).toISOString().slice(0,16):"", category:p.gram_weight!=null?"emas":"lain-lain", stok:p.stok!=null?String(p.stok):"" });
+    setForm({ title:p.title??"", description:p.description??"", image_url:p.image_url??"", gram_weight:p.gram_weight!=null?String(p.gram_weight):"", price:p.price!=null?String(p.price):"", expired_at:p.expired_at?new Date(p.expired_at).toISOString().slice(0,16):"", stok:p.stok!=null?String(p.stok):"" });
     setErr(""); setModal(true);
   }
   function closeModal() { setModal(false); setEditId(null); setForm(EMPTY_PROD); setErr(""); setImgUploading(false); }
@@ -231,16 +247,19 @@ export default function AdminProdukPage() {
   async function save() {
     if (!form.title) { setErr("Nama produk wajib diisi."); return; }
     setSaving(true); setErr("");
-    const payload = {
+    const payload: any = {
       title: form.title, description: form.description || null,
       image_url: form.image_url || null,
-      gram_weight: form.category === "emas" && form.gram_weight ? Number(form.gram_weight) : null,
-      price: form.price ? Number(form.price) : null,
       expired_at: form.expired_at ? new Date(form.expired_at).toISOString() : null,
       stok: form.stok !== "" ? Number(form.stok) : null,
     };
+    // Produk emas otomatis (is_gold_auto): berat & harga terkunci, ikut menu Harga Emas.
+    if (!isAutoGold) {
+      payload.gram_weight = form.gram_weight ? Number(form.gram_weight) : null;
+      payload.price = form.price ? Number(form.price) : null;
+    }
     const t = supabase.from("promos") as any;
-    const { error: e } = editId ? await t.update(payload).eq("id", editId) : await t.insert({ ...payload, discount_percent:0, is_active:true });
+    const { error: e } = editId ? await t.update(payload).eq("id", editId) : await t.insert({ ...payload, gram_weight: form.gram_weight?Number(form.gram_weight):null, price: form.price?Number(form.price):null, discount_percent:0, is_active:true });
     if (e) { setErr(e.message); setSaving(false); return; }
     closeModal(); loadProduk(); setSaving(false);
   }
@@ -253,10 +272,19 @@ export default function AdminProdukPage() {
     setApproveStep("review");
     const items = Array.isArray(o.items) ? o.items : JSON.parse(o.items || "[]");
     const total = items.reduce((s: number, it: any) => s + it.price * it.quantity, 0);
-    setPayForm({ customer_name:o.customer_name, nominal:String(total), terbayar:String(total), payment_method:"BSI", notes:"", proof_url:"" });
+    setPayForm({ customer_name:o.customer_name, nominal:String(total), terbayar:String(total), payment_method:"BSI", notes:"", proof_url:"", voucher_id:"" });
     setProofFile(null); setProofPreview(""); setPayErr("");
   }
-  function closeApprove() { setApproveOrder(null); setApproveStep("review"); setPayForm({ customer_name:"", nominal:"", terbayar:"", payment_method:"BSI", notes:"", proof_url:"" }); setProofFile(null); setProofPreview(""); setPayErr(""); }
+  function closeApprove() { setApproveOrder(null); setApproveStep("review"); setPayForm({ customer_name:"", nominal:"", terbayar:"", payment_method:"BSI", notes:"", proof_url:"", voucher_id:"" }); setProofFile(null); setProofPreview(""); setPayErr(""); }
+
+  const approveTotal = approveOrder ? (Array.isArray(approveOrder.items)?approveOrder.items:JSON.parse(approveOrder.items||"[]")).reduce((s:number,it:any)=>s+it.price*it.quantity,0) : 0;
+  const selectedApproveVoucher = vouchers.find(v => v.id === payForm.voucher_id) || null;
+
+  function onVoucherPick(voucherId: string) {
+    const v = vouchers.find(vv => vv.id === voucherId) || null;
+    const nominal = v ? applyDiscount(approveTotal, v.discount_type, v.discount_value) : approveTotal;
+    setPayForm(p => ({ ...p, voucher_id: voucherId, nominal: String(nominal), terbayar: String(nominal) }));
+  }
 
   function handleProofPick(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]; if (!f) return;
@@ -272,6 +300,11 @@ export default function AdminProdukPage() {
       try { proofUrl = await uploadProof(proofFile); } catch (e: any) { setPayErr(e.message); setSavingPay(false); return; }
     }
     // insert payment
+    const voucherFields = selectedApproveVoucher ? {
+      voucher_id: selectedApproveVoucher.id,
+      voucher_code: selectedApproveVoucher.code,
+      discount_amount: discountAmount(approveTotal, selectedApproveVoucher.discount_type, selectedApproveVoucher.discount_value),
+    } : {};
     const { error: pe } = await (supabase.from("product_payments") as any).insert({
       order_id: approveOrder.id,
       customer_name: payForm.customer_name,
@@ -281,6 +314,7 @@ export default function AdminProdukPage() {
       proof_url: proofUrl || null,
       notes: payForm.notes || null,
       verified_by: user?.id,
+      ...voucherFields,
     });
     if (pe) { setPayErr(pe.message); setSavingPay(false); return; }
     // update order status
@@ -295,7 +329,26 @@ export default function AdminProdukPage() {
         await (supabase.from("promos") as any).update({ stok: newStok }).eq("id", it.product_id);
       }
     }
-    const payment = { order_id:approveOrder.id, customer_name:payForm.customer_name, nominal:Number(payForm.nominal), terbayar:Number(payForm.terbayar), payment_method:payForm.payment_method, proof_url:proofUrl||null, created_at:new Date().toISOString() };
+    // pembeli member (bukan tamu) & item emas (punya gram_weight) → tambah saldo emas member
+    if (approveOrder.user_id) {
+      for (const it of items) {
+        if (!it.gram_weight) continue;
+        const gram = Number(it.gram_weight) * Number(it.quantity);
+        await (supabase.from("transactions") as any).insert({
+          user_id: approveOrder.user_id,
+          type: "buy",
+          status: "completed",
+          gram,
+          amount: it.price * it.quantity,
+          price_per_gram: Math.round(it.price / it.gram_weight),
+          payment_method: payForm.payment_method,
+          notes: `Pembelian produk: ${it.title} (order #${approveOrder.id.slice(-8).toUpperCase()})`,
+          recorded_by: user?.id || null,
+          transaction_date: new Date().toISOString(),
+        });
+      }
+    }
+    const payment = { order_id:approveOrder.id, customer_name:payForm.customer_name, nominal:Number(payForm.nominal), terbayar:Number(payForm.terbayar), payment_method:payForm.payment_method, proof_url:proofUrl||null, created_at:new Date().toISOString(), ...voucherFields };
     const orderCopy = { ...approveOrder, status:"approved" };
     closeApprove();
     loadOrders(); loadProduk();
@@ -400,6 +453,11 @@ export default function AdminProdukPage() {
                       <span style={{ flexShrink:0, fontSize:".66rem", fontWeight:700, borderRadius:20, padding:"2px 8px", background:p.is_active?"rgba(52,211,153,0.12)":"rgba(255,255,255,0.05)", color:p.is_active?"#34d399":"rgba(255,255,255,0.25)", border:`1px solid ${p.is_active?"rgba(52,211,153,0.25)":"rgba(255,255,255,0.08)"}` }}>
                         {p.is_active?"AKTIF":"NONAKTIF"}
                       </span>
+                      {p.is_gold_auto && (
+                        <span style={{ flexShrink:0, fontSize:".66rem", fontWeight:700, borderRadius:20, padding:"2px 8px", background:"rgba(96,165,250,0.12)", color:"#60a5fa", border:"1px solid rgba(96,165,250,0.25)" }}>
+                          OTOMATIS
+                        </span>
+                      )}
                     </div>
                     <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                       {p.gram_weight!=null && <span style={{ display:"flex", alignItems:"center", gap:3, fontSize:".72rem", color:G, background:"rgba(212,175,55,0.08)", borderRadius:5, padding:"2px 8px", fontWeight:600 }}><Coins style={{ width:9, height:9 }} />{p.gram_weight}gr</span>}
@@ -407,6 +465,16 @@ export default function AdminProdukPage() {
                       {p.stok!=null && <span style={{ display:"flex", alignItems:"center", gap:3, fontSize:".72rem", color:"#60a5fa", background:"rgba(96,165,250,0.08)", borderRadius:5, padding:"2px 8px", fontWeight:600 }}><Package style={{ width:9, height:9 }} />Stok: {p.stok}</span>}
                       <span style={{ display:"flex", alignItems:"center", gap:3, fontSize:".7rem", color:"rgba(255,255,255,0.25)", padding:"2px 0" }}><Clock style={{ width:9, height:9 }} />{fmtExp(p.expired_at)}</span>
                     </div>
+                    {vouchers.length > 0 && (
+                      <div style={{ marginTop:6 }}>
+                        <select defaultValue="" onChange={e=>{ e.target.value=""; }} style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:7, padding:"3px 8px", color:"rgba(255,255,255,0.5)", fontSize:".72rem", maxWidth:260 }}>
+                          <option value="" disabled>Voucher aktif untuk produk…</option>
+                          {vouchers.map(v => (
+                            <option key={v.id} value={v.id} style={{ background:"#111" }}>{v.code} — {fmtDiscount(v.discount_type, v.discount_value)}{v.description?` (${v.description})`:""}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
                   <div style={{ display:"flex", gap:6, flexShrink:0 }}>
                     <button onClick={() => openDetailProd(p)} style={{ width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(96,165,250,0.07)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:8, color:"#60a5fa", cursor:"pointer" }} title="Detail">
@@ -549,36 +617,25 @@ export default function AdminProdukPage() {
               <div style={{ padding:"20px 22px", display:"flex", flexDirection:"column", gap:16 }}>
                 {err && <div style={{ background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:10, padding:"10px 14px", color:"#f87171", fontSize:".82rem" }}>{err}</div>}
 
-                {/* kategori */}
-                <div>
-                  <label style={lbl}>Kategori</label>
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
-                    {(["emas","lain-lain"] as const).map(cat => (
-                      <button key={cat} onClick={() => setForm(p=>({...p,category:cat,gram_weight:cat==="lain-lain"?"":p.gram_weight}))}
-                        style={{ padding:11, borderRadius:10, cursor:"pointer", fontSize:".85rem", fontWeight:600, transition:"all .15s", border:`1px solid ${form.category===cat?"rgba(212,175,55,0.45)":"rgba(255,255,255,0.08)"}`, background:form.category===cat?"rgba(212,175,55,0.1)":"rgba(255,255,255,0.03)", color:form.category===cat?G:"rgba(255,255,255,0.35)" }}>
-                        {cat==="emas"?"🪙  Emas":"🏷️  Lain-lain"}
-                      </button>
-                    ))}
+                {isAutoGold && (
+                  <div style={{ background:"rgba(96,165,250,0.06)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:10, padding:"10px 14px", color:"#60a5fa", fontSize:".78rem" }}>
+                    Produk ini dibuat otomatis dari menu Harga Emas — berat &amp; harga mengikuti harga emas terbaru dan tidak bisa diubah di sini.
                   </div>
-                </div>
+                )}
 
                 <div>
                   <label style={lbl}>Nama Produk *</label>
-                  <input value={form.title} onChange={e=>setForm(p=>({...p,title:e.target.value}))} style={field} placeholder="cth: Emas 5gr Special Edition" />
+                  <input value={form.title} onChange={e=>setForm(p=>({...p,title:e.target.value}))} style={field} placeholder="cth: Emas Antam 5gr" />
                 </div>
 
-                <div style={{ display:"grid", gridTemplateColumns:form.category==="emas"?"1fr 1fr 1fr":"1fr 1fr", gap:12 }}>
-                  <AnimatePresence>
-                    {form.category==="emas" && (
-                      <motion.div key="gram" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}>
-                        <label style={lbl}>Berat (gram)</label>
-                        <input type="number" min={0} step={0.01} value={form.gram_weight} onChange={e=>setForm(p=>({...p,gram_weight:e.target.value}))} style={field} placeholder="5" />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
+                  <div>
+                    <label style={lbl}>Berat (gram)</label>
+                    <input type="number" min={0} step={0.01} value={form.gram_weight} disabled={isAutoGold} onChange={e=>setForm(p=>({...p,gram_weight:e.target.value}))} style={{...field, opacity:isAutoGold?.5:1, cursor:isAutoGold?"not-allowed":"text"}} placeholder="5" />
+                  </div>
                   <div>
                     <label style={lbl}>Harga (Rp)</label>
-                    <RupiahInput value={form.price} onValueChange={v=>setForm(p=>({...p,price:v}))} style={field} placeholder="8.000.000" />
+                    <RupiahInput value={form.price} disabled={isAutoGold} onValueChange={v=>setForm(p=>({...p,price:v}))} style={{...field, opacity:isAutoGold?.5:1, cursor:isAutoGold?"not-allowed":"text"}} placeholder="8.000.000" />
                   </div>
                   <div>
                     <label style={lbl}>Stok</label>
@@ -717,6 +774,27 @@ export default function AdminProdukPage() {
                         <label style={lbl}>Terbayar (Rp)</label>
                         <RupiahInput value={payForm.terbayar} onValueChange={v=>setPayForm(p=>({...p,terbayar:v}))} style={field} />
                       </div>
+                    </div>
+
+                    <div>
+                      <label style={lbl}>Voucher (opsional)</label>
+                      {vouchers.length > 0 ? (
+                        <div style={{ position:"relative" }}>
+                          <select value={payForm.voucher_id} onChange={e=>onVoucherPick(e.target.value)}
+                            style={{ ...field, appearance:"none", paddingRight:36 }}>
+                            <option value="" style={{ background:"#111" }}>Tanpa voucher</option>
+                            {vouchers.map(v => (
+                              <option key={v.id} value={v.id} style={{ background:"#111" }}>{v.code} — {fmtDiscount(v.discount_type, v.discount_value)}{v.description?` (${v.description})`:""}</option>
+                            ))}
+                          </select>
+                          <ChevronDown style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", width:14, height:14, color:"rgba(255,255,255,0.3)", pointerEvents:"none" }} />
+                        </div>
+                      ) : (
+                        <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".78rem", margin:0 }}>Belum ada voucher aktif untuk produk.</p>
+                      )}
+                      {selectedApproveVoucher && (
+                        <p style={{ color:"#34d399", fontSize:".76rem", margin:"6px 0 0" }}>Potongan {fmtDiscount(selectedApproveVoucher.discount_type, selectedApproveVoucher.discount_value)} diterapkan ke nominal.</p>
+                      )}
                     </div>
 
                     <div>
@@ -984,7 +1062,7 @@ export default function AdminProdukPage() {
                     ["Status", detailProd.is_active?"Aktif":"Nonaktif"],
                     ["Stok Saat Ini", detailProd.stok??"-"],
                     ["Kadaluarsa", fmtExp(detailProd.expired_at)],
-                    ["Kategori", detailProd.gram_weight!=null?"Emas":"Lain-lain"],
+                    ["Sumber", detailProd.is_gold_auto?"Otomatis (Harga Emas)":"Manual"],
                   ].map(([k,v]) => (
                     <div key={k}>
                       <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", margin:"0 0 2px" }}>{k}</p>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Wallet, RefreshCw, Save, CheckCircle } from "lucide-react";
+import { Wallet, RefreshCw, Save, CheckCircle, CheckCheck, XCircle, Clock } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import MemberPicker from "@/components/ui/MemberPicker";
@@ -28,6 +28,9 @@ export default function AdminSimpananPage() {
   const [recent, setRecent]   = useState<any[]>([]);
   const [staff, setStaff]     = useState<Record<string,string>>({});
   const [loading, setLoading] = useState(true);
+  const [pending, setPending] = useState<any[]>([]);
+  const [loadingPending, setLoadingPending] = useState(true);
+  const [actingId, setActingId] = useState<string | null>(null);
 
   async function loadRecent() {
     setLoading(true);
@@ -41,7 +44,46 @@ export default function AdminSimpananPage() {
     setStaff(staffMap);
     setLoading(false);
   }
-  useEffect(() => { loadRecent(); }, []);
+
+  async function loadPending() {
+    setLoadingPending(true);
+    const { data } = await (supabase.from("simpanan") as any)
+      .select("id, type, amount, description, status, created_at, user_id, profiles:profiles!user_id(name)")
+      .eq("status","pending").order("created_at",{ascending:true});
+    setPending(data || []);
+    setLoadingPending(false);
+  }
+
+  useEffect(() => { loadRecent(); loadPending(); }, []);
+
+  async function approvePending(row: any) {
+    setActingId(row.id);
+    await (supabase.from("simpanan") as any).update({ status:"completed", verified_by:user?.id }).eq("id", row.id);
+    try {
+      await (supabase.from("notifications") as any).insert({
+        user_id: row.user_id, title:"Setoran Simpanan Disetujui",
+        body:`Setoran simpanan Anda ${fmt(Number(row.amount))} telah disetujui.`,
+        type:"simpanan", is_read:false, link:"/dashboard/member/simpanan",
+      });
+    } catch {}
+    setActingId(null);
+    loadPending(); loadRecent();
+  }
+
+  async function rejectPending(row: any) {
+    if (!confirm("Tolak setoran simpanan ini?")) return;
+    setActingId(row.id);
+    await (supabase.from("simpanan") as any).update({ status:"rejected", verified_by:user?.id }).eq("id", row.id);
+    try {
+      await (supabase.from("notifications") as any).insert({
+        user_id: row.user_id, title:"Setoran Simpanan Ditolak",
+        body:`Setoran simpanan Anda ${fmt(Number(row.amount))} ditolak.`,
+        type:"simpanan", is_read:false, link:"/dashboard/member/simpanan",
+      });
+    } catch {}
+    setActingId(null);
+    loadPending(); loadRecent();
+  }
 
   async function save() {
     if (!form.user_id || !form.amount) { setError("Pilih anggota dan isi nominal."); return; }
@@ -81,9 +123,44 @@ export default function AdminSimpananPage() {
           <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Input Simpanan Anggota</h1>
           <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Catat setoran simpanan anggota</p>
         </div>
-        <button onClick={loadRecent} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
+        <button onClick={()=>{loadRecent();loadPending();}} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:13, height:13 }} /> Refresh
         </button>
+      </div>
+
+      {/* Menunggu Persetujuan — setoran mandiri dari member (Ajukan Transaksi) */}
+      <div>
+        <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 12px", display:"flex", alignItems:"center", gap:8 }}>
+          <Clock style={{ width:13, height:13, color:"#fbbf24" }} /> Menunggu Persetujuan
+          {pending.length > 0 && <span style={{ background:"rgba(251,191,36,0.15)", color:"#fbbf24", borderRadius:20, padding:"2px 8px", fontSize:".72rem" }}>{pending.length}</span>}
+        </p>
+        {loadingPending ? (
+          <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".85rem" }}>Memuat...</p>
+        ) : pending.length === 0 ? (
+          <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".85rem" }}>Tidak ada setoran yang menunggu persetujuan.</p>
+        ) : (
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {pending.map(r => (
+              <div key={r.id} style={{ background:"rgba(251,191,36,0.04)", border:"1px solid rgba(251,191,36,0.2)", borderRadius:12, padding:"12px 16px", display:"flex", alignItems:"center", gap:14, flexWrap:"wrap" }}>
+                <div style={{ flex:1, minWidth:160 }}>
+                  <p style={{ color:"#fff", fontWeight:600, fontSize:".88rem", margin:"0 0 3px" }}>{r.profiles?.name||"-"}</p>
+                  <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".75rem", margin:0 }}>{fmtTglJam(r.created_at)}{r.description?` · ${r.description}`:""}</p>
+                </div>
+                <p style={{ color:"#D4AF37", fontWeight:700, fontSize:".95rem", margin:0 }}>{fmt(r.amount)}</p>
+                <div style={{ display:"flex", gap:8 }}>
+                  <button onClick={()=>approvePending(r)} disabled={actingId===r.id}
+                    style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:8, background:"rgba(52,211,153,0.1)", border:"1px solid rgba(52,211,153,0.3)", color:"#34d399", cursor:actingId===r.id?"not-allowed":"pointer", fontSize:".8rem", fontWeight:700 }}>
+                    <CheckCheck style={{ width:13, height:13 }} /> Setujui
+                  </button>
+                  <button onClick={()=>rejectPending(r)} disabled={actingId===r.id}
+                    style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:8, background:"rgba(248,113,113,0.07)", border:"1px solid rgba(248,113,113,0.2)", color:"#f87171", cursor:actingId===r.id?"not-allowed":"pointer", fontSize:".8rem", fontWeight:700 }}>
+                    <XCircle style={{ width:13, height:13 }} /> Tolak
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20 }}>

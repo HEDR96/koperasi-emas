@@ -10,7 +10,8 @@ const fmt = (n: number) =>
 const fmtDate = (s: string) =>
   new Date(s).toLocaleString("id-ID", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
 
-const TX_LABEL: Record<string,string> = { buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan", Simpanan:"Simpanan", transfer:"Transfer", referral_bonus:"Bonus Referral" };
+const TX_LABEL: Record<string,string> = { buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan", tabungan:"Simpanan (lama)", transfer:"Transfer", referral_bonus:"Bonus Referral" };
+const SIMPANAN_LABEL: Record<string,string> = { pokok:"Simpanan Pokok", wajib:"Simpanan Wajib", sukarela:"Simpanan Sukarela", simpanan:"Simpanan", setoran:"Setor Simpanan" };
 
 interface Item { id: string; ts: string; kind: "transaksi"|"gadai"|"simpanan"|"member"; who: string; detail: string; amount?: number; status?: string; }
 
@@ -49,7 +50,7 @@ export default function MasterAuditPage() {
       }));
       (simRes.data||[]).forEach((s: any) => merged.push({
         id:`sm-${s.id}`, ts:s.created_at, kind:"simpanan", who:s.profiles?.name||"—",
-        detail:`Simpanan ${s.type}`, amount:s.amount, status:s.status,
+        detail:SIMPANAN_LABEL[s.type]||`Simpanan ${s.type}`, amount:s.amount, status:s.status,
       }));
       (memRes.data||[]).forEach((m: any) => merged.push({
         id:`mb-${m.id}`, ts:m.created_at, kind:"member", who:m.name||"—",
