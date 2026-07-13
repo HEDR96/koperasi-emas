@@ -182,7 +182,7 @@ export default function AdminProdukPage() {
   /* ── input pesanan manual (walk-in / bukan dari member) ── */
   const [manualModal, setManualModal] = useState(false);
   const EMPTY_MANUAL_ITEM = { product_id:"", quantity:"1" };
-  const [manualForm, setManualForm] = useState({ user_id:"", customer_name:"", customer_phone:"", items:[{ ...EMPTY_MANUAL_ITEM }], notes:"" });
+  const [manualForm, setManualForm] = useState({ user_id:"", customer_name:"", customer_phone:"", agen_id:"", items:[{ ...EMPTY_MANUAL_ITEM }], notes:"" });
   const [manualBuyerType, setManualBuyerType] = useState<"member"|"umum">("member");
   const [savingManual, setSavingManual] = useState(false);
   const [manualErr, setManualErr] = useState("");
@@ -352,7 +352,7 @@ export default function AdminProdukPage() {
   function onOngkirChange(ongkir: string) { recomputeNominal(payForm.voucher_id, ongkir); }
 
   /* ── input pesanan manual — beli langsung di toko, dicatat lalu masuk alur approve seperti biasa ── */
-  function openManual() { setManualForm({ user_id:"", customer_name:"", customer_phone:"", items:[{ ...EMPTY_MANUAL_ITEM }], notes:"" }); setManualBuyerType("member"); setManualErr(""); setManualModal(true); }
+  function openManual() { setManualForm({ user_id:"", customer_name:"", customer_phone:"", agen_id:"", items:[{ ...EMPTY_MANUAL_ITEM }], notes:"" }); setManualBuyerType("member"); setManualErr(""); setManualModal(true); }
   function closeManual() { setManualModal(false); setManualErr(""); }
 
   function addManualItem() { setManualForm(p => ({ ...p, items:[...p.items, { ...EMPTY_MANUAL_ITEM }] })); }
@@ -387,6 +387,7 @@ export default function AdminProdukPage() {
       user_id: manualForm.user_id || null,
       customer_name: manualForm.customer_name.trim(),
       customer_phone: manualForm.customer_phone || null,
+      agen_id: manualForm.agen_id || null,
       items,
       total_amount: manualTotal,
       status: "pending",
@@ -431,6 +432,12 @@ export default function AdminProdukPage() {
     if (pe) { setPayErr(pe.message); setSavingPay(false); return; }
     // update order status
     await (supabase.from("product_orders") as any).update({ status:"approved", updated_at:new Date().toISOString() }).eq("id", approveOrder.id);
+    // beri poin ke agen jika ada
+    if (approveOrder.agen_id) {
+      const { data: agenProfile } = await (supabase.from("profiles") as any).select("poin").eq("id", approveOrder.agen_id).single();
+      const currentPoin = Number(agenProfile?.poin) || 0;
+      await (supabase.from("profiles") as any).update({ poin: currentPoin + 1 }).eq("id", approveOrder.agen_id);
+    }
     // deduct stok
     const items = Array.isArray(approveOrder.items) ? approveOrder.items : JSON.parse(approveOrder.items || "[]");
     for (const it of items) {
@@ -900,6 +907,7 @@ export default function AdminProdukPage() {
                       ...p, user_id: m?.id || "",
                       customer_name: m ? m.name : p.customer_name,
                       customer_phone: m ? (m.phone || "") : p.customer_phone,
+                      agen_id: m ? m.id : p.agen_id,
                     }))} />
                   </div>
                 )}
@@ -912,6 +920,21 @@ export default function AdminProdukPage() {
                 <div>
                   <label style={lbl}>Nomor HP</label>
                   <input value={manualForm.customer_phone} onChange={e=>setManualForm(p=>({...p,customer_phone:e.target.value}))} style={field} placeholder="08xxxxxxxxxx" />
+                </div>
+
+                <div>
+                  <label style={lbl}>Agen <span style={{ color:"rgba(255,255,255,0.3)", fontWeight:400, textTransform:"none", fontSize:".68rem" }}>— anggota yang mereferensikan (dapat poin saat lunas)</span></label>
+                  <MemberPicker
+                    value={manualForm.agen_id}
+                    onChange={m => setManualForm(p => ({ ...p, agen_id: m?.id || "" }))}
+                    placeholder="Cari nama anggota agen…"
+                  />
+                  {manualForm.agen_id && (
+                    <button type="button" onClick={() => setManualForm(p => ({ ...p, agen_id: "" }))}
+                      style={{ marginTop:6, background:"none", border:"none", color:"rgba(255,255,255,0.3)", fontSize:".72rem", cursor:"pointer", padding:0 }}>
+                      ✕ Hapus agen
+                    </button>
+                  )}
                 </div>
 
                 <div>

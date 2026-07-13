@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Save, RefreshCw, Lock, User } from "lucide-react";
+import { Save, RefreshCw, Lock, User, Star } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -23,6 +23,13 @@ export default function ProfilPage() {
   const [savingPass, setSavingPass]   = useState(false);
   const [savedPass, setSavedPass]     = useState(false);
   const [passErr, setPassErr]         = useState("");
+
+  const [poin, setPoin] = useState<number | null>(null);
+  useEffect(() => {
+    if (!user?.id) return;
+    (supabase.from("profiles") as any).select("poin").eq("id", user.id).single()
+      .then(({ data }: any) => { if (data) setPoin(Number(data.poin) || 0); });
+  }, [user?.id]);
 
   async function handleSaveData() {
     if (!dataForm.name.trim()) return;
@@ -89,6 +96,21 @@ export default function ProfilPage() {
           </span>
         </div>
       </div>
+
+      {/* Poin Agen */}
+      {poin !== null && (
+        <motion.div initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }}
+          style={{ display:"flex", alignItems:"center", gap:14, background:"rgba(251,191,36,0.06)", border:"1px solid rgba(251,191,36,0.2)", borderRadius:14, padding:"16px 20px" }}>
+          <div style={{ width:44, height:44, borderRadius:11, background:"rgba(251,191,36,0.15)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <Star style={{ width:20, height:20, color:"#fbbf24", fill:"#fbbf24" }} />
+          </div>
+          <div>
+            <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".75rem", margin:"0 0 2px" }}>POIN AGEN</p>
+            <p style={{ color:"#fbbf24", fontWeight:900, fontSize:"1.4rem", margin:0, lineHeight:1 }}>{poin} <span style={{ color:"rgba(255,255,255,0.35)", fontWeight:400, fontSize:".8rem" }}>poin</span></p>
+            <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:"3px 0 0" }}>Didapat setiap pesanan yang Anda referensikan berhasil dibayar</p>
+          </div>
+        </motion.div>
+      )}
 
       {/* Update Data */}
       <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }}
