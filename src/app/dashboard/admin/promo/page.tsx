@@ -102,17 +102,20 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
       <td class="right">${fmt(it.price)}</td>
       <td class="right">${fmt(it.price * it.quantity)}</td>
     </tr>`).join("")}
-    <tr class="total-row"><td colspan="3">Total</td><td class="right">${fmt(order.total_amount)}</td></tr>
+    <tr class="total-row"><td colspan="3">Subtotal Produk</td><td class="right">${fmt(order.total_amount)}</td></tr>
   </tbody>
 </table>
-${payment ? `<h2>Pembayaran</h2>
-<div class="info-grid">
-  <div class="info-item"><label>Metode</label><span>${payment.payment_method}</span></div>
-  <div class="info-item"><label>Nominal Tagihan</label><span>${fmt(payment.nominal)}</span></div>
-  <div class="info-item"><label>Terbayar</label><span>${fmt(payment.terbayar)}</span></div>
-  <div class="info-item"><label>Kembalian</label><span>${fmt(kembalian)}</span></div>
-  ${payment.voucher_code ? `<div class="info-item"><label>Voucher</label><span>${payment.voucher_code} (-${fmt(payment.discount_amount||0)})</span></div>` : ""}
-</div>` : `<p style="color:#999;font-size:.8rem;margin-bottom:16px">Pembayaran belum diproses.</p>`}
+${payment ? `<h2>Ringkasan Pembayaran</h2>
+<table>
+  <tbody>
+    ${payment.voucher_code ? `<tr><td>Diskon Voucher (${payment.voucher_code})</td><td class="right">−${fmt(payment.discount_amount||0)}</td></tr>` : ""}
+    ${payment.ongkir ? `<tr><td>Ongkir</td><td class="right">${fmt(payment.ongkir)}</td></tr>` : ""}
+    <tr class="total-row"><td>Total Tagihan</td><td class="right">${fmt(payment.nominal)}</td></tr>
+    <tr><td>Metode Pembayaran</td><td class="right">${payment.payment_method}</td></tr>
+    <tr><td>Terbayar</td><td class="right">${fmt(payment.terbayar)}</td></tr>
+    <tr><td>Kembalian</td><td class="right">${fmt(kembalian)}</td></tr>
+  </tbody>
+</table>` : `<p style="color:#999;font-size:.8rem;margin-bottom:16px">Pembayaran belum diproses.</p>`}
 ${(order.notes || payment?.notes) ? `<h2>Catatan</h2>
 <div style="margin-bottom:16px">
   ${order.notes ? `<p style="margin-bottom:6px"><b>Pesanan:</b> ${order.notes}</p>` : ""}
@@ -151,7 +154,7 @@ export default function AdminProdukPage() {
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [approveOrder, setApproveOrder] = useState<any | null>(null);
   const [approveStep, setApproveStep] = useState<"review"|"payment">("review");
-  const [payForm, setPayForm] = useState({ customer_name:"", nominal:"", terbayar:"", payment_method:"BSI", notes:"", proof_url:"", voucher_id:"" });
+  const [payForm, setPayForm] = useState({ customer_name:"", nominal:"", terbayar:"", payment_method:"BSI", notes:"", proof_url:"", voucher_id:"", ongkir:"0" });
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreview, setProofPreview] = useState("");
   const [savingPay, setSavingPay] = useState(false);
@@ -163,7 +166,8 @@ export default function AdminProdukPage() {
 
   /* ── input pesanan manual (walk-in / bukan dari member) ── */
   const [manualModal, setManualModal] = useState(false);
-  const [manualForm, setManualForm] = useState({ user_id:"", customer_name:"", customer_phone:"", product_id:"", quantity:"1", notes:"" });
+  const EMPTY_MANUAL_ITEM = { product_id:"", quantity:"1" };
+  const [manualForm, setManualForm] = useState({ user_id:"", customer_name:"", customer_phone:"", items:[{ ...EMPTY_MANUAL_ITEM }], notes:"" });
   const [savingManual, setSavingManual] = useState(false);
   const [manualErr, setManualErr] = useState("");
 
@@ -313,41 +317,60 @@ export default function AdminProdukPage() {
     setApproveStep("review");
     const items = Array.isArray(o.items) ? o.items : JSON.parse(o.items || "[]");
     const total = items.reduce((s: number, it: any) => s + it.price * it.quantity, 0);
-    setPayForm({ customer_name:o.customer_name, nominal:String(total), terbayar:String(total), payment_method:"BSI", notes:"", proof_url:"", voucher_id:"" });
+    setPayForm({ customer_name:o.customer_name, nominal:String(total), terbayar:String(total), payment_method:"BSI", notes:"", proof_url:"", voucher_id:"", ongkir:"0" });
     setProofFile(null); setProofPreview(""); setPayErr("");
   }
-  function closeApprove() { setApproveOrder(null); setApproveStep("review"); setPayForm({ customer_name:"", nominal:"", terbayar:"", payment_method:"BSI", notes:"", proof_url:"", voucher_id:"" }); setProofFile(null); setProofPreview(""); setPayErr(""); }
+  function closeApprove() { setApproveOrder(null); setApproveStep("review"); setPayForm({ customer_name:"", nominal:"", terbayar:"", payment_method:"BSI", notes:"", proof_url:"", voucher_id:"", ongkir:"0" }); setProofFile(null); setProofPreview(""); setPayErr(""); }
 
   const approveTotal = approveOrder ? (Array.isArray(approveOrder.items)?approveOrder.items:JSON.parse(approveOrder.items||"[]")).reduce((s:number,it:any)=>s+it.price*it.quantity,0) : 0;
   const selectedApproveVoucher = vouchers.find(v => v.id === payForm.voucher_id) || null;
 
-  function onVoucherPick(voucherId: string) {
+  // Nominal Tagihan = subtotal produk (dipotong voucher bila ada) + ongkir.
+  function recomputeNominal(voucherId: string, ongkir: string) {
     const v = vouchers.find(vv => vv.id === voucherId) || null;
-    const nominal = v ? applyDiscount(approveTotal, v.discount_type, v.discount_value) : approveTotal;
-    setPayForm(p => ({ ...p, voucher_id: voucherId, nominal: String(nominal), terbayar: String(nominal) }));
+    const discounted = v ? applyDiscount(approveTotal, v.discount_type, v.discount_value) : approveTotal;
+    const nominal = discounted + (Number(ongkir) || 0);
+    setPayForm(p => ({ ...p, voucher_id: voucherId, ongkir, nominal: String(nominal), terbayar: String(nominal) }));
   }
+  function onVoucherPick(voucherId: string) { recomputeNominal(voucherId, payForm.ongkir); }
+  function onOngkirChange(ongkir: string) { recomputeNominal(payForm.voucher_id, ongkir); }
 
   /* ── input pesanan manual — beli langsung di toko, dicatat lalu masuk alur approve seperti biasa ── */
-  function openManual() { setManualForm({ user_id:"", customer_name:"", customer_phone:"", product_id:"", quantity:"1", notes:"" }); setManualErr(""); setManualModal(true); }
+  function openManual() { setManualForm({ user_id:"", customer_name:"", customer_phone:"", items:[{ ...EMPTY_MANUAL_ITEM }], notes:"" }); setManualErr(""); setManualModal(true); }
   function closeManual() { setManualModal(false); setManualErr(""); }
 
-  const manualProduct = produk.find(p => p.id === manualForm.product_id) || null;
-  const manualQty = Math.max(1, Number(manualForm.quantity) || 1);
-  const manualTotal = manualProduct ? (manualProduct.price || 0) * manualQty : 0;
-  const manualStockExceeded = !!manualProduct && manualProduct.stok != null && manualQty > manualProduct.stok;
+  function addManualItem() { setManualForm(p => ({ ...p, items:[...p.items, { ...EMPTY_MANUAL_ITEM }] })); }
+  function removeManualItem(idx: number) { setManualForm(p => ({ ...p, items: p.items.length > 1 ? p.items.filter((_,i)=>i!==idx) : p.items })); }
+  function updateManualItem(idx: number, patch: Partial<typeof EMPTY_MANUAL_ITEM>) {
+    setManualForm(p => ({ ...p, items: p.items.map((it,i)=>i===idx ? { ...it, ...patch } : it) }));
+  }
+
+  const manualItemsResolved = manualForm.items.map(it => {
+    const product = produk.find(p => p.id === it.product_id) || null;
+    const qty = Math.max(1, Number(it.quantity) || 1);
+    const stockExceeded = !!product && product.stok != null && qty > product.stok;
+    return { product, qty, stockExceeded };
+  });
+  const manualHasProduct = manualItemsResolved.some(r => r.product);
+  const manualTotal = manualItemsResolved.reduce((s, r) => s + (r.product ? (r.product.price || 0) * r.qty : 0), 0);
+  const manualStockExceeded = manualItemsResolved.some(r => r.stockExceeded);
+  const manualMissingPrice = manualItemsResolved.some(r => r.product && !r.product.price);
 
   async function saveManual() {
     if (!manualForm.customer_name.trim()) { setManualErr("Nama pembeli wajib diisi."); return; }
-    if (!manualProduct) { setManualErr("Pilih produk yang dibeli."); return; }
-    if (!manualProduct.price) { setManualErr("Produk ini belum ada harga."); return; }
-    if (manualStockExceeded) { setManualErr(`Stok tidak cukup — tersisa ${manualProduct.stok}. Tambah stok dulu di menu Kelola Produk atau kurangi jumlah.`); return; }
+    if (!manualHasProduct) { setManualErr("Pilih minimal satu produk yang dibeli."); return; }
+    if (manualMissingPrice) { setManualErr("Ada produk yang belum punya harga."); return; }
+    if (manualStockExceeded) { setManualErr("Ada produk yang jumlahnya melebihi stok — tambah stok dulu di menu Kelola Produk atau kurangi jumlah."); return; }
     setSavingManual(true); setManualErr("");
-    const item = { product_id: manualProduct.id, title: manualProduct.title, gram_weight: manualProduct.gram_weight ?? null, price: manualProduct.price, quantity: manualQty, image_url: manualProduct.image_url ?? null };
+    const items = manualItemsResolved.filter(r => r.product).map(r => ({
+      product_id: r.product.id, title: r.product.title, gram_weight: r.product.gram_weight ?? null,
+      price: r.product.price, quantity: r.qty, image_url: r.product.image_url ?? null,
+    }));
     const { error } = await (supabase.from("product_orders") as any).insert({
       user_id: manualForm.user_id || null,
       customer_name: manualForm.customer_name.trim(),
       customer_phone: manualForm.customer_phone || null,
-      items: [item],
+      items,
       total_amount: manualTotal,
       status: "pending",
       notes: manualForm.notes || null,
@@ -384,6 +407,7 @@ export default function AdminProdukPage() {
       payment_method: payForm.payment_method,
       proof_url: proofUrl || null,
       notes: payForm.notes || null,
+      ongkir: Number(payForm.ongkir) || 0,
       verified_by: user?.id,
       ...voucherFields,
     });
@@ -419,7 +443,7 @@ export default function AdminProdukPage() {
         });
       }
     }
-    const payment = { order_id:approveOrder.id, customer_name:payForm.customer_name, nominal:Number(payForm.nominal), terbayar:Number(payForm.terbayar), payment_method:payForm.payment_method, proof_url:proofUrl||null, created_at:new Date().toISOString(), ...voucherFields };
+    const payment = { order_id:approveOrder.id, customer_name:payForm.customer_name, nominal:Number(payForm.nominal), terbayar:Number(payForm.terbayar), payment_method:payForm.payment_method, proof_url:proofUrl||null, notes:payForm.notes||null, ongkir:Number(payForm.ongkir)||0, created_at:new Date().toISOString(), ...voucherFields };
     const orderCopy = { ...approveOrder, status:"approved" };
     closeApprove();
     loadOrders(); loadProduk();
@@ -869,25 +893,52 @@ export default function AdminProdukPage() {
                 </div>
 
                 <div>
-                  <label style={lbl}>Produk *</label>
-                  <Select value={manualForm.product_id} onChange={v=>setManualForm(p=>({...p,product_id:v}))}
-                    options={produk.filter(p=>p.is_active).map(p => ({
-                      value: p.id,
-                      label: `${p.title}${p.gram_weight!=null?` (${p.gram_weight}gr)`:""} — ${p.price!=null?fmt(p.price):"belum ada harga"}${p.stok!=null?` · stok ${p.stok}`:""}`,
-                    }))} placeholder="Pilih produk" />
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:5 }}>
+                    <label style={{ ...lbl, marginBottom:0 }}>Produk *</label>
+                    <button type="button" onClick={addManualItem}
+                      style={{ display:"flex", alignItems:"center", gap:4, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.3)", borderRadius:7, padding:"4px 9px", color:G, cursor:"pointer", fontSize:".74rem", fontWeight:700 }}>
+                      <Plus style={{ width:11, height:11 }} /> Tambah Produk
+                    </button>
+                  </div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                    {manualForm.items.map((it, idx) => {
+                      const resolved = manualItemsResolved[idx];
+                      return (
+                        <div key={idx} style={{ border:"1px solid rgba(255,255,255,0.08)", borderRadius:10, padding:10, display:"flex", flexDirection:"column", gap:8 }}>
+                          <div style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
+                            <div style={{ flex:1 }}>
+                              <Select value={it.product_id} onChange={v=>updateManualItem(idx,{product_id:v})}
+                                options={produk.filter(p=>p.is_active).map(p => ({
+                                  value: p.id,
+                                  label: `${p.title}${p.gram_weight!=null?` (${p.gram_weight}gr)`:""} — ${p.price!=null?fmt(p.price):"belum ada harga"}${p.stok!=null?` · stok ${p.stok}`:""}`,
+                                }))} placeholder="Pilih produk" />
+                            </div>
+                            {manualForm.items.length > 1 && (
+                              <button type="button" onClick={()=>removeManualItem(idx)}
+                                style={{ width:36, height:36, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.25)", borderRadius:8, color:"#f87171", cursor:"pointer" }}>
+                                <Trash2 style={{ width:14, height:14 }} />
+                              </button>
+                            )}
+                          </div>
+                          <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                            <input type="number" min={1} value={it.quantity} onChange={e=>updateManualItem(idx,{quantity:e.target.value})}
+                              style={{...field, borderColor: resolved.stockExceeded ? "rgba(248,113,113,0.5)" : undefined, width:90 }} placeholder="Qty" />
+                            {resolved.product && (
+                              <span style={{ color:G, fontWeight:700, fontSize:".84rem" }}>{fmt((resolved.product.price||0)*resolved.qty)}</span>
+                            )}
+                          </div>
+                          {resolved.product?.stok != null && (
+                            <p style={{ color: resolved.stockExceeded ? "#f87171" : "rgba(255,255,255,0.3)", fontSize:".72rem", margin:0 }}>
+                              Stok tersedia: {resolved.product.stok}{resolved.stockExceeded ? " — jumlah melebihi stok" : ""}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                <div>
-                  <label style={lbl}>Jumlah</label>
-                  <input type="number" min={1} value={manualForm.quantity} onChange={e=>setManualForm(p=>({...p,quantity:e.target.value}))} style={{...field, borderColor: manualStockExceeded ? "rgba(248,113,113,0.5)" : undefined}} />
-                  {manualProduct?.stok != null && (
-                    <p style={{ color: manualStockExceeded ? "#f87171" : "rgba(255,255,255,0.3)", fontSize:".72rem", margin:"6px 0 0" }}>
-                      Stok tersedia: {manualProduct.stok}{manualStockExceeded ? " — jumlah melebihi stok" : ""}
-                    </p>
-                  )}
-                </div>
-
-                {manualProduct && (
+                {manualHasProduct && (
                   <div style={{ background:"rgba(212,175,55,0.07)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"10px 14px", display:"flex", justifyContent:"space-between" }}>
                     <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>Total</span>
                     <span style={{ color:G, fontWeight:900, fontSize:".95rem" }}>{fmt(manualTotal)}</span>
@@ -902,8 +953,8 @@ export default function AdminProdukPage() {
                 <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".74rem", margin:0 }}>Pesanan akan masuk sebagai <b>Pending</b> — lanjutkan ke tombol Setujui untuk proses pembayaran & stok seperti pesanan biasa.</p>
 
                 <div style={{ display:"flex", gap:8, paddingTop:4 }}>
-                  <button onClick={saveManual} disabled={savingManual||!manualForm.customer_name||!manualForm.product_id||manualStockExceeded}
-                    style={{ flex:1, padding:12, borderRadius:11, background:`linear-gradient(135deg,${G},${G2})`, border:"none", color:"#0a0a0a", fontWeight:800, fontSize:".88rem", cursor:savingManual||!manualForm.customer_name||!manualForm.product_id||manualStockExceeded?"not-allowed":"pointer", opacity:savingManual||manualStockExceeded?.6:1 }}>
+                  <button onClick={saveManual} disabled={savingManual||!manualForm.customer_name||!manualHasProduct||manualStockExceeded}
+                    style={{ flex:1, padding:12, borderRadius:11, background:`linear-gradient(135deg,${G},${G2})`, border:"none", color:"#0a0a0a", fontWeight:800, fontSize:".88rem", cursor:savingManual||!manualForm.customer_name||!manualHasProduct||manualStockExceeded?"not-allowed":"pointer", opacity:savingManual||manualStockExceeded?.6:1 }}>
                     {savingManual?"Menyimpan…":"Simpan Pesanan"}
                   </button>
                   <button onClick={closeManual} style={{ padding:"12px 18px", borderRadius:11, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", color:"rgba(255,255,255,0.35)", cursor:"pointer", fontSize:".85rem" }}>Batal</button>
@@ -987,10 +1038,16 @@ export default function AdminProdukPage() {
                       <input value={payForm.customer_name} onChange={e=>setPayForm(p=>({...p,customer_name:e.target.value}))} style={field} />
                     </div>
 
+                    <div>
+                      <label style={lbl}>Ongkir / Biaya Kirim (Rp, opsional)</label>
+                      <RupiahInput value={payForm.ongkir} onValueChange={onOngkirChange} style={field} />
+                    </div>
+
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                       <div>
                         <label style={lbl}>Nominal Tagihan (Rp)</label>
                         <RupiahInput value={payForm.nominal} onValueChange={v=>setPayForm(p=>({...p,nominal:v}))} style={field} />
+                        <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:"5px 0 0" }}>Sudah termasuk ongkir{selectedApproveVoucher?" & potongan voucher":""}.</p>
                       </div>
                       <div>
                         <label style={lbl}>Terbayar (Rp)</label>
