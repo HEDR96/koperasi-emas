@@ -33,7 +33,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 const TX_LABEL: Record<string,string> = { buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan", tabungan:"Simpanan", transfer:"Transfer" };
-const SIM_LABEL: Record<string,string> = { pokok:"Simpanan Pokok", wajib:"Simpanan Wajib", sukarela:"Simpanan Sukarela" };
+const SIM_LABEL: Record<string,string> = { pokok:"Simpanan Pokok", wajib:"Simpanan Wajib", sukarela:"Simpanan Sukarela", simpanan:"Simpanan", setoran:"Setor Simpanan", tabungan:"Simpanan (lama)" };
 
 type Tab = "all" | "beli" | "cicilan" | "gadai" | "buyback" | "simpanan";
 
@@ -64,7 +64,7 @@ export default function AdminRiwayatPage() {
   async function load() {
     setLoading(true);
     try {
-      const [bRes, cRes, gRes, bbRes, sRes] = await Promise.all([
+      const [bRes, cRes, gRes, bbRes, sRes, legacyRes] = await Promise.all([
         // Beli Emas — semua status
         (supabase.from("transactions") as any)
           .select("id, user_id, type, amount, gram, status, payment_method, notes, created_at, transaction_date, profiles:profiles!user_id(name)")
@@ -85,12 +85,19 @@ export default function AdminRiwayatPage() {
         (supabase.from("simpanan") as any)
           .select("id, user_id, type, amount, status, description, created_at, transaction_date, profiles:profiles!user_id(name)")
           .order("created_at",{ascending:false}).limit(500),
+        // Simpanan (lama) — transaksi tabungan lama yang tercatat sebelum dipindah ke tabel simpanan.
+        (supabase.from("transactions") as any)
+          .select("id, user_id, type, amount, status, notes, created_at, transaction_date, profiles:profiles!user_id(name)")
+          .eq("type","tabungan").order("created_at",{ascending:false}).limit(500),
       ]);
       setBeliData(bRes.data || []);
       setCicilanData(cRes.data || []);
       setGadaiData(gRes.data || []);
       setBuybackData(bbRes.data || []);
-      setSimpananData(sRes.data || []);
+      const legacyTabungan = (legacyRes.data || []).map((r: any) => ({ ...r, description: r.notes, _table: "transactions" }));
+      const merged = [...(sRes.data || []).map((r: any) => ({ ...r, _table: "simpanan" })), ...legacyTabungan]
+        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setSimpananData(merged);
     } catch {}
     setLoading(false);
   }
@@ -227,7 +234,7 @@ export default function AdminRiwayatPage() {
           <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
             <span style={{ color:"#f59e0b", fontWeight:800 }}>{fmt(r.amount)}</span>
             <StatusBadge status={r.status} />
-            <DeleteBtn table="simpanan" id={r.id} label={`simpanan ${SIM_LABEL[r.type]||r.type} - ${r.profiles?.name||"-"}`} />
+            <DeleteBtn table={r._table || "simpanan"} id={r.id} label={`simpanan ${SIM_LABEL[r.type]||r.type} - ${r.profiles?.name||"-"}`} />
           </div>
         </div>
       </motion.div>
