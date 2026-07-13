@@ -153,14 +153,22 @@ export default function MemberManagementPage() {
     setQuotaInput(String(m.product_quota ?? 3));
     setDetailLoading(true);
     try {
-      const [txRes, savRes, insRes, simRes, gadaiRes] = await Promise.all([
+      const [txRes, savRes, insRes, simRes, legacyRes, gadaiRes] = await Promise.all([
         (supabase.from("transactions") as any).select("*").eq("user_id",m.id).order("created_at",{ascending:false}).limit(5),
         (supabase.from("savings") as any).select("*").eq("user_id",m.id),
         (supabase.from("installments") as any).select("*").eq("user_id",m.id).order("created_at",{ascending:false}),
         (supabase.from("simpanan") as any).select("id, type, amount, status, transaction_date, created_at, description").eq("user_id",m.id).order("transaction_date",{ascending:false}),
+        (supabase.from("transactions") as any).select("id, amount, status, transaction_date, created_at, notes").eq("user_id",m.id).eq("type","tabungan").eq("status","completed").order("transaction_date",{ascending:false}),
         (supabase.from("gadai") as any).select("id, dana_cair, sisa_tagihan, status, tenor, angsuran_per_bulan, created_at").eq("user_id",m.id).order("created_at",{ascending:false}),
       ]);
-      setDetail(d => d ? ({ ...d, transactions:txRes.data||[], savings:savRes.data||[], installments:insRes.data||[], simpanan:simRes.data||[], gadai:gadaiRes.data||[] }) : d);
+      // Gabungkan tabel simpanan + sisa transaksi lama type='tabungan' (sebelum migrasi ke tabel simpanan)
+      const legacySim = (legacyRes.data||[]).map((t:any) => ({
+        id:`tx-${t.id}`, type:"tabungan", amount:t.amount, status:t.status,
+        transaction_date:t.transaction_date, created_at:t.created_at, description:t.notes,
+      }));
+      const mergedSim = [...(simRes.data||[]), ...legacySim]
+        .sort((a:any,b:any)=>new Date(b.transaction_date||b.created_at).getTime()-new Date(a.transaction_date||a.created_at).getTime());
+      setDetail(d => d ? ({ ...d, transactions:txRes.data||[], savings:savRes.data||[], installments:insRes.data||[], simpanan:mergedSim, gadai:gadaiRes.data||[] }) : d);
     } catch {}
     setDetailLoading(false);
   }
