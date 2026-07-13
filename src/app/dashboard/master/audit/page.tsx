@@ -41,7 +41,8 @@ export default function MasterAuditPage() {
 
       const merged: Item[] = [];
       (txRes.data||[]).forEach((t: any) => merged.push({
-        id:`tx-${t.id}`, ts:t.created_at, kind:"transaksi", who:t.profiles?.name||"—",
+        // Transaksi lama bertipe 'tabungan' sebenarnya setoran simpanan — masukkan ke kategori Simpanan.
+        id:`tx-${t.id}`, ts:t.created_at, kind: t.type==="tabungan" ? "simpanan" : "transaksi", who:t.profiles?.name||"—",
         detail:`${TX_LABEL[t.type]||t.type}`, amount:t.amount, status:t.status,
       }));
       (gadaiRes.data||[]).forEach((g: any) => merged.push({

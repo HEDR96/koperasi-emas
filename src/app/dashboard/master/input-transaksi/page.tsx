@@ -31,8 +31,8 @@ const inp: React.CSSProperties = {
   borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".9rem", outline:"none", boxSizing:"border-box",
 };
 
+// Beli Emas dipindahkan ke menu Produk → tab Pembelian (pilih produk, approve di sana).
 const TYPE_OPTS = [
-  { value:"buy",     label:"Beli Emas" },
   { value:"buyback", label:"Buyback Emas" },
   { value:"cicilan", label:"Cicilan Emas" },
 ];
@@ -45,7 +45,7 @@ const STATUS_OPTS = [
 ];
 
 const EMPTY = {
-  user_id:"", type:"buy", gram:"", amount:"", price_per_gram:"", product_id:"",
+  user_id:"", type:"buyback", gram:"", amount:"", price_per_gram:"",
   // Default "pending" supaya transaksi yang diinput masuk ke Pusat Approval.
   // Admin bisa memilih "Selesai" untuk mencatat transaksi historis tanpa approval.
   payment_method:DEFAULT_PAYMENT_METHOD, notes:"", status:"pending", tenor:"6", dp:"", voucher_id:"",
@@ -66,9 +66,8 @@ export default function InputTransaksiPage() {
   const [buybackPerGram, setBuybackPerGram] = useState(0);
   const [cicilanParams, setCicilanParams] = useState<CicilanParams>(CICILAN_PARAM_DEFAULTS);
 
-  // Produk emas (untuk pilih produk saat Beli Emas) & voucher aktif (untuk cicilan).
-  const [goldProducts, setGoldProducts] = useState<any[]>([]);
-  const [vouchers, setVouchers]         = useState<Voucher[]>([]);
+  // Voucher aktif (untuk cicilan).
+  const [vouchers, setVouchers] = useState<Voucher[]>([]);
 
   async function loadRecent() {
     const [{ data }, staffMap] = await Promise.all([
@@ -104,16 +103,13 @@ export default function InputTransaksiPage() {
     setCicilanParams(params);
   }
 
-  async function loadProductsAndVouchers() {
-    const [{ data: prods }, { data: vch }] = await Promise.all([
-      (supabase.from("promos") as any).select("*").not("gram_weight", "is", null).eq("is_active", true).order("gram_weight", { ascending: true }),
-      (supabase.from("vouchers") as any).select("*").eq("is_active", true).eq("target", "angsuran").order("created_at", { ascending: false }),
-    ]);
-    setGoldProducts(prods || []);
+  async function loadVouchers() {
+    const { data: vch } = await (supabase.from("vouchers") as any)
+      .select("*").eq("is_active", true).eq("target", "angsuran").order("created_at", { ascending: false });
     setVouchers(vch || []);
   }
 
-  useEffect(() => { loadRecent(); loadGold(); loadProductsAndVouchers(); }, []);
+  useEffect(() => { loadRecent(); loadGold(); loadVouchers(); }, []);
 
   const cicilanTenor   = Number(form.tenor) || 1;
   const selectedVoucher = vouchers.find(v => v.id === form.voucher_id) || null;
@@ -124,11 +120,8 @@ export default function InputTransaksiPage() {
 
   // Opsi gram dari daftar harga emas (dipakai untuk buyback/cicilan).
   const gramOpts = goldRows.map(r => ({ value:String(r.gram), label:`${r.gram} gram` }));
-  // Opsi produk emas (dipakai untuk Beli Emas — pilih produk, bukan gram manual).
-  const productOpts = goldProducts.map(p => ({ value:String(p.id), label:`${p.title} — ${p.gram_weight}gr — ${fmt(p.price||0)}${p.stok!=null?` (stok ${p.stok})`:""}` }));
 
   // Hitung nominal & harga/gram otomatis sesuai berat + tipe transaksi.
-  //  • Beli Emas  → nominal = harga emas jual berat tsb.
   //  • Buyback    → nominal = harga buyback × berat.
   //  • Cicilan    → nominal = harga cicilan (a+b−c) untuk tenor terpilih; angsuran dihitung dari nominal/tenor.
   function autoFields(gram: string, type: string, tenor: string): Partial<typeof EMPTY> {
@@ -146,12 +139,11 @@ export default function InputTransaksiPage() {
       const dp = cicilanDpTenor(row.harga, t, cicilanParams.adminAnggota, cicilanParams.persenBulanAnggota, cicilanParams.persenDpAnggota);
       return { amount: String(total), price_per_gram: String(Math.round(row.harga / g)), dp: String(dp) };
     }
-    // buy (default) — harga emas jual
-    return { amount: String(Math.round(row.harga)), price_per_gram: String(Math.round(row.harga / g)) };
+    return {};
   }
 
   async function handleSave() {
-    if (!form.user_id || !form.amount) { setError("Pilih anggota dan pilih berat emas."); return; }
+    if (!form.user_id || !form.amount) { setError("Pilih anggota dan lengkapi data transaksi."); return; }
     setSaving(true); setError("");
     try {
       if (form.type === "cicilan") {
@@ -207,19 +199,6 @@ export default function InputTransaksiPage() {
       const { error: err } = await (supabase.from("transactions") as any).insert(payload);
       if (err) { setError(err.message); }
       else {
-        // Beli Emas dari produk & langsung selesai → potong stok produk terkait.
-        if (form.type === "buy" && form.status === "completed" && form.product_id) {
-          const prod = goldProducts.find(p => String(p.id) === form.product_id);
-          if (prod?.stok != null) {
-            const newStok = Math.max(0, prod.stok - 1);
-            await (supabase.from("promos") as any).update({ stok: newStok }).eq("id", prod.id);
-            await (supabase.from("product_stock_logs") as any).insert({
-              product_id: prod.id, type: "deduct", quantity: 1,
-              notes: "Beli Emas via Input Transaksi", created_by: user?.id,
-            });
-            loadProductsAndVouchers();
-          }
-        }
         setSaved(true);
         setTimeout(() => setSaved(false), 2500);
         setForm(EMPTY);
@@ -276,7 +255,7 @@ export default function InputTransaksiPage() {
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
               <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tipe Transaksi *</label>
-              <Select value={form.type} onChange={v=>setForm(p=>({...p,type:v,gram:"",amount:"",price_per_gram:"",dp:"",product_id:"",voucher_id:""}))} options={TYPE_OPTS} />
+              <Select value={form.type} onChange={v=>setForm(p=>({...p,type:v,gram:"",amount:"",price_per_gram:"",dp:"",voucher_id:""}))} options={TYPE_OPTS} />
             </div>
             <div>
               <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Status</label>
@@ -284,60 +263,8 @@ export default function InputTransaksiPage() {
             </div>
           </div>
 
-          {/* ─── BELI EMAS: form sederhana — pilih produk → harga & berat otomatis ─── */}
-          {form.type === "buy" && (
-            <>
-              <div>
-                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Pilih Produk Emas *</label>
-                {productOpts.length > 0 ? (
-                  <Select value={form.product_id} onChange={v=>{
-                    const prod = goldProducts.find(p=>String(p.id)===v);
-                    if (!prod) return;
-                    const gram = Number(prod.gram_weight)||0;
-                    const price = Number(prod.price)||0;
-                    setForm(p=>({ ...p, product_id:v, gram:String(gram), amount:String(price), price_per_gram: gram ? String(Math.round(price/gram)) : "" }));
-                  }} options={productOpts} placeholder="Pilih produk emas" />
-                ) : (
-                  <p style={{ color:"#f87171", fontSize:".8rem" }}>Belum ada produk emas. Tambahkan harga di menu Harga Emas — produk akan dibuat otomatis.</p>
-                )}
-              </div>
-
-              {/* Preview harga otomatis */}
-              {form.gram && form.amount && (
-                <div style={{ background:"rgba(212,175,55,0.07)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:12, padding:"14px 16px", display:"flex", flexDirection:"column", gap:10 }}>
-                  <p style={{ color:"#D4AF37", fontWeight:700, fontSize:".82rem", margin:0 }}>Detail Harga Beli Emas</p>
-                  {[
-                    { label:"Berat",       val:`${form.gram} gram` },
-                    { label:"Harga/gram",  val:`Rp ${fmtRibuan(form.price_per_gram)}` },
-                    { label:"Total Bayar", val:`Rp ${fmtRibuan(form.amount)}`, gold:true },
-                  ].map(r=>(
-                    <div key={r.label} style={{ display:"flex", justifyContent:"space-between" }}>
-                      <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>{r.label}</span>
-                      <span style={{ color: r.gold ? "#D4AF37" : "#fff", fontWeight: r.gold ? 900 : 600, fontSize:".88rem" }}>{r.val}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div>
-                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Metode Bayar</label>
-                <Select value={form.payment_method} onChange={v=>setForm(p=>({...p,payment_method:v}))} options={PAYMENT_METHODS} />
-              </div>
-              <div>
-                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tanggal Transaksi</label>
-                <input type="datetime-local" value={form.created_at} onChange={e=>setForm(p=>({...p,created_at:e.target.value}))} style={inp} />
-              </div>
-              <div>
-                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Catatan</label>
-                <textarea rows={2} value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))}
-                  style={{ ...inp, resize:"vertical", fontFamily:"inherit" }} placeholder="Keterangan tambahan..." />
-              </div>
-            </>
-          )}
-
-          {/* ─── TIPE LAIN (buyback / cicilan): form lengkap ─── */}
-          {form.type !== "buy" && (
-            <>
+          {/* ─── Form berat/harga: buyback & cicilan ─── */}
+          <>
               {/* Berat */}
               <div>
                 <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Berat (gram)</label>
@@ -383,8 +310,7 @@ export default function InputTransaksiPage() {
                 <textarea rows={2} value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))}
                   style={{ ...inp, resize:"vertical", fontFamily:"inherit" }} placeholder="Keterangan tambahan..." />
               </div>
-            </>
-          )}
+          </>
 
           {/* Tenor & angsuran — khusus Cicilan Emas */}
           {form.type === "cicilan" && (

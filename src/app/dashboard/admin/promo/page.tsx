@@ -12,6 +12,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import RupiahInput from "@/components/ui/RupiahInput";
+import MemberPicker from "@/components/ui/MemberPicker";
 import { useSiteSettings } from "@/store/useSettingsStore";
 import { gdriveImage } from "@/lib/utils";
 import { applyDiscount, discountAmount, fmtDiscount, type Voucher } from "@/lib/voucher";
@@ -157,6 +158,12 @@ export default function AdminProdukPage() {
   const [orderFilter, setOrderFilter] = useState<"all"|"pending"|"approved"|"rejected">("all");
   const [detailOrder, setDetailOrder] = useState<any|null>(null);
 
+  /* ── input pesanan manual (walk-in / bukan dari member) ── */
+  const [manualModal, setManualModal] = useState(false);
+  const [manualForm, setManualForm] = useState({ user_id:"", customer_name:"", customer_phone:"", product_id:"", quantity:"1", notes:"" });
+  const [savingManual, setSavingManual] = useState(false);
+  const [manualErr, setManualErr] = useState("");
+
   /* ── detail produk state ── */
   const [detailProd, setDetailProd] = useState<any|null>(null);
   const [detailOrders, setDetailOrders] = useState<any[]>([]);
@@ -286,6 +293,34 @@ export default function AdminProdukPage() {
     setPayForm(p => ({ ...p, voucher_id: voucherId, nominal: String(nominal), terbayar: String(nominal) }));
   }
 
+  /* ── input pesanan manual — beli langsung di toko, dicatat lalu masuk alur approve seperti biasa ── */
+  function openManual() { setManualForm({ user_id:"", customer_name:"", customer_phone:"", product_id:"", quantity:"1", notes:"" }); setManualErr(""); setManualModal(true); }
+  function closeManual() { setManualModal(false); setManualErr(""); }
+
+  const manualProduct = produk.find(p => p.id === manualForm.product_id) || null;
+  const manualQty = Math.max(1, Number(manualForm.quantity) || 1);
+  const manualTotal = manualProduct ? (manualProduct.price || 0) * manualQty : 0;
+
+  async function saveManual() {
+    if (!manualForm.customer_name.trim()) { setManualErr("Nama pembeli wajib diisi."); return; }
+    if (!manualProduct) { setManualErr("Pilih produk yang dibeli."); return; }
+    if (!manualProduct.price) { setManualErr("Produk ini belum ada harga."); return; }
+    setSavingManual(true); setManualErr("");
+    const item = { product_id: manualProduct.id, title: manualProduct.title, gram_weight: manualProduct.gram_weight ?? null, price: manualProduct.price, quantity: manualQty, image_url: manualProduct.image_url ?? null };
+    const { error } = await (supabase.from("product_orders") as any).insert({
+      user_id: manualForm.user_id || null,
+      customer_name: manualForm.customer_name.trim(),
+      customer_phone: manualForm.customer_phone || null,
+      items: [item],
+      total_amount: manualTotal,
+      status: "pending",
+      notes: manualForm.notes || null,
+      source: "manual-admin",
+    });
+    if (error) { setManualErr(error.message); setSavingManual(false); return; }
+    closeManual(); loadOrders(); setSavingManual(false);
+  }
+
   function handleProofPick(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]; if (!f) return;
     setProofFile(f); setProofPreview(URL.createObjectURL(f));
@@ -391,6 +426,11 @@ export default function AdminProdukPage() {
           {tab === "produk" && (
             <button onClick={openNew} style={{ display:"flex", alignItems:"center", gap:7, padding:"0 18px", height:38, background:`linear-gradient(135deg,${G},${G2})`, border:"none", borderRadius:10, color:"#0a0a0a", cursor:"pointer", fontSize:".85rem", fontWeight:800 }}>
               <Plus style={{ width:14, height:14 }} /> Tambah Produk
+            </button>
+          )}
+          {tab === "pesanan" && (
+            <button onClick={openManual} style={{ display:"flex", alignItems:"center", gap:7, padding:"0 18px", height:38, background:`linear-gradient(135deg,${G},${G2})`, border:"none", borderRadius:10, color:"#0a0a0a", cursor:"pointer", fontSize:".85rem", fontWeight:800 }}>
+              <Plus style={{ width:14, height:14 }} /> Input Manual
             </button>
           )}
         </div>
@@ -685,6 +725,97 @@ export default function AdminProdukPage() {
                     {saving?"Menyimpan…":editId?"Update Produk":"Simpan Produk"}
                   </button>
                   <button onClick={closeModal} style={{ padding:"12px 18px", borderRadius:11, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", color:"rgba(255,255,255,0.35)", cursor:"pointer", fontSize:".85rem" }}>Batal</button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ═══ MODAL: INPUT PESANAN MANUAL (walk-in / bukan dari member) ═══ */}
+      <AnimatePresence>
+        {manualModal && (
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+            style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.65)", backdropFilter:"blur(4px)", zIndex:50, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}
+            onClick={e => { if (e.target===e.currentTarget) closeManual(); }}>
+            <motion.div initial={{ opacity:0, scale:.95, y:16 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95, y:16 }} transition={{ type:"spring", stiffness:300, damping:28 }}
+              style={{ width:"100%", maxWidth:480, maxHeight:"88vh", overflowY:"auto", background:"#111", border:"1px solid rgba(212,175,55,0.35)", borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.6)" }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 22px 14px", borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  <div style={{ width:32, height:32, borderRadius:9, background:"rgba(212,175,55,0.12)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <Plus style={{ width:14, height:14, color:G }} />
+                  </div>
+                  <div>
+                    <span style={{ color:"#fff", fontWeight:700, fontSize:".95rem" }}>Input Pesanan Manual</span>
+                    <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:"1px 0 0" }}>Untuk pembeli yang datang/pesan langsung (tidak lewat halaman member)</p>
+                  </div>
+                </div>
+                <button onClick={closeManual} style={{ width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, color:"rgba(255,255,255,0.4)", cursor:"pointer" }}><X style={{ width:14, height:14 }} /></button>
+              </div>
+              <div style={{ padding:"20px 22px", display:"flex", flexDirection:"column", gap:16 }}>
+                {manualErr && <div style={{ background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:10, padding:"10px 14px", color:"#f87171", fontSize:".82rem" }}>{manualErr}</div>}
+
+                <div>
+                  <label style={lbl}>Anggota (opsional)</label>
+                  <MemberPicker value={manualForm.user_id} onChange={m => setManualForm(p => ({
+                    ...p, user_id: m?.id || "",
+                    customer_name: m ? m.name : p.customer_name,
+                    customer_phone: m ? (m.phone || "") : p.customer_phone,
+                  }))} />
+                  <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:"6px 0 0" }}>Pilih kalau pembeli adalah anggota terdaftar — kosongkan untuk pembeli umum.</p>
+                </div>
+
+                <div>
+                  <label style={lbl}>Nama Pembeli *</label>
+                  <input value={manualForm.customer_name} onChange={e=>setManualForm(p=>({...p,customer_name:e.target.value}))} style={field} placeholder="Nama pembeli" />
+                </div>
+
+                <div>
+                  <label style={lbl}>Nomor HP</label>
+                  <input value={manualForm.customer_phone} onChange={e=>setManualForm(p=>({...p,customer_phone:e.target.value}))} style={field} placeholder="08xxxxxxxxxx" />
+                </div>
+
+                <div>
+                  <label style={lbl}>Produk *</label>
+                  <div style={{ position:"relative" }}>
+                    <select value={manualForm.product_id} onChange={e=>setManualForm(p=>({...p,product_id:e.target.value}))}
+                      style={{ ...field, appearance:"none", paddingRight:36 }}>
+                      <option value="" style={{ background:"#111" }}>Pilih produk</option>
+                      {produk.filter(p=>p.is_active).map(p => (
+                        <option key={p.id} value={p.id} style={{ background:"#111" }}>
+                          {p.title}{p.gram_weight!=null?` (${p.gram_weight}gr)`:""} — {p.price!=null?fmt(p.price):"belum ada harga"}{p.stok!=null?` · stok ${p.stok}`:""}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", width:14, height:14, color:"rgba(255,255,255,0.3)", pointerEvents:"none" }} />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={lbl}>Jumlah</label>
+                  <input type="number" min={1} value={manualForm.quantity} onChange={e=>setManualForm(p=>({...p,quantity:e.target.value}))} style={field} />
+                </div>
+
+                {manualProduct && (
+                  <div style={{ background:"rgba(212,175,55,0.07)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"10px 14px", display:"flex", justifyContent:"space-between" }}>
+                    <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>Total</span>
+                    <span style={{ color:G, fontWeight:900, fontSize:".95rem" }}>{fmt(manualTotal)}</span>
+                  </div>
+                )}
+
+                <div>
+                  <label style={lbl}>Catatan (opsional)</label>
+                  <textarea rows={2} value={manualForm.notes} onChange={e=>setManualForm(p=>({...p,notes:e.target.value}))} style={{ ...field, resize:"vertical", fontFamily:"inherit" }} placeholder="Keterangan tambahan…" />
+                </div>
+
+                <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".74rem", margin:0 }}>Pesanan akan masuk sebagai <b>Pending</b> — lanjutkan ke tombol Setujui untuk proses pembayaran & stok seperti pesanan biasa.</p>
+
+                <div style={{ display:"flex", gap:8, paddingTop:4 }}>
+                  <button onClick={saveManual} disabled={savingManual||!manualForm.customer_name||!manualForm.product_id}
+                    style={{ flex:1, padding:12, borderRadius:11, background:`linear-gradient(135deg,${G},${G2})`, border:"none", color:"#0a0a0a", fontWeight:800, fontSize:".88rem", cursor:savingManual||!manualForm.customer_name||!manualForm.product_id?"not-allowed":"pointer", opacity:savingManual?.6:1 }}>
+                    {savingManual?"Menyimpan…":"Simpan Pesanan"}
+                  </button>
+                  <button onClick={closeManual} style={{ padding:"12px 18px", borderRadius:11, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", color:"rgba(255,255,255,0.35)", cursor:"pointer", fontSize:".85rem" }}>Batal</button>
                 </div>
               </div>
             </motion.div>
