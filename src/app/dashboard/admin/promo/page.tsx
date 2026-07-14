@@ -68,7 +68,8 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
   .sub{text-align:center;color:#555;font-size:.75rem;margin-bottom:3px}
   .status-badge{display:inline-block;padding:3px 14px;border-radius:20px;font-size:.75rem;font-weight:800;letter-spacing:.05em;margin-bottom:10px;${paid?"background:#dcfce7;color:#16a34a;border:2px solid #16a34a":"background:#fef2f2;color:#dc2626;border:2px solid #dc2626"}}
   .status-wrap{text-align:center}
-  .watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:6rem;font-weight:900;opacity:.18;color:${paid?"#16a34a":"#dc2626"};pointer-events:none;white-space:nowrap}
+  .watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:8rem;font-weight:900;opacity:.18;color:${paid?"#16a34a":"#dc2626"};pointer-events:none;white-space:nowrap;z-index:0}
+  @media print{.watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg)}}
   h2{font-size:.9rem;font-weight:700;margin-bottom:6px;border-bottom:2px solid #B8860B;padding-bottom:4px;margin-top:8px}
   table{width:100%;border-collapse:collapse;margin-bottom:8px}
   th{background:#B8860B;color:#fff;padding:5px 8px;text-align:left;font-size:.75rem}
