@@ -63,23 +63,23 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
 <title>Invoice #${order.id.slice(-8).toUpperCase()}</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:Arial,sans-serif;font-size:13px;color:#111;padding:24px;max-width:640px;margin:0 auto;position:relative}
-  .logo{font-size:1.3rem;font-weight:900;color:#B8860B;text-align:center;margin-bottom:4px}
-  .sub{text-align:center;color:#555;font-size:.8rem;margin-bottom:4px}
-  .status-badge{display:inline-block;padding:4px 18px;border-radius:20px;font-size:.8rem;font-weight:800;letter-spacing:.05em;margin-bottom:18px;${paid?"background:#dcfce7;color:#16a34a;border:2px solid #16a34a":"background:#fef2f2;color:#dc2626;border:2px solid #dc2626"}}
+  body{font-family:Arial,sans-serif;font-size:12px;color:#111;padding:16px;max-width:640px;margin:0 auto;position:relative}
+  .logo{font-size:1.2rem;font-weight:900;color:#B8860B;text-align:center;margin-bottom:2px}
+  .sub{text-align:center;color:#555;font-size:.75rem;margin-bottom:3px}
+  .status-badge{display:inline-block;padding:3px 14px;border-radius:20px;font-size:.75rem;font-weight:800;letter-spacing:.05em;margin-bottom:10px;${paid?"background:#dcfce7;color:#16a34a;border:2px solid #16a34a":"background:#fef2f2;color:#dc2626;border:2px solid #dc2626"}}
   .status-wrap{text-align:center}
   .watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:5rem;font-weight:900;opacity:.05;color:${paid?"#16a34a":"#dc2626"};pointer-events:none;white-space:nowrap}
-  h2{font-size:1rem;font-weight:700;margin-bottom:12px;border-bottom:2px solid #B8860B;padding-bottom:6px}
-  table{width:100%;border-collapse:collapse;margin-bottom:16px}
-  th{background:#B8860B;color:#fff;padding:8px 10px;text-align:left;font-size:.8rem}
-  td{padding:8px 10px;border-bottom:1px solid #eee;font-size:.82rem}
+  h2{font-size:.9rem;font-weight:700;margin-bottom:6px;border-bottom:2px solid #B8860B;padding-bottom:4px;margin-top:8px}
+  table{width:100%;border-collapse:collapse;margin-bottom:8px}
+  th{background:#B8860B;color:#fff;padding:5px 8px;text-align:left;font-size:.75rem}
+  td{padding:5px 8px;border-bottom:1px solid #eee;font-size:.78rem}
   .right{text-align:right}
   .total-row td{font-weight:700;border-top:2px solid #B8860B;border-bottom:none}
-  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-  .info-item label{color:#777;font-size:.75rem;display:block;margin-bottom:2px}
-  .info-item span{font-weight:600}
-  .footer{text-align:center;color:#888;font-size:.75rem;margin-top:24px;border-top:1px solid #eee;padding-top:12px}
-  @media print{body{padding:0}}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px}
+  .info-item label{color:#777;font-size:.7rem;display:block;margin-bottom:1px}
+  .info-item span{font-weight:600;font-size:.8rem}
+  .footer{text-align:center;color:#888;font-size:.72rem;margin-top:12px;border-top:1px solid #eee;padding-top:8px}
+  @media print{body{padding:8px}}
 </style></head><body>
 <div class="watermark">${paid?"LUNAS":"BELUM LUNAS"}</div>
 <div class="logo">${siteName}</div>
