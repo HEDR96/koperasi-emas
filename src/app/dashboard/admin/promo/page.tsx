@@ -119,7 +119,7 @@ ${payment ? `<h2>Ringkasan Pembayaran</h2>
 ${(order.notes || payment?.notes) ? `<h2>Catatan</h2>
 <div style="margin-bottom:16px">
   ${order.notes ? `<p style="margin-bottom:6px"><b>Pesanan:</b> ${order.notes}</p>` : ""}
-  ${payment?.notes ? `<p><b>Pembayaran:</b> ${payment.notes}</p>` : ""}
+  ${payment?.notes ? `<p>${payment.notes}</p>` : ""}
 </div>` : ""}
 <div class="footer">Terima kasih atas kepercayaan Anda • ${siteName}</div>
 <script>window.onload=()=>{window.print();}</script>
