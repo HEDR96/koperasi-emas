@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, ShoppingCart, MessageCircle, Plus, Minus, X, ArrowRight, Package, RefreshCw, User, Phone } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useSiteSettings } from "@/store/useSettingsStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -80,7 +79,6 @@ const inp: React.CSSProperties = {
 };
 
 export default function PromoSection() {
-  const router = useRouter();
   const { user } = useAuthStore();
   const settings = useSiteSettings();
   const waNum = settings.whatsapp?.replace(/^0/,"62").replace(/[^0-9]/g,"") || "6281297533899";
@@ -156,13 +154,23 @@ export default function PromoSection() {
     return encodeURIComponent(lines.join("\n"));
   }
 
-  function handlePesan() {
+  async function handlePesan() {
     if (!custName.trim()) { setNameErr(true); return; }
     setNameErr(false);
-    localStorage.setItem(CART_KEY, JSON.stringify({ items: cart, customer_name: custName.trim(), customer_phone: custPhone.trim() }));
     window.open(`https://wa.me/${waNum}?text=${buildWaMessage()}`, "_blank");
-    if (user) { router.push("/dashboard/member/promo"); }
-    else { router.push("/auth/login"); }
+    const items = cart.map(it => ({
+      product_id: it.product_id, title: it.title,
+      gram_weight: it.gram_weight ?? null, price: it.price,
+      quantity: it.quantity, image_url: it.image_url ?? null,
+    }));
+    try {
+      await fetch("/api/orders/guest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customer_name: custName.trim(), customer_phone: custPhone.trim() || null, items, total_amount: cartTotal }),
+      });
+    } catch {}
+    setCart([]);
     setCartOpen(false);
   }
 
