@@ -624,16 +624,6 @@ export default function AdminProdukPage() {
                       {p.stok!=null && <span style={{ display:"flex", alignItems:"center", gap:3, fontSize:".72rem", color:"#60a5fa", background:"rgba(96,165,250,0.08)", borderRadius:5, padding:"2px 8px", fontWeight:600 }}><Package style={{ width:9, height:9 }} />Stok: {p.stok}</span>}
                       <span style={{ display:"flex", alignItems:"center", gap:3, fontSize:".7rem", color:"rgba(255,255,255,0.25)", padding:"2px 0" }}><Clock style={{ width:9, height:9 }} />{fmtExp(p.expired_at)}</span>
                     </div>
-                    {vouchers.length > 0 && (
-                      <div style={{ marginTop:6 }}>
-                        <select defaultValue="" onChange={e=>{ e.target.value=""; }} style={{ background:"#1a1a1a", border:"1px solid rgba(255,255,255,0.1)", borderRadius:7, padding:"3px 8px", color:"rgba(255,255,255,0.5)", fontSize:".72rem", maxWidth:260 }}>
-                          <option value="" disabled style={{ background:"#1a1a1a", color:"rgba(255,255,255,0.5)" }}>Voucher aktif untuk produk…</option>
-                          {vouchers.map(v => (
-                            <option key={v.id} value={v.id} style={{ background:"#1a1a1a", color:"#fff" }}>{v.code} — {fmtDiscount(v.discount_type, v.discount_value)}{v.description?` (${v.description})`:""}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
                   </div>
                   <div style={{ display:"flex", gap:6, flexShrink:0 }}>
                     {p.approval_status === "pending" && (
