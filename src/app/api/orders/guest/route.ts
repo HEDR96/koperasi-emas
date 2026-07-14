@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   }
 
   const admin = supabaseAdmin();
-  const { error } = await admin.from("product_orders").insert({
+  const { error } = await (admin.from("product_orders") as any).insert({
     user_id: null,
     customer_name: customer_name.trim(),
     customer_phone: customer_phone?.trim() || null,
