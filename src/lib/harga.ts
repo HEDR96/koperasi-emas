@@ -91,8 +91,9 @@ export async function syncGoldProducts(
           title: `Emas Antam ${gramLabel}gr`,
           gram_weight: gram,
           price,
-          stok: 0,
+          stok: null,
           is_active: true,
+          approval_status: "approved",
           is_gold_auto: true,
           discount_percent: 0,
         });
