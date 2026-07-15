@@ -239,15 +239,15 @@ export default function SimulationSection() {
 
   return (
     <section id="simulasi" className="py-20 lg:py-28 relative">
-      <div className="absolute inset-0 bg-gradient-to-b from-black via-[#0a0900]/50 to-black" />
+      <div className="absolute inset-0" style={{ background:"transparent" }} />
 
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} className="text-center mb-12">
           <Badge variant="gold" className="mb-4">Kalkulator Interaktif</Badge>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4" style={{ color:"#2D1B00" }}>
             Simulasi <span className="text-gold-gradient">Cicilan & Buyback</span>
           </h2>
-          <p className="text-white/80 max-w-xl mx-auto">
+          <p className="max-w-xl mx-auto" style={{ color:"rgba(45,27,0,0.8)" }}>
             Cek estimasi cicilan emas dan nilai buyback Anda.
           </p>
         </motion.div>
@@ -258,9 +258,8 @@ export default function SimulationSection() {
             const Icon = tab.icon;
             return (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                  activeTab === tab.id ? "btn-gold text-black" : "glass-dark text-white/80 hover:text-white border border-white/10 hover:border-yellow-500/30"
-                }`}>
+                style={activeTab === tab.id ? { background:"linear-gradient(135deg,#C9A227,#F5D060)", color:"#2D1B00", border:"none" } : { background:"rgba(255,255,255,0.72)", color:"rgba(101,67,14,0.7)", border:"1px solid rgba(201,162,39,0.22)" }}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300`}>
                 <Icon className="w-4 h-4" />
                 {tab.label}
               </button>
@@ -275,15 +274,15 @@ export default function SimulationSection() {
             <div className="grid lg:grid-cols-2 gap-6">
               {/* Pilih gram */}
               <Card variant="glass" className="gradient-border">
-                <h3 className="text-lg font-bold text-white mb-6">Beli Emas (Cash)</h3>
+                <h3 className="text-lg font-bold mb-6" style={{ color:"#2D1B00" }}>Beli Emas (Cash)</h3>
                 {loadingBeli ? (
-                  <p className="text-white/40 text-sm">Memuat harga emas...</p>
+                  <p className="text-sm" style={{ color:"rgba(101,67,14,0.45)" }}>Memuat harga emas...</p>
                 ) : beliRows.length === 0 ? (
-                  <p className="text-white/40 text-sm">Harga emas belum tersedia.</p>
+                  <p className="text-sm" style={{ color:"rgba(101,67,14,0.45)" }}>Harga emas belum tersedia.</p>
                 ) : (
                   <div className="space-y-5">
                     <div>
-                      <label className="text-sm text-white/70 block mb-2">Pilih Berat Emas</label>
+                      <label className="text-sm block mb-2" style={{ color:"rgba(101,67,14,0.7)" }}>Pilih Berat Emas</label>
                       <Select
                         value={beliGram}
                         placeholder="Pilih berat emas"
@@ -291,7 +290,7 @@ export default function SimulationSection() {
                         onChange={v => setBeliGram(v)}
                       />
                     </div>
-                    <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".78rem", margin:0 }}>
+                    <p style={{ color:"rgba(101,67,14,0.4)", fontSize:".78rem", margin:0 }}>
                       Harga di atas adalah harga untuk pembelian cash langsung ke koperasi.
                     </p>
                   </div>
@@ -300,23 +299,23 @@ export default function SimulationSection() {
 
               {/* Info harga + tombol WA */}
               <Card variant="glass" className="gradient-border">
-                <h3 className="text-lg font-bold text-white mb-6">Informasi Harga</h3>
+                <h3 className="text-lg font-bold mb-6" style={{ color:"#2D1B00" }}>Informasi Harga</h3>
                 {beliSelected ? (
                   <div className="space-y-4">
                     {[
                       { label:"Berat Emas",  value:`${beliSelected.gram % 1 === 0 ? beliSelected.gram : beliSelected.gram.toFixed(1)} gram` },
                       { label:"Harga Beli",  value:formatCurrency(beliSelected.harga), gold:true },
                     ].map(row=>(
-                      <div key={row.label} className="flex justify-between py-3 border-b border-white/5">
-                        <span className="text-white/80 text-sm">{row.label}</span>
-                        <span className={`font-bold text-sm ${row.gold?"text-yellow-400":"text-white"}`}>{row.value}</span>
+                      <div key={row.label} className="flex justify-between py-3" style={{ borderBottom:"1px solid rgba(201,162,39,0.15)" }}>
+                        <span className="text-sm" style={{ color:"rgba(45,27,0,0.8)" }}>{row.label}</span>
+                        <span className={`font-bold text-sm`} style={{ color: row.gold ? "#8B6010" : "#2D1B00" }}>{row.value}</span>
                       </div>
                     ))}
-                    <div style={{ background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:12, padding:"14px 16px", textAlign:"center" }}>
-                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"0 0 4px" }}>Total Bayar</p>
-                      <p style={{ color:"#D4AF37", fontWeight:900, fontSize:"1.6rem", margin:0 }}>{formatCurrency(beliSelected.harga)}</p>
+                    <div style={{ background:"rgba(201,162,39,0.08)", border:"1px solid rgba(201,162,39,0.2)", borderRadius:12, padding:"14px 16px", textAlign:"center" }}>
+                      <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".75rem", margin:"0 0 4px" }}>Total Bayar</p>
+                      <p style={{ color:"#8B6010", fontWeight:900, fontSize:"1.6rem", margin:0 }}>{formatCurrency(beliSelected.harga)}</p>
                     </div>
-                    <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:0, textAlign:"center" }}>
+                    <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".72rem", margin:0, textAlign:"center" }}>
                       Hubungi kami untuk konfirmasi ketersediaan & proses transaksi
                     </p>
                     {/* WA Buttons */}
@@ -325,18 +324,18 @@ export default function SimulationSection() {
                         style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none" }}>
                         <MessageCircle className="w-4 h-4" style={{ color:"#25d366" }} />
                         <span style={{ color:"#25d366", fontWeight:700, fontSize:".8rem" }}>WA Admin</span>
-                        <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>0812-9753-3899</span>
+                        <span style={{ color:"rgba(101,67,14,0.45)", fontSize:".7rem" }}>0812-9753-3899</span>
                       </a>
                       <a href={`https://wa.me/${WA_PENGURUS}?text=${buildBeliMsg()}`} target="_blank" rel="noopener noreferrer"
-                        style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none" }}>
-                        <MessageCircle className="w-4 h-4" style={{ color:"#25d366" }} />
-                        <span style={{ color:"#25d366", fontWeight:700, fontSize:".8rem" }}>WA Pengurus</span>
-                        <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>0882-1446-0345</span>
+                        style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.08)", border:"1px solid rgba(37,211,102,0.25)", textDecoration:"none" }}>
+                        <MessageCircle className="w-4 h-4" style={{ color:"#15803d" }} />
+                        <span style={{ color:"#15803d", fontWeight:700, fontSize:".8rem" }}>WA Pengurus</span>
+                        <span style={{ color:"rgba(101,67,14,0.45)", fontSize:".7rem" }}>0882-1446-0345</span>
                       </a>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-white/40 text-sm">Pilih berat emas untuk melihat harga.</p>
+                  <p className="text-sm" style={{ color:"rgba(101,67,14,0.45)" }}>Pilih berat emas untuk melihat harga.</p>
                 )}
               </Card>
             </div>
@@ -346,16 +345,16 @@ export default function SimulationSection() {
           {activeTab === "cicilan" && (
             <div className="grid lg:grid-cols-2 gap-6">
               <Card variant="glass" className="gradient-border">
-                <h3 className="text-lg font-bold text-white mb-6">Pilih Paket Cicilan</h3>
+                <h3 className="text-lg font-bold mb-6" style={{ color:"#2D1B00" }}>Pilih Paket Cicilan</h3>
                 {loadingCicilan ? (
-                  <p className="text-white/40 text-sm">Memuat paket cicilan...</p>
+                  <p className="text-sm" style={{ color:"rgba(101,67,14,0.45)" }}>Memuat paket cicilan...</p>
                 ) : cicilanPlans.length === 0 ? (
-                  <p className="text-white/40 text-sm">Paket cicilan belum tersedia. Hubungi admin untuk informasi lebih lanjut.</p>
+                  <p className="text-sm" style={{ color:"rgba(101,67,14,0.45)" }}>Paket cicilan belum tersedia. Hubungi admin untuk informasi lebih lanjut.</p>
                 ) : (
                   <div className="space-y-5">
                     {/* Pilih gram (dropdown) */}
                     <div>
-                      <label className="text-sm text-white/70 block mb-2">Berat Emas</label>
+                      <label className="text-sm block mb-2" style={{ color:"rgba(101,67,14,0.7)" }}>Berat Emas</label>
                       <Select
                         value={selectedGram != null ? String(selectedGram) : ""}
                         placeholder="Pilih berat emas"
@@ -367,7 +366,7 @@ export default function SimulationSection() {
                     {/* Pilih tenor (dropdown) */}
                     {selectedGram != null && availableTenors.length > 0 && (
                       <div>
-                        <label className="text-sm text-white/70 block mb-2">Tenor (bulan)</label>
+                        <label className="text-sm block mb-2" style={{ color:"rgba(101,67,14,0.7)" }}>Tenor (bulan)</label>
                         <Select
                           value={selectedTenor != null ? String(selectedTenor) : ""}
                           placeholder="Pilih tenor"
@@ -381,7 +380,7 @@ export default function SimulationSection() {
               </Card>
 
               <Card variant="glass" className="gradient-border">
-                <h3 className="text-lg font-bold text-white mb-6">Hasil Simulasi</h3>
+                <h3 className="text-lg font-bold mb-6" style={{ color:"#2D1B00" }}>Hasil Simulasi</h3>
                 {selectedPlan ? (
                   <div className="space-y-4">
                     {[
@@ -389,56 +388,56 @@ export default function SimulationSection() {
                       { label: "Harga (Non-Anggota)", value: formatCurrency(selectedPlan.hargaAnggota) },
                       { label: "Tenor",              value: `${selectedPlan.tenor} bulan` },
                     ].map(row => (
-                      <div key={row.label} className="flex justify-between py-3 border-b border-white/5">
-                        <span className="text-white/80 text-sm">{row.label}</span>
-                        <span className="font-bold text-sm text-white">{row.value}</span>
+                      <div key={row.label} className="flex justify-between py-3" style={{ borderBottom:"1px solid rgba(201,162,39,0.15)" }}>
+                        <span className="text-sm" style={{ color:"rgba(45,27,0,0.8)" }}>{row.label}</span>
+                        <span className="font-bold text-sm" style={{ color:"#2D1B00" }}>{row.value}</span>
                       </div>
                     ))}
 
                     {/* Alur DP → Angsuran */}
-                    <div style={{ background:"rgba(96,165,250,0.07)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:12, padding:"12px 14px", display:"flex", flexDirection:"column", gap:8 }}>
-                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".68rem", margin:0, textTransform:"uppercase", letterSpacing:".05em" }}>Alur Pembayaran</p>
+                    <div style={{ background:"rgba(96,165,250,0.06)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:12, padding:"12px 14px", display:"flex", flexDirection:"column", gap:8 }}>
+                      <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".68rem", margin:0, textTransform:"uppercase", letterSpacing:".05em" }}>Alur Pembayaran</p>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                          <span style={{ background:"#60a5fa", color:"#0a0a0a", borderRadius:"50%", width:18, height:18, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:".65rem", fontWeight:900, flexShrink:0 }}>1</span>
-                          <span style={{ color:"rgba(255,255,255,0.65)", fontSize:".82rem" }}>DP disetor dulu</span>
+                          <span style={{ background:"#3b82f6", color:"#fff", borderRadius:"50%", width:18, height:18, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:".65rem", fontWeight:900, flexShrink:0 }}>1</span>
+                          <span style={{ color:"rgba(45,27,0,0.7)", fontSize:".82rem" }}>DP disetor dulu</span>
                         </div>
-                        <span style={{ color:"#60a5fa", fontWeight:800 }}>{selectedPlan.dp > 0 ? formatCurrency(selectedPlan.dp) : "—"}</span>
+                        <span style={{ color:"#1d4ed8", fontWeight:800 }}>{selectedPlan.dp > 0 ? formatCurrency(selectedPlan.dp) : "—"}</span>
                       </div>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                          <span style={{ background:"#D4AF37", color:"#0a0a0a", borderRadius:"50%", width:18, height:18, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:".65rem", fontWeight:900, flexShrink:0 }}>2</span>
-                          <span style={{ color:"rgba(255,255,255,0.65)", fontSize:".82rem" }}>Angsuran {selectedPlan.tenor}×</span>
+                          <span style={{ background:"#C9A227", color:"#2D1B00", borderRadius:"50%", width:18, height:18, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:".65rem", fontWeight:900, flexShrink:0 }}>2</span>
+                          <span style={{ color:"rgba(45,27,0,0.7)", fontSize:".82rem" }}>Angsuran {selectedPlan.tenor}×</span>
                         </div>
-                        <span style={{ color:"#D4AF37", fontWeight:800 }}>{formatCurrency(selectedPlan.angsuran)}<span style={{ color:"rgba(255,255,255,0.35)", fontWeight:400, fontSize:".7rem" }}>/bln</span></span>
+                        <span style={{ color:"#8B6010", fontWeight:800 }}>{formatCurrency(selectedPlan.angsuran)}<span style={{ color:"rgba(101,67,14,0.4)", fontWeight:400, fontSize:".7rem" }}>/bln</span></span>
                       </div>
-                      <div style={{ borderTop:"1px dashed rgba(255,255,255,0.08)", paddingTop:8, display:"flex", justifyContent:"space-between" }}>
-                        <span style={{ color:"rgba(255,255,255,0.35)", fontSize:".72rem" }}>Total (DP + cicilan)</span>
-                        <span style={{ color:"rgba(255,255,255,0.55)", fontSize:".72rem", fontWeight:600 }}>{formatCurrency(selectedPlan.totalSebelumDp)}</span>
+                      <div style={{ borderTop:"1px dashed rgba(201,162,39,0.2)", paddingTop:8, display:"flex", justifyContent:"space-between" }}>
+                        <span style={{ color:"rgba(101,67,14,0.4)", fontSize:".72rem" }}>Total (DP + cicilan)</span>
+                        <span style={{ color:"rgba(101,67,14,0.6)", fontSize:".72rem", fontWeight:600 }}>{formatCurrency(selectedPlan.totalSebelumDp)}</span>
                       </div>
                     </div>
 
                     <div className="flex justify-between pt-2">
-                      <span className="text-white font-semibold">Angsuran / Bulan</span>
+                      <span className="font-semibold" style={{ color:"#2D1B00" }}>Angsuran / Bulan</span>
                       <span className="text-2xl font-black text-gold-gradient">{formatCurrency(selectedPlan.angsuran)}</span>
                     </div>
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginTop:4 }}>
                       <a href={`https://wa.me/${WA_ADMIN}?text=${buildMsg(selectedPlan)}`} target="_blank" rel="noopener noreferrer"
-                        style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none" }}>
-                        <MessageCircle className="w-4 h-4" style={{ color:"#25d366" }} />
-                        <span style={{ color:"#25d366", fontWeight:700, fontSize:".8rem" }}>Admin</span>
-                        <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>0812-9753-3899</span>
+                        style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.08)", border:"1px solid rgba(37,211,102,0.25)", textDecoration:"none" }}>
+                        <MessageCircle className="w-4 h-4" style={{ color:"#15803d" }} />
+                        <span style={{ color:"#15803d", fontWeight:700, fontSize:".8rem" }}>Admin</span>
+                        <span style={{ color:"rgba(101,67,14,0.45)", fontSize:".7rem" }}>0812-9753-3899</span>
                       </a>
                       <a href={`https://wa.me/${WA_PENGURUS}?text=${buildMsg(selectedPlan)}`} target="_blank" rel="noopener noreferrer"
-                        style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none" }}>
-                        <MessageCircle className="w-4 h-4" style={{ color:"#25d366" }} />
-                        <span style={{ color:"#25d366", fontWeight:700, fontSize:".8rem" }}>Pengurus</span>
-                        <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>0882-1446-0345</span>
+                        style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.08)", border:"1px solid rgba(37,211,102,0.25)", textDecoration:"none" }}>
+                        <MessageCircle className="w-4 h-4" style={{ color:"#15803d" }} />
+                        <span style={{ color:"#15803d", fontWeight:700, fontSize:".8rem" }}>Pengurus</span>
+                        <span style={{ color:"rgba(101,67,14,0.45)", fontSize:".7rem" }}>0882-1446-0345</span>
                       </a>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-white/40 text-sm">Pilih berat dan tenor untuk melihat simulasi.</p>
+                  <p className="text-sm" style={{ color:"rgba(101,67,14,0.45)" }}>Pilih berat dan tenor untuk melihat simulasi.</p>
                 )}
               </Card>
             </div>
@@ -448,61 +447,61 @@ export default function SimulationSection() {
           {activeTab === "buyback" && (
             <div className="grid lg:grid-cols-2 gap-6">
               <Card variant="glass" className="gradient-border">
-                <h3 className="text-lg font-bold text-white mb-6">Simulasi Buyback</h3>
+                <h3 className="text-lg font-bold mb-6" style={{ color:"#2D1B00" }}>Simulasi Buyback</h3>
                 <div className="space-y-6">
                   <div>
                     <div className="flex justify-between mb-2">
-                      <label className="text-sm text-white/80">Berat Emas yang Dijual</label>
-                      <span className="text-sm font-bold text-yellow-400">{buybackGram} gram</span>
+                      <label className="text-sm" style={{ color:"rgba(45,27,0,0.8)" }}>Berat Emas yang Dijual</label>
+                      <span className="text-sm font-bold" style={{ color:"#8B6010" }}>{buybackGram} gram</span>
                     </div>
                     <input type="range" min={1} max={500} step={1} value={buybackGram}
                       onChange={e => setBuybackGram(+e.target.value)}
-                      className="w-full accent-yellow-400 h-2 rounded-lg" />
-                    <div className="flex justify-between text-xs text-white/55 mt-1"><span>1g</span><span>500g</span></div>
+                      className="w-full accent-yellow-600 h-2 rounded-lg" />
+                    <div className="flex justify-between text-xs mt-1" style={{ color:"rgba(101,67,14,0.55)" }}><span>1g</span><span>500g</span></div>
                   </div>
                   <div>
-                    <label className="text-sm text-white/80 block mb-2">Atau masukkan langsung</label>
+                    <label className="text-sm block mb-2" style={{ color:"rgba(45,27,0,0.8)" }}>Atau masukkan langsung</label>
                     <input type="number" min={1} max={10000} value={buybackGram}
                       onChange={e => setBuybackGram(Math.max(1, Number(e.target.value)))}
-                      className="w-full input-gold rounded-xl px-4 py-2.5 text-sm text-white" />
+                      className="w-full input-gold rounded-xl px-4 py-2.5 text-sm" style={{ color:"#2D1B00" }} />
                   </div>
                 </div>
               </Card>
 
               <Card variant="glass" className="gradient-border">
-                <h3 className="text-lg font-bold text-white mb-6">Estimasi Penerimaan</h3>
+                <h3 className="text-lg font-bold mb-6" style={{ color:"#2D1B00" }}>Estimasi Penerimaan</h3>
                 {loadingBuyback ? (
-                  <p className="text-white/40 text-sm">Memuat harga buyback...</p>
+                  <p className="text-sm" style={{ color:"rgba(101,67,14,0.45)" }}>Memuat harga buyback...</p>
                 ) : (
                   <div className="space-y-4">
                     {[
                       { label: "Berat Emas",         value: `${buybackGram} gram` },
                       { label: "Harga Buyback /gram", value: buybackPrice ? formatCurrency(buybackPrice) : "-" },
                     ].map(row => (
-                      <div key={row.label} className="flex justify-between py-3 border-b border-white/5">
-                        <span className="text-white/80 text-sm">{row.label}</span>
-                        <span className="font-bold text-sm text-white">{row.value}</span>
+                      <div key={row.label} className="flex justify-between py-3" style={{ borderBottom:"1px solid rgba(201,162,39,0.15)" }}>
+                        <span className="text-sm" style={{ color:"rgba(45,27,0,0.8)" }}>{row.label}</span>
+                        <span className="font-bold text-sm" style={{ color:"#2D1B00" }}>{row.value}</span>
                       </div>
                     ))}
-                    <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
+                    <div className="p-4 rounded-xl" style={{ background:"rgba(201,162,39,0.08)", border:"1px solid rgba(201,162,39,0.2)" }}>
                       <div className="flex justify-between items-center">
-                        <span className="text-yellow-400 font-semibold text-sm">Dana Diterima</span>
+                        <span className="font-semibold text-sm" style={{ color:"#8B6010" }}>Dana Diterima</span>
                         <span className="text-2xl font-black text-gold-gradient">{buybackTotal ? formatCurrency(buybackTotal) : "-"}</span>
                       </div>
-                      <p className="text-white/40 text-xs mt-2 text-center">= Harga Buyback × {buybackGram} gram</p>
+                      <p className="text-xs mt-2 text-center" style={{ color:"rgba(101,67,14,0.45)" }}>= Harga Buyback × {buybackGram} gram</p>
                     </div>
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
                       <a href={`https://wa.me/${WA_ADMIN}?text=${buildBuybackMsg()}`} target="_blank" rel="noopener noreferrer"
-                        style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none" }}>
-                        <MessageCircle className="w-4 h-4" style={{ color:"#25d366" }} />
-                        <span style={{ color:"#25d366", fontWeight:700, fontSize:".8rem" }}>Admin</span>
-                        <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>0812-9753-3899</span>
+                        style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.08)", border:"1px solid rgba(37,211,102,0.25)", textDecoration:"none" }}>
+                        <MessageCircle className="w-4 h-4" style={{ color:"#15803d" }} />
+                        <span style={{ color:"#15803d", fontWeight:700, fontSize:".8rem" }}>Admin</span>
+                        <span style={{ color:"rgba(101,67,14,0.45)", fontSize:".7rem" }}>0812-9753-3899</span>
                       </a>
                       <a href={`https://wa.me/${WA_PENGURUS}?text=${buildBuybackMsg()}`} target="_blank" rel="noopener noreferrer"
-                        style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.1)", border:"1px solid rgba(37,211,102,0.3)", textDecoration:"none" }}>
-                        <MessageCircle className="w-4 h-4" style={{ color:"#25d366" }} />
-                        <span style={{ color:"#25d366", fontWeight:700, fontSize:".8rem" }}>Pengurus</span>
-                        <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>0882-1446-0345</span>
+                        style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"10px 8px", borderRadius:12, background:"rgba(37,211,102,0.08)", border:"1px solid rgba(37,211,102,0.25)", textDecoration:"none" }}>
+                        <MessageCircle className="w-4 h-4" style={{ color:"#15803d" }} />
+                        <span style={{ color:"#15803d", fontWeight:700, fontSize:".8rem" }}>Pengurus</span>
+                        <span style={{ color:"rgba(101,67,14,0.45)", fontSize:".7rem" }}>0882-1446-0345</span>
                       </a>
                     </div>
                     {isDemoMode() ? (

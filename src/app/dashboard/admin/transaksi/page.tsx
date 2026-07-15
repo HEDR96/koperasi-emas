@@ -29,7 +29,7 @@ const STATUS_COLOR: Record<string,string> = {
 };
 const STATUS_BG: Record<string,string> = {
   pending:"rgba(251,191,36,0.12)", processing:"rgba(96,165,250,0.12)",
-  completed:"rgba(52,211,153,0.12)", rejected:"rgba(248,113,113,0.12)",
+  completed:"rgba(6,95,70,0.09)", rejected:"rgba(153,27,27,0.09)",
 };
 
 function fmt(n: number) {
@@ -113,7 +113,7 @@ export default function AdminTransaksiPage() {
     padding: "9px 20px", borderRadius: 10, border: "none", cursor: "pointer",
     fontWeight: 600, fontSize: ".88rem", transition: "all .2s",
     background: active ? "rgba(212,175,55,0.15)" : "transparent",
-    color: active ? "#D4AF37" : "rgba(255,255,255,0.4)",
+    color: active ? "#D4AF37" : "rgba(101,67,14,0.45)",
   });
 
   return (
@@ -121,23 +121,23 @@ export default function AdminTransaksiPage() {
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Transaksi & Approval</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>
+          <h1 style={{ color:"#2D1B00", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Transaksi & Approval</h1>
+          <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".85rem", margin:"4px 0 0" }}>
             Approve atau tolak permintaan transaksi member.
           </p>
         </div>
         <button onClick={load}
-          style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
+          style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#8B6010", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:14, height:14 }} /> Refresh
         </button>
       </div>
 
       {/* Tabs */}
-      <div style={{ display:"flex", gap:4, background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:12, padding:4, width:"fit-content" }}>
+      <div style={{ display:"flex", gap:4, background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.15)", borderRadius:12, padding:4, width:"fit-content" }}>
         <button style={tabStyle(tab==="pending")} onClick={()=>setTab("pending")}>
           Permintaan Member
           {pending.length > 0 && (
-            <span style={{ marginLeft:6, background:"rgba(251,191,36,0.2)", color:"#fbbf24", borderRadius:20, padding:"1px 7px", fontSize:".72rem" }}>
+            <span style={{ marginLeft:6, background:"rgba(251,191,36,0.2)", color:"#92400e", borderRadius:20, padding:"1px 7px", fontSize:".72rem" }}>
               {pending.length}
             </span>
           )}
@@ -150,52 +150,52 @@ export default function AdminTransaksiPage() {
       {/* Tab Content */}
       {tab === "pending" && (
         <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }}
-          style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, overflow:"hidden" }}>
+          style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.15)", borderRadius:16, overflow:"hidden" }}>
           <div style={{ overflowX:"auto" }}>
             <table style={{ width:"100%", borderCollapse:"collapse" }}>
               <thead>
-                <tr style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+                <tr style={{ borderBottom:"1px solid rgba(201,162,39,0.12)" }}>
                   {["Member","Jenis","Gram","Jumlah","Metode","Tanggal","Aksi"].map(h=>(
-                    <th key={h} style={{ padding:"12px 18px", textAlign:"left", color:"rgba(255,255,255,0.3)", fontSize:".75rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", whiteSpace:"nowrap" }}>{h}</th>
+                    <th key={h} style={{ padding:"12px 18px", textAlign:"left", color:"rgba(101,67,14,0.35)", fontSize:".75rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", whiteSpace:"nowrap" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={7} style={{ padding:"40px", textAlign:"center", color:"rgba(255,255,255,0.3)" }}>Memuat...</td></tr>
+                  <tr><td colSpan={7} style={{ padding:"40px", textAlign:"center", color:"rgba(101,67,14,0.35)" }}>Memuat...</td></tr>
                 ) : pending.length === 0 ? (
-                  <tr><td colSpan={7} style={{ padding:"40px", textAlign:"center", color:"rgba(255,255,255,0.3)" }}>Tidak ada transaksi pending.</td></tr>
+                  <tr><td colSpan={7} style={{ padding:"40px", textAlign:"center", color:"rgba(101,67,14,0.35)" }}>Tidak ada transaksi pending.</td></tr>
                 ) : pending.map(tx => (
-                  <tr key={tx.id} style={{ borderBottom:"1px solid rgba(255,255,255,0.04)" }}
-                    onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background="rgba(255,255,255,0.02)"}
+                  <tr key={tx.id} style={{ borderBottom:"1px solid rgba(201,162,39,0.1)" }}
+                    onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background="rgba(201,162,39,0.04)"}
                     onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background="transparent"}
                   >
-                    <td style={{ padding:"13px 18px", color:"#fff", fontWeight:600, fontSize:".88rem" }}>
+                    <td style={{ padding:"13px 18px", color:"#2D1B00", fontWeight:600, fontSize:".88rem" }}>
                       {(tx.profiles as any)?.name || "—"}
                     </td>
-                    <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.6)", fontSize:".85rem" }}>
+                    <td style={{ padding:"13px 18px", color:"rgba(101,67,14,0.7)", fontSize:".85rem" }}>
                       {TYPE_LABEL[tx.type]||tx.type}
                     </td>
-                    <td style={{ padding:"13px 18px", color:"#D4AF37", fontSize:".85rem" }}>
+                    <td style={{ padding:"13px 18px", color:"#8B6010", fontSize:".85rem" }}>
                       {tx.gram ? tx.gram+" gr" : "—"}
                     </td>
-                    <td style={{ padding:"13px 18px", color:"#D4AF37", fontWeight:600, fontSize:".85rem" }}>
+                    <td style={{ padding:"13px 18px", color:"#8B6010", fontWeight:600, fontSize:".85rem" }}>
                       {fmt(tx.amount)}
                     </td>
-                    <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.45)", fontSize:".82rem" }}>
+                    <td style={{ padding:"13px 18px", color:"rgba(101,67,14,0.45)", fontSize:".82rem" }}>
                       {tx.payment_method || "—"}
                     </td>
-                    <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.4)", fontSize:".8rem", whiteSpace:"nowrap" }}>
+                    <td style={{ padding:"13px 18px", color:"rgba(101,67,14,0.45)", fontSize:".8rem", whiteSpace:"nowrap" }}>
                       {fmtDate(tx.transaction_date || tx.created_at)}
                     </td>
                     <td style={{ padding:"13px 18px" }}>
                       <div style={{ display:"flex", gap:6 }}>
                         <button onClick={()=>approve(tx)} disabled={acting===tx.id}
-                          style={{ background:"rgba(52,211,153,0.1)", border:"1px solid rgba(52,211,153,0.25)", borderRadius:8, padding:"5px 12px", color:"#34d399", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===tx.id?.6:1 }}>
+                          style={{ background:"rgba(6,95,70,0.08)", border:"1px solid rgba(52,211,153,0.25)", borderRadius:8, padding:"5px 12px", color:"#065f46", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===tx.id?.6:1 }}>
                           Setujui
                         </button>
                         <button onClick={()=>{ setRejectId(tx.id); setRejectNote(""); }} disabled={acting===tx.id}
-                          style={{ background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:8, padding:"5px 12px", color:"#f87171", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===tx.id?.6:1 }}>
+                          style={{ background:"rgba(153,27,27,0.06)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:8, padding:"5px 12px", color:"#991b1b", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===tx.id?.6:1 }}>
                           Tolak
                         </button>
                       </div>
@@ -215,49 +215,49 @@ export default function AdminTransaksiPage() {
           <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
             {["all","completed","rejected","processing"].map(s => (
               <button key={s} onClick={()=>setFilterStatus(s)}
-                style={{ padding:"6px 14px", borderRadius:8, border:`1px solid ${filterStatus===s?"rgba(212,175,55,0.35)":"rgba(255,255,255,0.08)"}`, background:filterStatus===s?"rgba(212,175,55,0.1)":"transparent", color:filterStatus===s?"#D4AF37":"rgba(255,255,255,0.45)", cursor:"pointer", fontSize:".8rem", fontWeight:filterStatus===s?700:400, textTransform:"capitalize" }}>
+                style={{ padding:"6px 14px", borderRadius:8, border:`1px solid ${filterStatus===s?"rgba(212,175,55,0.35)":"rgba(201,162,39,0.15)"}`, background:filterStatus===s?"rgba(212,175,55,0.1)":"transparent", color:filterStatus===s?"#D4AF37":"rgba(255,255,255,0.45)", cursor:"pointer", fontSize:".8rem", fontWeight:filterStatus===s?700:400, textTransform:"capitalize" }}>
                 {s==="all"?"Semua":s}
               </button>
             ))}
           </div>
-          <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, overflow:"hidden" }}>
+          <div style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.15)", borderRadius:16, overflow:"hidden" }}>
             <div style={{ overflowX:"auto" }}>
               <table style={{ width:"100%", borderCollapse:"collapse" }}>
                 <thead>
-                  <tr style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+                  <tr style={{ borderBottom:"1px solid rgba(201,162,39,0.12)" }}>
                     {["Member","Jenis","Jumlah","Status","Catatan","Tanggal"].map(h=>(
-                      <th key={h} style={{ padding:"12px 18px", textAlign:"left", color:"rgba(255,255,255,0.3)", fontSize:".75rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", whiteSpace:"nowrap" }}>{h}</th>
+                      <th key={h} style={{ padding:"12px 18px", textAlign:"left", color:"rgba(101,67,14,0.35)", fontSize:".75rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", whiteSpace:"nowrap" }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={6} style={{ padding:"40px", textAlign:"center", color:"rgba(255,255,255,0.3)" }}>Memuat...</td></tr>
+                    <tr><td colSpan={6} style={{ padding:"40px", textAlign:"center", color:"rgba(101,67,14,0.35)" }}>Memuat...</td></tr>
                   ) : filteredHistory.length===0 ? (
-                    <tr><td colSpan={6} style={{ padding:"40px", textAlign:"center", color:"rgba(255,255,255,0.3)" }}>Belum ada riwayat.</td></tr>
+                    <tr><td colSpan={6} style={{ padding:"40px", textAlign:"center", color:"rgba(101,67,14,0.35)" }}>Belum ada riwayat.</td></tr>
                   ) : filteredHistory.map(tx => (
-                    <tr key={tx.id} style={{ borderBottom:"1px solid rgba(255,255,255,0.04)" }}
-                      onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background="rgba(255,255,255,0.02)"}
+                    <tr key={tx.id} style={{ borderBottom:"1px solid rgba(201,162,39,0.1)" }}
+                      onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background="rgba(201,162,39,0.04)"}
                       onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background="transparent"}
                     >
-                      <td style={{ padding:"13px 18px", color:"#fff", fontWeight:600, fontSize:".88rem" }}>
+                      <td style={{ padding:"13px 18px", color:"#2D1B00", fontWeight:600, fontSize:".88rem" }}>
                         {(tx.profiles as any)?.name || "—"}
                       </td>
-                      <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.6)", fontSize:".85rem" }}>
+                      <td style={{ padding:"13px 18px", color:"rgba(101,67,14,0.7)", fontSize:".85rem" }}>
                         {TYPE_LABEL[tx.type]||tx.type}
                       </td>
-                      <td style={{ padding:"13px 18px", color:"#D4AF37", fontWeight:600, fontSize:".85rem" }}>
+                      <td style={{ padding:"13px 18px", color:"#8B6010", fontWeight:600, fontSize:".85rem" }}>
                         {fmt(tx.amount)}
                       </td>
                       <td style={{ padding:"13px 18px" }}>
-                        <span style={{ background:STATUS_BG[tx.status]||"rgba(255,255,255,0.08)", color:STATUS_COLOR[tx.status]||"#fff", borderRadius:6, padding:"3px 10px", fontSize:".75rem", fontWeight:600, textTransform:"capitalize" }}>
+                        <span style={{ background:STATUS_BG[tx.status]||"rgba(201,162,39,0.15)", color:STATUS_COLOR[tx.status]||"#fff", borderRadius:6, padding:"3px 10px", fontSize:".75rem", fontWeight:600, textTransform:"capitalize" }}>
                           {tx.status}
                         </span>
                       </td>
-                      <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.4)", fontSize:".8rem", maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      <td style={{ padding:"13px 18px", color:"rgba(101,67,14,0.45)", fontSize:".8rem", maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                         {tx.notes || "—"}
                       </td>
-                      <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.4)", fontSize:".8rem", whiteSpace:"nowrap" }}>
+                      <td style={{ padding:"13px 18px", color:"rgba(101,67,14,0.45)", fontSize:".8rem", whiteSpace:"nowrap" }}>
                         {fmtDate(tx.updated_at)}
                       </td>
                     </tr>
@@ -280,27 +280,27 @@ export default function AdminTransaksiPage() {
               initial={{ opacity:0, scale:.95, y:20 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95 }}
               style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:"min(420px,92vw)", background:"#111", border:"1px solid rgba(248,113,113,0.2)", borderRadius:20, padding:28, zIndex:301 }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
-                <h2 style={{ color:"#fff", fontWeight:700, fontSize:"1.05rem", margin:0 }}>Tolak Transaksi</h2>
+                <h2 style={{ color:"#2D1B00", fontWeight:700, fontSize:"1.05rem", margin:0 }}>Tolak Transaksi</h2>
                 <button onClick={()=>setRejectId(null)}
-                  style={{ background:"rgba(255,255,255,0.07)", border:"none", borderRadius:8, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>
+                  style={{ background:"rgba(255,255,255,0.72)", border:"none", borderRadius:8, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(101,67,14,0.55)", cursor:"pointer" }}>
                   <X style={{ width:14, height:14 }} />
                 </button>
               </div>
-              <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".85rem", marginBottom:14 }}>
+              <p style={{ color:"rgba(101,67,14,0.55)", fontSize:".85rem", marginBottom:14 }}>
                 Tambahkan catatan alasan penolakan (opsional):
               </p>
               <textarea value={rejectNote} onChange={e=>setRejectNote(e.target.value)}
                 placeholder="Contoh: Bukti pembayaran tidak valid"
                 rows={3}
-                style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".9rem", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box" }}
+                style={{ width:"100%", background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.2)", borderRadius:10, padding:"10px 14px", color:"#2D1B00", fontSize:".9rem", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box" }}
               />
               <div style={{ display:"flex", gap:10, marginTop:18 }}>
                 <button onClick={()=>setRejectId(null)}
-                  style={{ flex:1, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"10px", color:"rgba(255,255,255,0.5)", cursor:"pointer", fontSize:".88rem" }}>
+                  style={{ flex:1, background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.2)", borderRadius:10, padding:"10px", color:"rgba(101,67,14,0.55)", cursor:"pointer", fontSize:".88rem" }}>
                   Batal
                 </button>
                 <button onClick={rejectConfirm} disabled={!!acting}
-                  style={{ flex:1, background:"rgba(248,113,113,0.15)", border:"1px solid rgba(248,113,113,0.3)", borderRadius:10, padding:"10px", color:"#f87171", cursor:"pointer", fontSize:".88rem", fontWeight:700, opacity:acting?.6:1 }}>
+                  style={{ flex:1, background:"rgba(153,27,27,0.1)", border:"1px solid rgba(248,113,113,0.3)", borderRadius:10, padding:"10px", color:"#991b1b", cursor:"pointer", fontSize:".88rem", fontWeight:700, opacity:acting?.6:1 }}>
                   {acting ? "Menolak..." : "Tolak Transaksi"}
                 </button>
               </div>

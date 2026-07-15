@@ -42,11 +42,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const variants: Record<string, React.CSSProperties> = {
-      gold: { background:"linear-gradient(135deg,#D4AF37 0%,#F5D060 50%,#B8960C 100%)", color:"#0a0a0a" },
-      "outline-gold": { background:"transparent", border:"1px solid rgba(212,175,55,0.45)", color:"#D4AF37" },
-      ghost: { background:"transparent", color:"rgba(255,255,255,0.7)" },
-      danger: { background:"rgba(239,68,68,0.9)", color:"#fff" },
-      dark: { background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", color:"rgba(255,255,255,0.75)" },
+      gold: { background:"linear-gradient(135deg,#C9A227 0%,#F5D060 50%,#A07820 100%)", color:"#2D1B00" },
+      "outline-gold": { background:"transparent", border:"1px solid rgba(201,162,39,0.5)", color:"#8B6010" },
+      ghost: { background:"transparent", color:"rgba(101,67,14,0.7)" },
+      danger: { background:"rgba(153,27,27,0.9)", color:"#fff" },
+      dark: { background:"rgba(255,255,255,0.6)", border:"1px solid rgba(201,162,39,0.2)", color:"rgba(45,27,0,0.75)" },
     };
 
     return (

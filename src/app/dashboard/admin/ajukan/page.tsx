@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,8 +15,8 @@ const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 
 const inp: React.CSSProperties = {
-  width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-  borderRadius: 10, padding: "10px 14px", color: "#fff", fontSize: ".9rem", outline: "none", boxSizing: "border-box",
+  width: "100%", background: "rgba(255,255,255,0.75)", border: "1px solid rgba(201,162,39,0.2)",
+  borderRadius: 10, padding: "10px 14px", color: "#2D1B00", fontSize: ".9rem", outline: "none", boxSizing: "border-box",
 };
 
 type Tab = "beli" | "simpanan" | "buyback";
@@ -190,8 +190,8 @@ export default function AdminAjukanPage() {
     <div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 600 }}>
       {/* Header */}
       <div>
-        <h1 style={{ color: "#fff", fontSize: "1.4rem", fontWeight: 700, margin: 0 }}>Ajukan Transaksi</h1>
-        <p style={{ color: "rgba(255,255,255,0.4)", fontSize: ".85rem", margin: "4px 0 0" }}>
+        <h1 style={{ color: "#2D1B00", fontSize: "1.4rem", fontWeight: 700, margin: 0 }}>Ajukan Transaksi</h1>
+        <p style={{ color: "rgba(101,67,14,0.45)", fontSize: ".85rem", margin: "4px 0 0" }}>
           Ajukan transaksi atas nama anggota — masuk ke antrian approval
         </p>
       </div>
@@ -203,7 +203,7 @@ export default function AdminAjukanPage() {
           return (
             <button key={t.id} onClick={() => { setTab(t.id); setSuccess(""); setError(""); }}
               style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderRadius: 11, fontSize: ".88rem", fontWeight: 700, cursor: "pointer",
-                border: active ? `1px solid ${t.color}` : "1px solid rgba(255,255,255,0.1)",
+                border: active ? `1px solid ${t.color}` : "1px solid rgba(201,162,39,0.2)",
                 background: active ? `${t.color}20` : "rgba(255,255,255,0.03)",
                 color: active ? t.color : "rgba(255,255,255,0.45)" }}>
               <Icon style={{ width: 15, height: 15 }} /> {t.label}
@@ -219,19 +219,19 @@ export default function AdminAjukanPage() {
 
           {/* Feedback */}
           {success && (
-            <div style={{ background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 10, padding: "11px 16px", color: "#34d399", display: "flex", alignItems: "center", gap: 8, fontSize: ".85rem" }}>
+            <div style={{ background: "rgba(6,95,70,0.08)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 10, padding: "11px 16px", color: "#34d399", display: "flex", alignItems: "center", gap: 8, fontSize: ".85rem" }}>
               <CheckCircle style={{ width: 15, height: 15, flexShrink: 0 }} /> {success}
             </div>
           )}
           {error && (
-            <div style={{ background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.2)", borderRadius: 10, padding: "11px 16px", color: "#f87171", fontSize: ".85rem" }}>
+            <div style={{ background: "rgba(153,27,27,0.08)", border: "1px solid rgba(248,113,113,0.2)", borderRadius: 10, padding: "11px 16px", color: "#f87171", fontSize: ".85rem" }}>
               {error}
             </div>
           )}
 
           {/* Pilih Anggota */}
           <div>
-            <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Anggota *</label>
+            <label style={{ color: "rgba(101,67,14,0.55)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Anggota *</label>
             <MemberPicker
               value={tab === "beli" ? beli.user_id : tab === "simpanan" ? simpanan.user_id : buyback.user_id}
               onChange={m => {
@@ -247,15 +247,15 @@ export default function AdminAjukanPage() {
           {tab === "beli" && (
             <>
               <div>
-                <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Berat Emas *</label>
-                {loadingGold ? <p style={{ color: "rgba(255,255,255,0.3)", fontSize: ".85rem" }}>Memuat harga...</p>
+                <label style={{ color: "rgba(101,67,14,0.55)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Berat Emas *</label>
+                {loadingGold ? <p style={{ color: "rgba(101,67,14,0.35)", fontSize: ".85rem" }}>Memuat harga...</p>
                   : gramBeliOpts.length === 0 ? <p style={{ color: "#f87171", fontSize: ".85rem" }}>Harga belum tersedia.</p>
                   : <Select value={beli.gram} onChange={onGramBeli} options={gramBeliOpts} placeholder="Pilih berat emas" />}
               </div>
               <div>
-                <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Total Nominal (Rp)</label>
+                <label style={{ color: "rgba(101,67,14,0.55)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Total Nominal (Rp)</label>
                 <RupiahInput value={beli.amount} onValueChange={v => setBeli(p => ({ ...p, amount: v }))} style={inp} />
-                {beli.amount && <p style={{ color: "rgba(255,255,255,0.3)", fontSize: ".75rem", margin: "4px 0 0" }}>{fmt(Number(beli.amount))}</p>}
+                {beli.amount && <p style={{ color: "rgba(101,67,14,0.35)", fontSize: ".75rem", margin: "4px 0 0" }}>{fmt(Number(beli.amount))}</p>}
               </div>
             </>
           )}
@@ -264,9 +264,9 @@ export default function AdminAjukanPage() {
           {tab === "simpanan" && (
             <>
               <div>
-                <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Nominal (Rp) *</label>
+                <label style={{ color: "rgba(101,67,14,0.55)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Nominal (Rp) *</label>
                 <RupiahInput value={simpanan.amount} onValueChange={v => setSimpanan(p => ({ ...p, amount: v }))} style={inp} />
-                {simpanan.amount && <p style={{ color: "rgba(255,255,255,0.3)", fontSize: ".75rem", margin: "4px 0 0" }}>{fmt(Number(simpanan.amount))}</p>}
+                {simpanan.amount && <p style={{ color: "rgba(101,67,14,0.35)", fontSize: ".75rem", margin: "4px 0 0" }}>{fmt(Number(simpanan.amount))}</p>}
               </div>
             </>
           )}
@@ -275,15 +275,15 @@ export default function AdminAjukanPage() {
           {tab === "buyback" && (
             <>
               <div>
-                <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Berat Emas *</label>
-                {loadingGold ? <p style={{ color: "rgba(255,255,255,0.3)", fontSize: ".85rem" }}>Memuat harga...</p>
+                <label style={{ color: "rgba(101,67,14,0.55)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Berat Emas *</label>
+                {loadingGold ? <p style={{ color: "rgba(101,67,14,0.35)", fontSize: ".85rem" }}>Memuat harga...</p>
                   : gramBuybackOpts.length === 0 ? <p style={{ color: "#f87171", fontSize: ".85rem" }}>Harga buyback belum tersedia.</p>
                   : <Select value={buyback.gram} onChange={onGramBuyback} options={gramBuybackOpts} placeholder="Pilih berat emas" />}
               </div>
               <div>
-                <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Dana Cair (Rp)</label>
+                <label style={{ color: "rgba(101,67,14,0.55)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Dana Cair (Rp)</label>
                 <RupiahInput value={buyback.amount} onValueChange={v => setBuyback(p => ({ ...p, amount: v }))} style={inp} />
-                {buyback.amount && <p style={{ color: "rgba(255,255,255,0.3)", fontSize: ".75rem", margin: "4px 0 0" }}>{fmt(Number(buyback.amount))}</p>}
+                {buyback.amount && <p style={{ color: "rgba(101,67,14,0.35)", fontSize: ".75rem", margin: "4px 0 0" }}>{fmt(Number(buyback.amount))}</p>}
               </div>
             </>
           )}
@@ -291,7 +291,7 @@ export default function AdminAjukanPage() {
           {/* Metode Bayar — semua tab */}
           {tab !== "simpanan" && (
             <div>
-              <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Metode Pembayaran</label>
+              <label style={{ color: "rgba(101,67,14,0.55)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Metode Pembayaran</label>
               <Select
                 value={tab === "beli" ? beli.paymentMethod : buyback.paymentMethod}
                 onChange={v => {
@@ -304,14 +304,14 @@ export default function AdminAjukanPage() {
           )}
           {tab === "simpanan" && (
             <div>
-              <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Metode Pembayaran</label>
+              <label style={{ color: "rgba(101,67,14,0.55)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Metode Pembayaran</label>
               <Select value={simpanan.paymentMethod} onChange={v => setSimpanan(p => ({ ...p, paymentMethod: v }))} options={PAYMENT_METHODS} />
             </div>
           )}
 
           {/* Catatan */}
           <div>
-            <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Catatan (opsional)</label>
+            <label style={{ color: "rgba(101,67,14,0.55)", fontSize: ".8rem", display: "block", marginBottom: 7 }}>Catatan (opsional)</label>
             <input
               value={tab === "beli" ? beli.notes : tab === "simpanan" ? simpanan.notes : buyback.notes}
               onChange={e => {
@@ -327,8 +327,8 @@ export default function AdminAjukanPage() {
           {/* Submit */}
           <button onClick={handleSubmit} disabled={saving}
             style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px", borderRadius: 12, border: "none",
-              background: saving ? "rgba(255,255,255,0.05)" : `linear-gradient(135deg,${activeTab.color},${activeTab.color}cc)`,
-              color: saving ? "rgba(255,255,255,0.4)" : "#0a0a0a", fontWeight: 800, fontSize: ".95rem",
+              background: saving ? "rgba(201,162,39,0.1)" : `linear-gradient(135deg,${activeTab.color},${activeTab.color}cc)`,
+              color: saving ? "rgba(101,67,14,0.45)" : "#0a0a0a", fontWeight: 800, fontSize: ".95rem",
               cursor: saving ? "wait" : "pointer" }}>
             {saving ? "Menyimpan..." : <><Send style={{ width: 15, height: 15 }} /> Ajukan {activeTab.label}</>}
           </button>

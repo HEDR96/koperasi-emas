@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
@@ -86,22 +86,22 @@ export default function StatistikPage() {
   useEffect(() => { load(); }, []);
 
   const cards = useMemo(() => ([
-    { label:"Total Member",       value: stats.member.toLocaleString("id-ID"),       sub:`${stats.memberActive} aktif`, icon:Users,          color:"#34d399", bg:"rgba(52,211,153,0.1)" },
-    { label:"Emas Terjual",       value:`${stats.gramSold.toFixed(1)} gr`,           sub:"transaksi beli selesai",       icon:Coins,          color:"#D4AF37", bg:"rgba(212,175,55,0.1)" },
-    { label:"Volume Transaksi",   value: fmtJuta(stats.txVolume),                    sub:"total selesai",                icon:TrendingUp,     color:"#60a5fa", bg:"rgba(96,165,250,0.1)" },
+    { label:"Total Member",       value: stats.member.toLocaleString("id-ID"),       sub:`${stats.memberActive} aktif`, icon:Users,          color:"#065f46", bg:"rgba(6,95,70,0.08)" },
+    { label:"Emas Terjual",       value:`${stats.gramSold.toFixed(1)} gr`,           sub:"transaksi beli selesai",       icon:Coins,          color:"#8B6010", bg:"rgba(212,175,55,0.1)" },
+    { label:"Volume Transaksi",   value: fmtJuta(stats.txVolume),                    sub:"total selesai",                icon:TrendingUp,     color:"#1d4ed8", bg:"rgba(29,78,216,0.08)" },
     { label:"Total Simpanan",     value: fmtJuta(stats.simpanan),                    sub:"terverifikasi",                icon:Wallet,         color:"#a78bfa", bg:"rgba(167,139,250,0.1)" },
     { label:"Volume Buyback",     value: fmtJuta(stats.buybackVol),                  sub:"emas dijual kembali",          icon:ArrowDownCircle,color:"#f59e0b", bg:"rgba(245,158,11,0.1)" },
-    { label:"Gadai Aktif",        value: stats.gadaiAktif.toLocaleString("id-ID"),   sub:`${fmt(stats.gadaiDana)} tersalur`, icon:Landmark,   color:"#f87171", bg:"rgba(248,113,113,0.1)" },
+    { label:"Gadai Aktif",        value: stats.gadaiAktif.toLocaleString("id-ID"),   sub:`${fmt(stats.gadaiDana)} tersalur`, icon:Landmark,   color:"#991b1b", bg:"rgba(153,27,27,0.08)" },
   ]), [stats]);
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Statistik Koperasi</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Ringkasan performa berdasarkan data real</p>
+          <h1 style={{ color:"#2D1B00", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Statistik Koperasi</h1>
+          <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".85rem", margin:"4px 0 0" }}>Ringkasan performa berdasarkan data real</p>
         </div>
-        <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
+        <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#8B6010", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:14, height:14 }} /> Refresh
         </button>
       </div>
@@ -112,15 +112,15 @@ export default function StatistikPage() {
           const Icon = c.icon;
           return (
             <motion.div key={c.label} initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ delay:i*0.06 }}
-              style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, padding:"20px 22px" }}>
+              style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.15)", borderRadius:16, padding:"20px 22px" }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
-                <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".76rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", margin:0 }}>{c.label}</p>
+                <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".76rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", margin:0 }}>{c.label}</p>
                 <div style={{ background:c.bg, borderRadius:8, padding:8 }}>
                   <Icon style={{ width:16, height:16, color:c.color }} />
                 </div>
               </div>
-              <p style={{ color:"#fff", fontSize:"1.55rem", fontWeight:800, margin:0, lineHeight:1 }}>{loading ? "—" : c.value}</p>
-              <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".74rem", margin:"6px 0 0" }}>{c.sub}</p>
+              <p style={{ color:"#2D1B00", fontSize:"1.55rem", fontWeight:800, margin:0, lineHeight:1 }}>{loading ? "—" : c.value}</p>
+              <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".74rem", margin:"6px 0 0" }}>{c.sub}</p>
             </motion.div>
           );
         })}
@@ -128,11 +128,11 @@ export default function StatistikPage() {
 
       {/* Chart */}
       <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.3 }}
-        style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, padding:"22px 18px 14px" }}>
-        <h2 style={{ color:"#fff", fontWeight:700, fontSize:"1rem", margin:"0 0 4px 6px" }}>Tren 12 Bulan Terakhir</h2>
-        <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".8rem", margin:"0 0 16px 6px" }}>Volume transaksi (juta) & member baru</p>
+        style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.15)", borderRadius:16, padding:"22px 18px 14px" }}>
+        <h2 style={{ color:"#2D1B00", fontWeight:700, fontSize:"1rem", margin:"0 0 4px 6px" }}>Tren 12 Bulan Terakhir</h2>
+        <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".8rem", margin:"0 0 16px 6px" }}>Volume transaksi (juta) & member baru</p>
         {loading ? (
-          <p style={{ color:"rgba(255,255,255,0.3)", padding:"40px", textAlign:"center" }}>Memuat grafik...</p>
+          <p style={{ color:"rgba(101,67,14,0.35)", padding:"40px", textAlign:"center" }}>Memuat grafik...</p>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={chart} margin={{ top:5, right:10, left:0, bottom:0 }}>
@@ -146,16 +146,16 @@ export default function StatistikPage() {
                   <stop offset="95%" stopColor="#60a5fa" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="bulan" stroke="rgba(255,255,255,0.3)" tick={{ fontSize:12 }} />
-              <YAxis yAxisId="left" stroke="rgba(255,255,255,0.3)" tick={{ fontSize:12 }} tickFormatter={(v)=>fmtJuta(Number(v))} />
-              <YAxis yAxisId="right" orientation="right" stroke="rgba(255,255,255,0.3)" tick={{ fontSize:12 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(201,162,39,0.1)" />
+              <XAxis dataKey="bulan" stroke="rgba(101,67,14,0.35)" tick={{ fontSize:12 }} />
+              <YAxis yAxisId="left" stroke="rgba(101,67,14,0.35)" tick={{ fontSize:12 }} tickFormatter={(v)=>fmtJuta(Number(v))} />
+              <YAxis yAxisId="right" orientation="right" stroke="rgba(101,67,14,0.35)" tick={{ fontSize:12 }} />
               <Tooltip
-                contentStyle={{ background:"#0f0f0f", border:"1px solid rgba(212,175,55,0.2)", borderRadius:10 }}
-                labelStyle={{ color:"#fff" }} itemStyle={{ color:"rgba(255,255,255,0.7)" }}
+                contentStyle={{ background:"rgba(255,252,220,0.95)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:10 }}
+                labelStyle={{ color:"#2D1B00" }} itemStyle={{ color:"rgba(101,67,14,0.75)" }}
                 formatter={(value: any, name: any) => name === "Volume Transaksi" ? [fmt(Number(value)), name] : [value, name]}
               />
-              <Legend wrapperStyle={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem" }} />
+              <Legend wrapperStyle={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem" }} />
               <Area yAxisId="left" type="monotone" dataKey="volume" name="Volume Transaksi" stroke="#D4AF37" strokeWidth={2} fill="url(#colorVol)" />
               <Area yAxisId="right" type="monotone" dataKey="member" name="Member Baru" stroke="#60a5fa" strokeWidth={2} fill="url(#colorMem2)" />
             </AreaChart>

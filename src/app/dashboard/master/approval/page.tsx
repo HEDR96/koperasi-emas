@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -147,22 +147,22 @@ export default function ApprovalPage() {
   }
 
   const TABS: { id: Tab; label: string; count: number; icon: any; color: string }[] = [
-    { id:"all",      label:"Semua",        count: txs.length + gadais.length + cics.length, icon:Coins,      color:"#fff" },
-    { id:"beli",     label:"Beli Emas",    count: beliRows.length,    icon:Coins,      color:"#D4AF37" },
+    { id:"all",      label:"Semua",        count: txs.length + gadais.length + cics.length, icon:Coins,      color:"#2D1B00" },
+    { id:"beli",     label:"Beli Emas",    count: beliRows.length,    icon:Coins,      color:"#8B6010" },
     { id:"cicilan",  label:"Cicilan Emas", count: cics.length,         icon:CreditCard, color:"#a78bfa" },
-    { id:"gadai",    label:"Gadai",        count: gadais.length,       icon:Landmark,   color:"#60a5fa" },
-    { id:"buyback",  label:"Buyback",      count: buybackRows.length,  icon:Coins,      color:"#34d399" },
+    { id:"gadai",    label:"Gadai",        count: gadais.length,       icon:Landmark,   color:"#1d4ed8" },
+    { id:"buyback",  label:"Buyback",      count: buybackRows.length,  icon:Coins,      color:"#065f46" },
   ];
 
   function ActionBtns({ onApprove, onReject, id }: { onApprove: () => void; onReject: () => void; id: string }) {
     return (
       <div style={{ display:"flex", gap:6 }}>
         <button onClick={onApprove} disabled={acting===id}
-          style={{ display:"flex", alignItems:"center", gap:4, background:"rgba(52,211,153,0.12)", border:"1px solid rgba(52,211,153,0.3)", borderRadius:8, padding:"6px 12px", color:"#34d399", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===id?.6:1 }}>
+          style={{ display:"flex", alignItems:"center", gap:4, background:"rgba(6,95,70,0.09)", border:"1px solid rgba(52,211,153,0.3)", borderRadius:8, padding:"6px 12px", color:"#065f46", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===id?.6:1 }}>
           <Check style={{ width:12, height:12 }} /> Setujui
         </button>
         <button onClick={onReject} disabled={acting===id}
-          style={{ display:"flex", alignItems:"center", gap:4, background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.25)", borderRadius:8, padding:"6px 12px", color:"#f87171", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===id?.6:1 }}>
+          style={{ display:"flex", alignItems:"center", gap:4, background:"rgba(153,27,27,0.06)", border:"1px solid rgba(248,113,113,0.25)", borderRadius:8, padding:"6px 12px", color:"#991b1b", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===id?.6:1 }}>
           <X style={{ width:12, height:12 }} /> Tolak
         </button>
       </div>
@@ -170,7 +170,7 @@ export default function ApprovalPage() {
   }
 
   const card = (children: React.ReactNode, key: string) => (
-    <div key={key} style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:14, padding:"14px 18px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:14, flexWrap:"wrap" }}>
+    <div key={key} style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.15)", borderRadius:14, padding:"14px 18px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:14, flexWrap:"wrap" }}>
       {children}
     </div>
   );
@@ -178,11 +178,11 @@ export default function ApprovalPage() {
   // Row builders
   const txRow = (row: any, color: string) => card(<>
     <div>
-      <p style={{ color:"#fff", fontWeight:700, fontSize:".9rem", margin:0 }}>
+      <p style={{ color:"#2D1B00", fontWeight:700, fontSize:".9rem", margin:0 }}>
         {row.profiles?.name || "-"}
-        <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}> - {TX_TYPE_LABEL[row.type]||row.type}</span>
+        <span style={{ color:"rgba(101,67,14,0.45)", fontWeight:400 }}> - {TX_TYPE_LABEL[row.type]||row.type}</span>
       </p>
-      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", margin:"3px 0 0" }}>
+      <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", margin:"3px 0 0" }}>
         {row.gram ? `${Number(row.gram).toFixed(1)} gr - ` : ""}{row.payment_method || "-"} - {fmtDate(row.transaction_date || row.created_at)}
       </p>
     </div>
@@ -194,11 +194,11 @@ export default function ApprovalPage() {
 
   const cicRow = (row: any) => card(<>
     <div>
-      <p style={{ color:"#fff", fontWeight:700, fontSize:".9rem", margin:0 }}>
+      <p style={{ color:"#2D1B00", fontWeight:700, fontSize:".9rem", margin:0 }}>
         {row.profiles?.name || "-"}
-        <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}> - {row.product_name}</span>
+        <span style={{ color:"rgba(101,67,14,0.45)", fontWeight:400 }}> - {row.product_name}</span>
       </p>
-      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", margin:"3px 0 0" }}>
+      <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", margin:"3px 0 0" }}>
         {row.tenor} bln - angsuran {fmt(row.monthly_amount)} - {fmtDate(row.transaction_date || row.created_at)}
       </p>
     </div>
@@ -210,28 +210,28 @@ export default function ApprovalPage() {
 
   const gadaiRow = (row: any) => card(<>
     <div>
-      <p style={{ color:"#fff", fontWeight:700, fontSize:".9rem", margin:0 }}>
+      <p style={{ color:"#2D1B00", fontWeight:700, fontSize:".9rem", margin:0 }}>
         {row.profiles?.name || "-"}
-        <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}> - Gadai {row.tenor} bln</span>
+        <span style={{ color:"rgba(101,67,14,0.45)", fontWeight:400 }}> - Gadai {row.tenor} bln</span>
       </p>
-      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", margin:"3px 0 0" }}>
+      <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", margin:"3px 0 0" }}>
         Jaminan {Number(row.gram_setara).toFixed(1)} gr - Angsuran {fmt(row.angsuran_per_bulan)}/bln - {fmtDate(row.transaction_date || row.created_at)}
       </p>
     </div>
     <div style={{ display:"flex", alignItems:"center", gap:16 }}>
-      <span style={{ color:"#60a5fa", fontWeight:800, fontSize:"1rem" }}>{fmt(row.dana_cair)}</span>
+      <span style={{ color:"#1d4ed8", fontWeight:800, fontSize:"1rem" }}>{fmt(row.dana_cair)}</span>
       <ActionBtns id={row.id} onApprove={()=>actGadai(row,true)} onReject={()=>actGadai(row,false)} />
     </div>
   </>, row.id);
 
   const secHeader = (label: string, count: number) => (
-    <p key={label} style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".08em", margin:"12px 0 4px" }}>
+    <p key={label} style={{ color:"rgba(101,67,14,0.35)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".08em", margin:"12px 0 4px" }}>
       {label} ({count})
     </p>
   );
 
   const emptyMsg = (msg: string) => (
-    <p style={{ color:"rgba(255,255,255,0.3)", padding:"32px", textAlign:"center" }}>{msg}</p>
+    <p style={{ color:"rgba(101,67,14,0.35)", padding:"32px", textAlign:"center" }}>{msg}</p>
   );
 
   function renderContent() {
@@ -257,13 +257,13 @@ export default function ApprovalPage() {
     <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Pusat Approval</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>
+          <h1 style={{ color:"#2D1B00", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Pusat Approval</h1>
+          <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".85rem", margin:"4px 0 0" }}>
             Tinjau & setujui transaksi, cicilan, dan gadai. Approval setoran Simpanan ada di{" "}
-            <a href="/dashboard/master/simpanan" style={{ color:"#D4AF37" }}>menu Input Simpanan</a>.
+            <a href="/dashboard/master/simpanan" style={{ color:"#8B6010" }}>menu Input Simpanan</a>.
           </p>
         </div>
-        <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
+        <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#8B6010", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:14, height:14 }} /> Refresh
         </button>
       </div>
@@ -276,9 +276,9 @@ export default function ApprovalPage() {
           return (
             <button key={t.id} onClick={() => setTab(t.id)}
               style={{ display:"flex", alignItems:"center", gap:8, padding:"9px 16px", borderRadius:10, fontSize:".84rem", fontWeight:600, cursor:"pointer",
-                border: active ? `1px solid ${t.color}` : "1px solid rgba(255,255,255,0.1)",
+                border: active ? `1px solid ${t.color}` : "1px solid rgba(201,162,39,0.2)",
                 background: active ? `${t.color}22` : "rgba(255,255,255,0.03)",
-                color: active ? t.color : "rgba(255,255,255,0.5)" }}>
+                color: active ? t.color : "rgba(101,67,14,0.55)" }}>
               <Icon style={{ width:14, height:14 }} /> {t.label}
               {t.count > 0 && (
                 <span style={{ background:`${t.color}33`, color:t.color, borderRadius:20, padding:"1px 7px", fontSize:".7rem" }}>{t.count}</span>
@@ -289,17 +289,17 @@ export default function ApprovalPage() {
       </div>
 
       {loadErr && (
-        <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.25)", borderRadius:12, padding:"12px 16px" }}>
-          <p style={{ color:"#f87171", fontWeight:600, fontSize:".85rem", margin:"0 0 4px" }}>Error memuat data approval:</p>
+        <div style={{ background:"rgba(153,27,27,0.08)", border:"1px solid rgba(248,113,113,0.25)", borderRadius:12, padding:"12px 16px" }}>
+          <p style={{ color:"#991b1b", fontWeight:600, fontSize:".85rem", margin:"0 0 4px" }}>Error memuat data approval:</p>
           <p style={{ color:"rgba(248,113,113,0.8)", fontSize:".8rem", margin:0 }}>{loadErr}</p>
-          <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".75rem", margin:"6px 0 0" }}>
+          <p style={{ color:"rgba(101,67,14,0.4)", fontSize:".75rem", margin:"6px 0 0" }}>
             Jalankan <strong>supabase/fix-approval-master.sql</strong> di Supabase SQL Editor.
           </p>
         </div>
       )}
 
       {loading ? (
-        <p style={{ color:"rgba(255,255,255,0.3)" }}>Memuat...</p>
+        <p style={{ color:"rgba(101,67,14,0.35)" }}>Memuat...</p>
       ) : (
         <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} style={{ display:"flex", flexDirection:"column", gap:8 }}>
           {renderContent()}
@@ -314,8 +314,8 @@ export default function ApprovalPage() {
           const diskonVal = Number(diskon) || 0;
           const finalAmount = Math.max(0, row.amount + ongkirVal - diskonVal);
           const inp: React.CSSProperties = {
-            width:"100%", background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)",
-            borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".95rem", outline:"none", boxSizing:"border-box",
+            width:"100%", background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.22)",
+            borderRadius:10, padding:"10px 14px", color:"#2D1B00", fontSize:".95rem", outline:"none", boxSizing:"border-box",
           };
           return (
             <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
@@ -324,38 +324,38 @@ export default function ApprovalPage() {
                 display:"flex", alignItems:"center", justifyContent:"center" }}>
               <motion.div initial={{ opacity:0, scale:.93, y:16 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.93 }}
                 onClick={e => e.stopPropagation()}
-                style={{ width:"min(420px,94vw)", background:"rgba(14,14,14,0.98)", border:"1px solid rgba(212,175,55,0.3)",
+                style={{ width:"min(420px,94vw)", background:"rgba(255,252,220,0.97)", border:"1px solid rgba(201,162,39,0.3)",
                   borderRadius:20, padding:26 }}>
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
                   <div>
-                    <h3 style={{ color:"#D4AF37", fontWeight:800, fontSize:"1.05rem", margin:0 }}>Setujui Beli Emas</h3>
-                    <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".8rem", margin:"4px 0 0" }}>
+                    <h3 style={{ color:"#8B6010", fontWeight:800, fontSize:"1.05rem", margin:0 }}>Setujui Beli Emas</h3>
+                    <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".8rem", margin:"4px 0 0" }}>
                       {row.profiles?.name || "-"} - Harga emas {fmt(row.amount)}
                     </p>
                   </div>
                   <button onClick={()=>!savingOngkir&&setOngkirModal(null)}
-                    style={{ background:"rgba(255,255,255,0.07)", border:"none", borderRadius:8, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>
+                    style={{ background:"rgba(255,255,255,0.72)", border:"none", borderRadius:8, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(101,67,14,0.55)", cursor:"pointer" }}>
                     <X style={{ width:14, height:14 }} />
                   </button>
                 </div>
                 <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
                   <div>
-                    <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"flex", alignItems:"center", gap:6, marginBottom:7 }}>
+                    <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"flex", alignItems:"center", gap:6, marginBottom:7 }}>
                       <Truck style={{ width:14, height:14, color:"#f59e0b" }} /> Biaya Ongkir (Rp)
                     </label>
                     <div style={{ position:"relative" }}>
-                      <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".85rem", pointerEvents:"none" }}>Rp</span>
+                      <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(101,67,14,0.45)", fontSize:".85rem", pointerEvents:"none" }}>Rp</span>
                       <input inputMode="numeric" value={fmtRibuan(ongkir)}
                         onChange={e=>setOngkir(e.target.value.replace(/\D/g,""))}
                         style={{ ...inp, paddingLeft:36 }} placeholder="0 (kosong = tanpa ongkir)" />
                     </div>
                   </div>
                   <div>
-                    <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"flex", alignItems:"center", gap:6, marginBottom:7 }}>
-                      <Tag style={{ width:14, height:14, color:"#34d399" }} /> Diskon (Rp)
+                    <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"flex", alignItems:"center", gap:6, marginBottom:7 }}>
+                      <Tag style={{ width:14, height:14, color:"#065f46" }} /> Diskon (Rp)
                     </label>
                     <div style={{ position:"relative" }}>
-                      <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".85rem", pointerEvents:"none" }}>Rp</span>
+                      <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(101,67,14,0.45)", fontSize:".85rem", pointerEvents:"none" }}>Rp</span>
                       <input inputMode="numeric" value={fmtRibuan(diskon)}
                         onChange={e=>setDiskon(e.target.value.replace(/\D/g,""))}
                         style={{ ...inp, paddingLeft:36 }} placeholder="0 (kosong = tanpa diskon)" />
@@ -363,23 +363,23 @@ export default function ApprovalPage() {
                   </div>
                   <div style={{ background:"rgba(212,175,55,0.07)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:12, padding:"14px 16px" }}>
                     {[
-                      { label:"Harga Emas",  val:fmt(row.amount),       color:"#fff" },
-                      { label:"+ Ongkir",    val:`+${fmt(ongkirVal)}`,  color:ongkirVal>0?"#f59e0b":"rgba(255,255,255,0.3)" },
-                      { label:"- Diskon",    val:`-${fmt(diskonVal)}`,  color:diskonVal>0?"#34d399":"rgba(255,255,255,0.3)" },
+                      { label:"Harga Emas",  val:fmt(row.amount),       color:"#2D1B00" },
+                      { label:"+ Ongkir",    val:`+${fmt(ongkirVal)}`,  color:ongkirVal>0?"#f59e0b":"rgba(101,67,14,0.35)" },
+                      { label:"- Diskon",    val:`-${fmt(diskonVal)}`,  color:diskonVal>0?"#34d399":"rgba(101,67,14,0.35)" },
                     ].map(r=>(
                       <div key={r.label} style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
-                        <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>{r.label}</span>
+                        <span style={{ color:"rgba(101,67,14,0.55)", fontSize:".83rem" }}>{r.label}</span>
                         <span style={{ color:r.color, fontWeight:600, fontSize:".83rem" }}>{r.val}</span>
                       </div>
                     ))}
-                    <div style={{ display:"flex", justifyContent:"space-between", paddingTop:8, borderTop:"1px solid rgba(255,255,255,0.08)" }}>
-                      <span style={{ color:"rgba(255,255,255,0.8)", fontWeight:700 }}>Total Final</span>
-                      <span style={{ color:"#D4AF37", fontWeight:900, fontSize:"1.05rem" }}>{fmt(finalAmount)}</span>
+                    <div style={{ display:"flex", justifyContent:"space-between", paddingTop:8, borderTop:"1px solid rgba(201,162,39,0.18)" }}>
+                      <span style={{ color:"rgba(45,27,0,0.8)", fontWeight:700 }}>Total Final</span>
+                      <span style={{ color:"#8B6010", fontWeight:900, fontSize:"1.05rem" }}>{fmt(finalAmount)}</span>
                     </div>
                   </div>
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginTop:4 }}>
                     <button onClick={()=>!savingOngkir&&setOngkirModal(null)} disabled={savingOngkir}
-                      style={{ padding:"11px", borderRadius:10, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", color:"rgba(255,255,255,0.6)", fontWeight:600, fontSize:".9rem", cursor:"pointer" }}>
+                      style={{ padding:"11px", borderRadius:10, background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.2)", color:"rgba(101,67,14,0.7)", fontWeight:600, fontSize:".9rem", cursor:"pointer" }}>
                       Batal
                     </button>
                     <button onClick={confirmBuyApproval} disabled={savingOngkir}

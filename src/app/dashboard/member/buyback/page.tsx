@@ -126,47 +126,47 @@ export default function MemberBuybackPage() {
     <div style={{ display:"flex", flexDirection:"column", gap:24, maxWidth:760 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Buyback Emas</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>
+          <h1 style={{ color:"#2D1B00", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Buyback Emas</h1>
+          <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".85rem", margin:"4px 0 0" }}>
             Jual kembali emas tersimpan Anda sesuai harga buyback berlaku
           </p>
         </div>
-        <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
+        <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#8B6010", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:13, height:13 }} /> Refresh
         </button>
       </div>
 
       {submitted && (
         <motion.div initial={{ opacity:0, y:-8 }} animate={{ opacity:1, y:0 }}
-          style={{ background:"rgba(52,211,153,0.1)", border:"1px solid rgba(52,211,153,0.25)", borderRadius:12, padding:"14px 18px", color:"#34d399", fontSize:".88rem", display:"flex", alignItems:"center", gap:10 }}>
+          style={{ background:"rgba(6,95,70,0.08)", border:"1px solid rgba(52,211,153,0.25)", borderRadius:12, padding:"14px 18px", color:"#065f46", fontSize:".88rem", display:"flex", alignItems:"center", gap:10 }}>
           <CheckCircle style={{ width:16, height:16, flexShrink:0 }} />
           Pengajuan buyback berhasil dikirim! Admin akan memproses dan dana ditransfer setelah disetujui.
         </motion.div>
       )}
 
-      {loading ? <p style={{ color:"rgba(255,255,255,0.3)" }}>Memuat data...</p> : (
+      {loading ? <p style={{ color:"rgba(101,67,14,0.35)" }}>Memuat data...</p> : (
         <>
           {/* Ringkasan */}
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:14 }}>
             <div style={{ background:"linear-gradient(135deg,rgba(212,175,55,0.12),rgba(212,175,55,0.04))", border:"1px solid rgba(212,175,55,0.3)", borderRadius:16, padding:"18px 20px" }}>
               <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-                <Coins style={{ width:15, height:15, color:"#D4AF37" }} />
-                <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem", margin:0 }}>Emas Tersimpan</p>
+                <Coins style={{ width:15, height:15, color:"#8B6010" }} />
+                <p style={{ color:"rgba(101,67,14,0.55)", fontSize:".78rem", margin:0 }}>Emas Tersimpan</p>
               </div>
-              <p style={{ color:"#D4AF37", fontWeight:900, fontSize:"1.5rem", margin:0 }}>{fmtGram(emasGram)}</p>
+              <p style={{ color:"#8B6010", fontWeight:900, fontSize:"1.5rem", margin:0 }}>{fmtGram(emasGram)}</p>
               {pendingGram > 0 && (
-                <p style={{ color:"#fbbf24", fontSize:".75rem", marginTop:6 }}>
+                <p style={{ color:"#92400e", fontSize:".75rem", marginTop:6 }}>
                   {fmtGram(pendingGram)} sedang diajukan
                 </p>
               )}
             </div>
             <div style={{ background:"rgba(52,211,153,0.06)", border:"1px solid rgba(52,211,153,0.22)", borderRadius:16, padding:"18px 20px" }}>
-              <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem", marginBottom:8 }}>Harga Buyback / gram</p>
-              <p style={{ color:"#34d399", fontWeight:900, fontSize:"1.5rem", margin:0 }}>{fmt(hargaBuyback)}</p>
+              <p style={{ color:"rgba(101,67,14,0.55)", fontSize:".78rem", marginBottom:8 }}>Harga Buyback / gram</p>
+              <p style={{ color:"#065f46", fontWeight:900, fontSize:"1.5rem", margin:0 }}>{fmt(hargaBuyback)}</p>
             </div>
-            <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, padding:"18px 20px" }}>
-              <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem", marginBottom:8 }}>Bisa Dijual</p>
-              <p style={{ color:"#fff", fontWeight:900, fontSize:"1.5rem", margin:0 }}>{fmtGram(available)}</p>
+            <div style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.15)", borderRadius:16, padding:"18px 20px" }}>
+              <p style={{ color:"rgba(101,67,14,0.55)", fontSize:".78rem", marginBottom:8 }}>Bisa Dijual</p>
+              <p style={{ color:"#2D1B00", fontWeight:900, fontSize:"1.5rem", margin:0 }}>{fmtGram(available)}</p>
             </div>
           </div>
 
@@ -174,29 +174,29 @@ export default function MemberBuybackPage() {
           {available > 0 ? (
             <div style={{ background:"rgba(52,211,153,0.04)", border:"1px solid rgba(52,211,153,0.2)", borderRadius:16, padding:22 }}>
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
-                <ArrowDownCircle style={{ width:20, height:20, color:"#34d399" }} />
+                <ArrowDownCircle style={{ width:20, height:20, color:"#065f46" }} />
                 <div>
-                  <p style={{ color:"#34d399", fontWeight:700, fontSize:"1rem", margin:0 }}>Ajukan Buyback</p>
-                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", margin:0 }}>Masukkan jumlah gram emas yang ingin dijual</p>
+                  <p style={{ color:"#065f46", fontWeight:700, fontSize:"1rem", margin:0 }}>Ajukan Buyback</p>
+                  <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", margin:0 }}>Masukkan jumlah gram emas yang ingin dijual</p>
                 </div>
               </div>
 
               {err && (
-                <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.25)", borderRadius:10, padding:"10px 14px", color:"#f87171", fontSize:".82rem", marginBottom:14 }}>
+                <div style={{ background:"rgba(153,27,27,0.08)", border:"1px solid rgba(248,113,113,0.25)", borderRadius:10, padding:"10px 14px", color:"#991b1b", fontSize:".82rem", marginBottom:14 }}>
                   {err}
                 </div>
               )}
 
               <div style={{ marginBottom:14 }}>
-                <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>
+                <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"block", marginBottom:7 }}>
                   Jumlah Gram (maks. {fmtGram(available)})
                 </label>
                 <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
                   <input type="number" min={0} step={0.0001} max={available} value={gram}
                     onChange={e => setGram(e.target.value)} placeholder="0.0000"
-                    style={{ flex:1, minWidth:160, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, padding:"11px 14px", color:"#fff", fontSize:"1rem", outline:"none", boxSizing:"border-box" }} />
+                    style={{ flex:1, minWidth:160, background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.22)", borderRadius:10, padding:"11px 14px", color:"#2D1B00", fontSize:"1rem", outline:"none", boxSizing:"border-box" }} />
                   <button onClick={() => setGram(String(available))}
-                    style={{ background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"0 18px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem", fontWeight:600 }}>
+                    style={{ background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"0 18px", color:"#8B6010", cursor:"pointer", fontSize:".85rem", fontWeight:600 }}>
                     Maks
                   </button>
                 </div>
@@ -205,16 +205,16 @@ export default function MemberBuybackPage() {
               {gramNum > 0 && (
                 <div style={{ background:"rgba(52,211,153,0.07)", border:"1px solid rgba(52,211,153,0.2)", borderRadius:12, padding:"14px 16px", marginBottom:16 }}>
                   <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
-                    <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".82rem" }}>Jumlah</span>
-                    <span style={{ color:"#fff", fontWeight:700 }}>{fmtGram(gramNum)}</span>
+                    <span style={{ color:"rgba(101,67,14,0.55)", fontSize:".82rem" }}>Jumlah</span>
+                    <span style={{ color:"#2D1B00", fontWeight:700 }}>{fmtGram(gramNum)}</span>
                   </div>
                   <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
-                    <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".82rem" }}>Harga / gram</span>
-                    <span style={{ color:"#fff", fontWeight:700 }}>{fmt(hargaBuyback)}</span>
+                    <span style={{ color:"rgba(101,67,14,0.55)", fontSize:".82rem" }}>Harga / gram</span>
+                    <span style={{ color:"#2D1B00", fontWeight:700 }}>{fmt(hargaBuyback)}</span>
                   </div>
-                  <div style={{ display:"flex", justifyContent:"space-between", paddingTop:8, borderTop:"1px solid rgba(255,255,255,0.07)" }}>
-                    <span style={{ color:"rgba(255,255,255,0.7)", fontSize:".88rem", fontWeight:600 }}>Dana Diterima</span>
-                    <span style={{ color:"#34d399", fontSize:"1.15rem", fontWeight:900 }}>{fmt(danaCair)}</span>
+                  <div style={{ display:"flex", justifyContent:"space-between", paddingTop:8, borderTop:"1px solid rgba(201,162,39,0.15)" }}>
+                    <span style={{ color:"rgba(101,67,14,0.75)", fontSize:".88rem", fontWeight:600 }}>Dana Diterima</span>
+                    <span style={{ color:"#065f46", fontSize:"1.15rem", fontWeight:900 }}>{fmt(danaCair)}</span>
                   </div>
                 </div>
               )}
@@ -223,14 +223,14 @@ export default function MemberBuybackPage() {
                 style={{ width:"100%", padding:"13px", borderRadius:11, background:"linear-gradient(135deg,#34d399,#6ee7b7)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:"1rem", cursor: submitting || gramNum<=0 ? "not-allowed" : "pointer", opacity: submitting || gramNum<=0 ? 0.6 : 1 }}>
                 {submitting ? "Mengajukan..." : "Ajukan Buyback"}
               </button>
-              <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".75rem", textAlign:"center", margin:"10px 0 0" }}>
+              <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".75rem", textAlign:"center", margin:"10px 0 0" }}>
                 Pengajuan diproses admin. Dana ditransfer setelah disetujui (1×24 jam kerja).
               </p>
             </div>
           ) : (
-            <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, padding:"32px 24px", display:"flex", alignItems:"center", gap:12, justifyContent:"center" }}>
-              <AlertCircle style={{ width:20, height:20, color:"rgba(255,255,255,0.3)" }} />
-              <p style={{ color:"rgba(255,255,255,0.4)", margin:0, fontSize:".9rem" }}>
+            <div style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.15)", borderRadius:16, padding:"32px 24px", display:"flex", alignItems:"center", gap:12, justifyContent:"center" }}>
+              <AlertCircle style={{ width:20, height:20, color:"rgba(101,67,14,0.35)" }} />
+              <p style={{ color:"rgba(101,67,14,0.45)", margin:0, fontSize:".9rem" }}>
                 Belum ada emas tersimpan yang bisa dijual.
               </p>
             </div>
@@ -239,18 +239,18 @@ export default function MemberBuybackPage() {
           {/* Riwayat buyback */}
           {riwayat.length > 0 && (
             <div>
-              <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 12px" }}>Riwayat Buyback</p>
+              <p style={{ color:"rgba(101,67,14,0.55)", fontSize:".78rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 12px" }}>Riwayat Buyback</p>
               <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                 {riwayat.map(tx => (
-                  <div key={tx.id} style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:12, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+                  <div key={tx.id} style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.12)", borderRadius:12, padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
                     <div>
-                      <p style={{ color:"#fff", fontWeight:600, fontSize:".88rem", margin:0 }}>
+                      <p style={{ color:"#2D1B00", fontWeight:600, fontSize:".88rem", margin:0 }}>
                         {tx.gram ? fmtGram(Number(tx.gram)) : "-"}
                       </p>
-                      <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".75rem", margin:"2px 0 0" }}>{fmtDate(tx.transaction_date || tx.created_at)}</p>
+                      <p style={{ color:"rgba(101,67,14,0.4)", fontSize:".75rem", margin:"2px 0 0" }}>{fmtDate(tx.transaction_date || tx.created_at)}</p>
                     </div>
                     <div style={{ textAlign:"right" }}>
-                      <p style={{ color:"#34d399", fontWeight:700, fontSize:".9rem", margin:0 }}>{fmt(tx.amount)}</p>
+                      <p style={{ color:"#065f46", fontWeight:700, fontSize:".9rem", margin:0 }}>{fmt(tx.amount)}</p>
                       <span style={{ display:"inline-flex", alignItems:"center", gap:4, color:STATUS_COLOR[tx.status]||"#fff", fontSize:".72rem" }}>
                         {tx.status==="pending"   && <Clock style={{ width:10, height:10 }} />}
                         {tx.status==="completed" && <CheckCircle style={{ width:10, height:10 }} />}

@@ -64,10 +64,10 @@ export default function Select({ value, onChange, options, placeholder = "Pilih.
     ...(dropUp
       ? { bottom: window.innerHeight - rect.top + 4 }
       : { top: rect.bottom + 4 }),
-    background: "#1a1a1a",
-    border: "1px solid rgba(212,175,55,0.25)",
+    background: "#FFFDE7",
+    border: "1px solid rgba(201,162,39,0.3)",
     borderRadius: 10,
-    boxShadow: "0 12px 32px rgba(0,0,0,0.6)",
+    boxShadow: "0 12px 32px rgba(201,162,39,0.2)",
     maxHeight: 240,
     overflowY: "auto",
     padding: 4,
@@ -82,8 +82,8 @@ export default function Select({ value, onChange, options, placeholder = "Pilih.
         onClick={handleOpen}
         style={{
           width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
-          background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-          borderRadius: 10, padding: "10px 14px", color: selected ? "#fff" : "rgba(255,255,255,0.4)",
+          background: "rgba(255,255,255,0.75)", border: "1px solid rgba(201,162,39,0.25)",
+          borderRadius: 10, padding: "10px 14px", color: selected ? "#2D1B00" : "rgba(101,67,14,0.45)",
           fontSize: ".9rem", outline: "none", cursor: disabled ? "not-allowed" : "pointer",
           boxSizing: "border-box", textAlign: "left", opacity: disabled ? 0.6 : 1, ...style,
         }}
@@ -91,7 +91,7 @@ export default function Select({ value, onChange, options, placeholder = "Pilih.
         <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {selected ? selected.label : placeholder}
         </span>
-        <ChevronDown style={{ width: 16, height: 16, color: "rgba(255,255,255,0.4)", flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }} />
+        <ChevronDown style={{ width: 16, height: 16, color: "rgba(101,67,14,0.45)", flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }} />
       </button>
 
       {open && rect && typeof document !== "undefined" && createPortal(
@@ -106,7 +106,7 @@ export default function Select({ value, onChange, options, placeholder = "Pilih.
                 style={{
                   width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
                   background: active ? "rgba(212,175,55,0.15)" : "transparent", border: "none",
-                  borderRadius: 7, padding: "9px 12px", color: active ? "#D4AF37" : "rgba(255,255,255,0.8)",
+                  borderRadius: 7, padding: "9px 12px", color: active ? "#8B6010" : "#2D1B00",
                   fontSize: ".88rem", cursor: "pointer", textAlign: "left",
                 }}
                 onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = "rgba(212,175,55,0.08)"; }}

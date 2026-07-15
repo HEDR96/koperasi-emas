@@ -88,11 +88,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const title = TITLES[pathname] || "Dashboard";
 
   return (
-    <div style={{ display:"flex", height:"100vh", background:"#0a0a0a", overflow:"hidden" }}>
+    <div style={{ display:"flex", height:"100vh", background:"radial-gradient(ellipse 150% 100% at 50% 10%, #FFFFFF 0%, #FFFDE7 40%, #FFF8C4 75%, #F5E598 100%)", backgroundAttachment:"fixed", overflow:"hidden" }}>
       <Sidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
       <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
         <DashboardHeader title={title} onMenuClick={() => setMobileOpen(true)} />
-        <main style={{ flex:1, overflowY:"auto", padding:"24px", scrollbarWidth:"thin" }}>
+        <main style={{ flex:1, overflowY:"auto", padding:"24px", scrollbarWidth:"thin", color:"#2D1B00" }}>
           {children}
         </main>
       </div>

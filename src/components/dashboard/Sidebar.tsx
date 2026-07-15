@@ -115,7 +115,7 @@ function SidebarInner({ collapsed, onToggle, onClose }: { collapsed: boolean; on
   return (
     <div style={{ display:"flex", flexDirection:"column", height:"100%", overflow:"hidden" }}>
       {/* Top */}
-      <div style={{ padding:"16px 14px", borderBottom:"1px solid rgba(255,255,255,0.05)", display:"flex", alignItems:"center", justifyContent: collapsed ? "center" : "space-between", gap:8, flexShrink:0 }}>
+      <div style={{ padding:"16px 14px", borderBottom:"1px solid rgba(201,162,39,0.18)", display:"flex", alignItems:"center", justifyContent: collapsed ? "center" : "space-between", gap:8, flexShrink:0 }}>
         {!collapsed && (
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <img src="/logo.jpg" alt="KE" style={{ width:30, height:30, objectFit:"cover", borderRadius:"50%" }}
@@ -123,7 +123,7 @@ function SidebarInner({ collapsed, onToggle, onClose }: { collapsed: boolean; on
             />
             <div>
               <div className="text-gold-gradient" style={{ fontWeight:900, fontSize:".82rem", lineHeight:1, letterSpacing:".02em" }}>{siteName.toUpperCase()}</div>
-              <div style={{ fontSize:".65rem", color:"rgba(255,255,255,0.3)", textTransform:"capitalize", marginTop:3 }}>{role} Panel</div>
+              <div style={{ fontSize:".65rem", color:"rgba(101,67,14,0.45)", textTransform:"capitalize", marginTop:3 }}>{role} Panel</div>
             </div>
           </div>
         )}
@@ -133,27 +133,27 @@ function SidebarInner({ collapsed, onToggle, onClose }: { collapsed: boolean; on
           />
         )}
         <button onClick={onToggle}
-          style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:7, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.4)", cursor:"pointer", flexShrink:0 }}
+          style={{ background:"rgba(201,162,39,0.1)", border:"1px solid rgba(201,162,39,0.2)", borderRadius:7, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", color:"#8B6010", cursor:"pointer", flexShrink:0 }}
           className="desktop-toggle"
         >
           {collapsed ? <ChevronRight style={{ width:14, height:14 }} /> : <ChevronLeft style={{ width:14, height:14 }} />}
         </button>
         <button onClick={onClose} className="mobile-close-btn"
-          style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:7, width:30, height:30, display:"none", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.4)", cursor:"pointer" }}>
+          style={{ background:"rgba(201,162,39,0.1)", border:"1px solid rgba(201,162,39,0.2)", borderRadius:7, width:30, height:30, display:"none", alignItems:"center", justifyContent:"center", color:"#8B6010", cursor:"pointer" }}>
           <X style={{ width:14, height:14 }} />
         </button>
       </div>
 
       {/* User */}
       {!collapsed && (
-        <div style={{ padding:"14px 14px", borderBottom:"1px solid rgba(255,255,255,0.05)", flexShrink:0 }}>
+        <div style={{ padding:"14px 14px", borderBottom:"1px solid rgba(201,162,39,0.18)", flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div className="bg-gold-gradient" style={{ width:34, height:34, borderRadius:9, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, color:"#0a0a0a", fontSize:".85rem", flexShrink:0 }}>
+            <div className="bg-gold-gradient" style={{ width:34, height:34, borderRadius:9, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, color:"#fff", fontSize:".85rem", flexShrink:0 }}>
               {user?.name?.[0] || "U"}
             </div>
             <div style={{ overflow:"hidden" }}>
-              <p style={{ color:"#fff", fontSize:".85rem", fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user?.name}</p>
-              <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".72rem", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user?.email}</p>
+              <p style={{ color:"#2D1B00", fontSize:".85rem", fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user?.name}</p>
+              <p style={{ color:"rgba(101,67,14,0.5)", fontSize:".72rem", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user?.email}</p>
             </div>
           </div>
         </div>
@@ -164,16 +164,16 @@ function SidebarInner({ collapsed, onToggle, onClose }: { collapsed: boolean; on
         {groups.map(g => (
           <div key={g.group} style={{ marginBottom:18 }}>
             {!collapsed && (
-              <p style={{ color:"rgba(255,255,255,0.2)", fontSize:".62rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".1em", padding:"0 8px", marginBottom:4 }}>{g.group}</p>
+              <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".62rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".1em", padding:"0 8px", marginBottom:4 }}>{g.group}</p>
             )}
             {g.items.map(item => {
               const Icon = item.icon;
               const active = pathname === item.href;
               return (
                 <Link key={item.href} href={item.href} onClick={onClose} title={collapsed ? item.label : undefined}
-                  style={{ display:"flex", alignItems:"center", gap:10, padding: collapsed ? "9px" : "9px 10px", borderRadius:10, marginBottom:1, borderLeft: active ? "3px solid #D4AF37" : "3px solid transparent", background: active ? "rgba(212,175,55,0.1)" : "transparent", color: active ? "#D4AF37" : "rgba(255,255,255,0.5)", textDecoration:"none", fontSize:".85rem", fontWeight:500, transition:"all .2s", justifyContent: collapsed ? "center" : "flex-start" }}
-                  onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLElement).style.background="rgba(212,175,55,0.07)"; (e.currentTarget as HTMLElement).style.color="#D4AF37"; }}}
-                  onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLElement).style.background="transparent"; (e.currentTarget as HTMLElement).style.color="rgba(255,255,255,0.5)"; }}}
+                  style={{ display:"flex", alignItems:"center", gap:10, padding: collapsed ? "9px" : "9px 10px", borderRadius:10, marginBottom:1, borderLeft: active ? "3px solid #C9A227" : "3px solid transparent", background: active ? "rgba(201,162,39,0.15)" : "transparent", color: active ? "#7A5200" : "rgba(101,67,14,0.6)", textDecoration:"none", fontSize:".85rem", fontWeight:500, transition:"all .2s", justifyContent: collapsed ? "center" : "flex-start" }}
+                  onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLElement).style.background="rgba(212,175,55,0.1)"; (e.currentTarget as HTMLElement).style.color="#7A5200"; }}}
+                  onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLElement).style.background="transparent"; (e.currentTarget as HTMLElement).style.color="rgba(101,67,14,0.6)"; }}}
                 >
                   <Icon style={{ width:16, height:16, flexShrink:0 }} />
                   {!collapsed && <span>{item.label}</span>}
@@ -185,11 +185,11 @@ function SidebarInner({ collapsed, onToggle, onClose }: { collapsed: boolean; on
       </div>
 
       {/* Logout */}
-      <div style={{ padding:"10px", borderTop:"1px solid rgba(255,255,255,0.05)", flexShrink:0 }}>
+      <div style={{ padding:"10px", borderTop:"1px solid rgba(201,162,39,0.18)", flexShrink:0 }}>
         <button onClick={handleLogout}
-          style={{ display:"flex", alignItems:"center", gap:10, width:"100%", padding: collapsed ? "9px" : "9px 10px", borderRadius:10, background:"none", border:"none", color:"rgba(255,255,255,0.35)", cursor:"pointer", fontSize:".85rem", transition:"all .2s", justifyContent: collapsed ? "center" : "flex-start" }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color="#f87171"; (e.currentTarget as HTMLElement).style.background="rgba(239,68,68,0.08)"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color="rgba(255,255,255,0.35)"; (e.currentTarget as HTMLElement).style.background="none"; }}
+          style={{ display:"flex", alignItems:"center", gap:10, width:"100%", padding: collapsed ? "9px" : "9px 10px", borderRadius:10, background:"none", border:"none", color:"rgba(101,67,14,0.45)", cursor:"pointer", fontSize:".85rem", transition:"all .2s", justifyContent: collapsed ? "center" : "flex-start" }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color="#991b1b"; (e.currentTarget as HTMLElement).style.background="rgba(239,68,68,0.08)"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color="rgba(101,67,14,0.45)"; (e.currentTarget as HTMLElement).style.background="none"; }}
         >
           <LogOut style={{ width:16, height:16, flexShrink:0 }} />
           {!collapsed && <span>Keluar</span>}
@@ -209,7 +209,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
     <>
       {/* Desktop */}
       <motion.aside animate={{ width: collapsed ? 60 : 230 }} transition={{ duration:.2 }}
-        style={{ height:"100vh", position:"sticky", top:0, background:"rgba(8,8,8,0.95)", borderRight:"1px solid rgba(212,175,55,0.1)", flexShrink:0, overflow:"hidden" }}
+        style={{ height:"100vh", position:"sticky", top:0, background:"rgba(255,252,220,0.97)", borderRight:"1px solid rgba(201,162,39,0.2)", flexShrink:0, overflow:"hidden" }}
         className="desktop-sidebar"
       >
         <SidebarInner collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} onClose={() => {}} />
@@ -225,7 +225,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
             />
             <motion.aside
               initial={{ x:-230 }} animate={{ x:0 }} exit={{ x:-230 }} transition={{ type:"spring", damping:25, stiffness:300 }}
-              style={{ position:"fixed", left:0, top:0, bottom:0, width:230, background:"rgba(8,8,8,0.98)", borderRight:"1px solid rgba(212,175,55,0.15)", zIndex:201, overflow:"hidden" }}
+              style={{ position:"fixed", left:0, top:0, bottom:0, width:230, background:"rgba(255,252,220,0.99)", borderRight:"1px solid rgba(201,162,39,0.22)", zIndex:201, overflow:"hidden" }}
             >
               <SidebarInner collapsed={false} onToggle={() => {}} onClose={onMobileClose} />
             </motion.aside>

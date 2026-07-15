@@ -187,8 +187,8 @@ export default function SettingsPage() {
   }
 
   const inputStyle: React.CSSProperties = {
-    width:"100%", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)",
-    borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".9rem", outline:"none", boxSizing:"border-box",
+    width:"100%", background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.2)",
+    borderRadius:10, padding:"10px 14px", color:"#2D1B00", fontSize:".9rem", outline:"none", boxSizing:"border-box",
   };
 
   return (
@@ -196,14 +196,14 @@ export default function SettingsPage() {
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Pengaturan Sistem</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>
+          <h1 style={{ color:"#2D1B00", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Pengaturan Sistem</h1>
+          <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".85rem", margin:"4px 0 0" }}>
             Konfigurasi informasi dan kontak koperasi.
           </p>
         </div>
         <div style={{ display:"flex", gap:10 }}>
           <button onClick={load}
-            style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"8px 14px", color:"rgba(255,255,255,0.5)", cursor:"pointer", fontSize:".85rem" }}>
+            style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.2)", borderRadius:10, padding:"8px 14px", color:"rgba(101,67,14,0.55)", cursor:"pointer", fontSize:".85rem" }}>
             <RefreshCw style={{ width:14, height:14 }} /> Reset
           </button>
           <button onClick={handleSave} disabled={saving||loading}
@@ -215,31 +215,31 @@ export default function SettingsPage() {
 
       {saved && (
         <motion.div initial={{ opacity:0, y:-8 }} animate={{ opacity:1, y:0 }}
-          style={{ background:"rgba(52,211,153,0.1)", border:"1px solid rgba(52,211,153,0.2)", borderRadius:12, padding:"12px 18px", color:"#34d399", fontSize:".88rem" }}>
+          style={{ background:"rgba(6,95,70,0.08)", border:"1px solid rgba(52,211,153,0.2)", borderRadius:12, padding:"12px 18px", color:"#065f46", fontSize:".88rem" }}>
           Pengaturan berhasil disimpan.
         </motion.div>
       )}
       {error && (
-        <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:12, padding:"12px 18px", color:"#f87171", fontSize:".88rem" }}>
+        <div style={{ background:"rgba(153,27,27,0.08)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:12, padding:"12px 18px", color:"#991b1b", fontSize:".88rem" }}>
           {error}
         </div>
       )}
 
       {loading ? (
-        <p style={{ color:"rgba(255,255,255,0.3)" }}>Memuat pengaturan...</p>
+        <p style={{ color:"rgba(101,67,14,0.35)" }}>Memuat pengaturan...</p>
       ) : (
         GROUPS.map(group => {
           const fields = DEFAULTS.filter(d => d.group_name === group);
           return (
             <motion.div key={group} initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }}
-              style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, overflow:"hidden" }}>
-              <div style={{ padding:"16px 22px", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                <h2 style={{ color:"#D4AF37", fontWeight:700, fontSize:".9rem", margin:0, textTransform:"uppercase", letterSpacing:".06em" }}>{group}</h2>
+              style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.15)", borderRadius:16, overflow:"hidden" }}>
+              <div style={{ padding:"16px 22px", borderBottom:"1px solid rgba(201,162,39,0.12)" }}>
+                <h2 style={{ color:"#8B6010", fontWeight:700, fontSize:".9rem", margin:0, textTransform:"uppercase", letterSpacing:".06em" }}>{group}</h2>
               </div>
               <div style={{ padding:"20px 22px", display:"flex", flexDirection:"column", gap:16 }}>
                 {fields.map(f => (
                   <div key={f.key}>
-                    <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>{f.label}</label>
+                    <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"block", marginBottom:7 }}>{f.label}</label>
                     {f.type === "textarea" ? (
                       <textarea value={settings[f.key]??""} onChange={e=>setSettings(s=>({...s,[f.key]:e.target.value}))}
                         rows={3} placeholder={f.label}
@@ -252,7 +252,7 @@ export default function SettingsPage() {
                         <input inputMode="decimal" value={settings[f.key]??""}
                           onChange={e=>setSettings(s=>({...s,[f.key]:sanitizePercent(e.target.value)}))}
                           placeholder="0" style={{ ...inputStyle, paddingRight:34 }} />
-                        <span style={{ position:"absolute", right:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".9rem", pointerEvents:"none" }}>%</span>
+                        <span style={{ position:"absolute", right:14, top:"50%", transform:"translateY(-50%)", color:"rgba(101,67,14,0.45)", fontSize:".9rem", pointerEvents:"none" }}>%</span>
                       </div>
                     ) : (
                       <input type={f.type === "url" ? "text" : f.type}
@@ -275,28 +275,28 @@ export default function SettingsPage() {
                   return (
                     <>
                       <div style={{ background:"rgba(96,165,250,0.06)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:12, padding:"14px 16px" }}>
-                        <p style={{ color:"#60a5fa", fontWeight:700, fontSize:".8rem", margin:"0 0 6px" }}>
+                        <p style={{ color:"#1d4ed8", fontWeight:700, fontSize:".8rem", margin:"0 0 6px" }}>
                           Rumus: Nilai Gadai Maks = Simpanan × 80% − Admin · Angsuran/bln = Nilai × (1 + {persen}%) / Tenor
                         </p>
                         {hasVal ? (
                           <>
-                            <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"0 0 10px" }}>
-                              Contoh simpanan Rp 10.000.000 → Nilai gadai maks: <strong style={{color:"#60a5fa"}}>{fmt(nilaiMax)}</strong>
+                            <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".75rem", margin:"0 0 10px" }}>
+                              Contoh simpanan Rp 10.000.000 → Nilai gadai maks: <strong style={{color:"#1d4ed8"}}>{fmt(nilaiMax)}</strong>
                             </p>
                             <div style={{ overflowX:"auto" }}>
                               <table style={{ width:"100%", borderCollapse:"collapse", fontSize:".78rem" }}>
                                 <thead>
-                                  <tr style={{ borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
+                                  <tr style={{ borderBottom:"1px solid rgba(201,162,39,0.15)" }}>
                                     {["Tenor","Angsuran/bln"].map(h=>(
-                                      <th key={h} style={{ padding:"6px 10px", textAlign:"left", color:"rgba(255,255,255,0.35)", fontWeight:600, textTransform:"uppercase", fontSize:".68rem" }}>{h}</th>
+                                      <th key={h} style={{ padding:"6px 10px", textAlign:"left", color:"rgba(101,67,14,0.4)", fontWeight:600, textTransform:"uppercase", fontSize:".68rem" }}>{h}</th>
                                     ))}
                                   </tr>
                                 </thead>
                                 <tbody>
                                   {prev.map(p=>(
-                                    <tr key={p.tenor} style={{ borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
-                                      <td style={{ padding:"7px 10px", color:"#fff", fontWeight:600 }}>{p.tenor} bln</td>
-                                      <td style={{ padding:"7px 10px", color:"#60a5fa", fontWeight:700 }}>{fmt(p.angsuran)}</td>
+                                    <tr key={p.tenor} style={{ borderBottom:"1px solid rgba(201,162,39,0.1)" }}>
+                                      <td style={{ padding:"7px 10px", color:"#2D1B00", fontWeight:600 }}>{p.tenor} bln</td>
+                                      <td style={{ padding:"7px 10px", color:"#1d4ed8", fontWeight:700 }}>{fmt(p.angsuran)}</td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -304,12 +304,12 @@ export default function SettingsPage() {
                             </div>
                           </>
                         ) : (
-                          <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".78rem", margin:0 }}>Isi nilai admin dan persen di atas untuk melihat preview.</p>
+                          <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".78rem", margin:0 }}>Isi nilai admin dan persen di atas untuk melihat preview.</p>
                         )}
                       </div>
                       <button onClick={handleSaveGadai} disabled={savingGadai}
                         style={{ display:"flex", alignItems:"center", gap:8, padding:"11px 22px", borderRadius:11,
-                          background: savedGadai ? "rgba(52,211,153,0.15)" : "linear-gradient(135deg,#60a5fa,#93c5fd)",
+                          background: savedGadai ? "rgba(6,95,70,0.1)" : "linear-gradient(135deg,#60a5fa,#93c5fd)",
                           border: savedGadai ? "1px solid #34d399" : "none",
                           color: savedGadai ? "#34d399" : "#0a0a0a",
                           fontWeight:700, fontSize:".88rem", cursor:savingGadai?"not-allowed":"pointer",
@@ -319,7 +319,7 @@ export default function SettingsPage() {
                           : <><Save style={{width:14,height:14}}/> Simpan Parameter Gadai</>}
                       </button>
                       {savedGadai && (
-                        <p style={{ color:"#34d399", fontSize:".78rem", margin:0 }}>
+                        <p style={{ color:"#065f46", fontSize:".78rem", margin:0 }}>
                           ✓ Tersimpan. Halaman Simpanan anggota akan langsung menggunakan nilai baru.
                         </p>
                       )}
@@ -342,25 +342,25 @@ export default function SettingsPage() {
                           Preview Kalkulasi (contoh: harga emas Rp 2.000.000 / Anggota)
                         </p>
                         {!hasValues ? (
-                          <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".78rem", margin:0 }}>
+                          <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".78rem", margin:0 }}>
                             Isi nilai admin, % per bulan, dan % DP di atas untuk melihat preview.
                           </p>
                         ) : (
                           <div style={{ overflowX:"auto" }}>
                             <table style={{ width:"100%", borderCollapse:"collapse", fontSize:".78rem" }}>
                               <thead>
-                                <tr style={{ borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
+                                <tr style={{ borderBottom:"1px solid rgba(201,162,39,0.15)" }}>
                                   {["Tenor","DP (bayar dulu)","Angsuran/bln"].map(h=>(
-                                    <th key={h} style={{ padding:"6px 10px", textAlign:"left", color:"rgba(255,255,255,0.35)", fontWeight:600, textTransform:"uppercase", fontSize:".68rem", whiteSpace:"nowrap" }}>{h}</th>
+                                    <th key={h} style={{ padding:"6px 10px", textAlign:"left", color:"rgba(101,67,14,0.4)", fontWeight:600, textTransform:"uppercase", fontSize:".68rem", whiteSpace:"nowrap" }}>{h}</th>
                                   ))}
                                 </tr>
                               </thead>
                               <tbody>
                                 {preview.map(p=>(
-                                  <tr key={p.tenor} style={{ borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
-                                    <td style={{ padding:"7px 10px", color:"#fff", fontWeight:600 }}>{p.tenor} bln</td>
-                                    <td style={{ padding:"7px 10px", color:"#60a5fa", fontWeight:700 }}>{p.dp > 0 ? fmt(p.dp) : "—"}</td>
-                                    <td style={{ padding:"7px 10px", color:"#D4AF37", fontWeight:700 }}>{fmt(p.angsuran)}</td>
+                                  <tr key={p.tenor} style={{ borderBottom:"1px solid rgba(201,162,39,0.1)" }}>
+                                    <td style={{ padding:"7px 10px", color:"#2D1B00", fontWeight:600 }}>{p.tenor} bln</td>
+                                    <td style={{ padding:"7px 10px", color:"#1d4ed8", fontWeight:700 }}>{p.dp > 0 ? fmt(p.dp) : "—"}</td>
+                                    <td style={{ padding:"7px 10px", color:"#8B6010", fontWeight:700 }}>{fmt(p.angsuran)}</td>
                                   </tr>
                                 ))}
                               </tbody>
@@ -372,7 +372,7 @@ export default function SettingsPage() {
                       {/* Tombol simpan khusus cicilan */}
                       <button onClick={handleSaveCicilan} disabled={savingCicilan}
                         style={{ display:"flex", alignItems:"center", gap:8, padding:"11px 22px", borderRadius:11,
-                          background: savedCicilan ? "rgba(52,211,153,0.15)" : "linear-gradient(135deg,#a78bfa,#c4b5fd)",
+                          background: savedCicilan ? "rgba(6,95,70,0.1)" : "linear-gradient(135deg,#a78bfa,#c4b5fd)",
                           border: savedCicilan ? "1px solid #34d399" : "none",
                           color: savedCicilan ? "#34d399" : "#0a0a0a",
                           fontWeight:700, fontSize:".88rem", cursor:savingCicilan?"not-allowed":"pointer",
@@ -386,7 +386,7 @@ export default function SettingsPage() {
                         )}
                       </button>
                       {savedCicilan && (
-                        <p style={{ color:"#34d399", fontSize:".78rem", margin:0 }}>
+                        <p style={{ color:"#065f46", fontSize:".78rem", margin:0 }}>
                           ✓ Nilai telah tersimpan ke database. Buka tab Harga → Cicilan untuk melihat angsuran ter-update.
                         </p>
                       )}
@@ -397,8 +397,8 @@ export default function SettingsPage() {
                 {/* Map preview */}
                 {group === "Lokasi" && settings["map_embed"] && (
                   <div>
-                    <label style={{ color:"rgba(255,255,255,0.35)", fontSize:".75rem", display:"block", marginBottom:8 }}>Preview Peta</label>
-                    <div style={{ borderRadius:12, overflow:"hidden", border:"1px solid rgba(255,255,255,0.08)" }}>
+                    <label style={{ color:"rgba(101,67,14,0.4)", fontSize:".75rem", display:"block", marginBottom:8 }}>Preview Peta</label>
+                    <div style={{ borderRadius:12, overflow:"hidden", border:"1px solid rgba(201,162,39,0.18)" }}>
                       <iframe
                         src={settings["map_embed"]}
                         width="100%" height="260"

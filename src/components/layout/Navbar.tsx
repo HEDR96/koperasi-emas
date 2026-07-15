@@ -24,11 +24,11 @@ export default function Navbar() {
   const navStyle: React.CSSProperties = {
     position: "fixed", top: 0, left: 0, right: 0, zIndex: 999,
     transition: "all .4s ease",
-    background: scrolled ? "rgba(10,10,10,0.85)" : "transparent",
+    background: scrolled ? "rgba(255,253,231,0.92)" : "transparent",
     backdropFilter: scrolled ? "blur(16px)" : "none",
     WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
-    borderBottom: scrolled ? "1px solid rgba(212,175,55,0.1)" : "1px solid transparent",
-    boxShadow: scrolled ? "0 4px 30px rgba(0,0,0,0.4)" : "none",
+    borderBottom: scrolled ? "1px solid rgba(201,162,39,0.2)" : "1px solid transparent",
+    boxShadow: scrolled ? "0 4px 30px rgba(201,162,39,0.12)" : "none",
   };
 
   return (
@@ -48,9 +48,9 @@ export default function Navbar() {
           {/* Desktop Nav */}
           <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:2 }} className="hidden-mobile">
             {NAV_ITEMS.slice(0, 8).map(item => (
-              <Link key={item.label} href={item.href} style={{ padding:"6px 12px", borderRadius:8, fontSize:".85rem", fontWeight:500, color:"rgba(255,255,255,0.85)", textDecoration:"none", transition:"color .2s, background .2s", whiteSpace:"nowrap" }}
-                onMouseEnter={e => { (e.target as HTMLElement).style.color="#D4AF37"; (e.target as HTMLElement).style.background="rgba(212,175,55,0.06)"; }}
-                onMouseLeave={e => { (e.target as HTMLElement).style.color="rgba(255,255,255,0.85)"; (e.target as HTMLElement).style.background="transparent"; }}
+              <Link key={item.label} href={item.href} style={{ padding:"6px 12px", borderRadius:8, fontSize:".85rem", fontWeight:500, color:"#5C3D11", textDecoration:"none", transition:"color .2s, background .2s", whiteSpace:"nowrap" }}
+                onMouseEnter={e => { (e.target as HTMLElement).style.color="#8B6010"; (e.target as HTMLElement).style.background="rgba(212,175,55,0.12)"; }}
+                onMouseLeave={e => { (e.target as HTMLElement).style.color="#5C3D11"; (e.target as HTMLElement).style.background="transparent"; }}
               >{item.label}</Link>
             ))}
           </div>
@@ -75,7 +75,7 @@ export default function Navbar() {
             <button
               onClick={() => setOpen(!open)}
               className="mobile-only"
-              style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:9, width:38, height:38, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.75)", cursor:"pointer" }}
+              style={{ background:"rgba(255,248,220,0.8)", border:"1px solid rgba(201,162,39,0.25)", borderRadius:9, width:38, height:38, display:"flex", alignItems:"center", justifyContent:"center", color:"#8B6010", cursor:"pointer" }}
             >
               {open ? <X style={{ width:18, height:18 }} /> : <Menu style={{ width:18, height:18 }} />}
             </button>
@@ -90,15 +90,15 @@ export default function Navbar() {
             initial={{ opacity:0, height:0 }}
             animate={{ opacity:1, height:"auto" }}
             exit={{ opacity:0, height:0 }}
-            style={{ position:"fixed", top:70, left:0, right:0, zIndex:998, background:"rgba(10,10,10,0.95)", backdropFilter:"blur(20px)", borderBottom:"1px solid rgba(212,175,55,0.1)", overflow:"hidden" }}
+            style={{ position:"fixed", top:70, left:0, right:0, zIndex:998, background:"rgba(255,253,231,0.97)", backdropFilter:"blur(20px)", borderBottom:"1px solid rgba(201,162,39,0.18)", overflow:"hidden" }}
           >
             <div style={{ padding:"16px 24px 24px" }}>
               {NAV_ITEMS.map((item, i) => (
                 <motion.div key={item.label} initial={{ opacity:0, x:-16 }} animate={{ opacity:1, x:0 }} transition={{ delay:i*.04 }}>
                   <Link href={item.href} onClick={() => setOpen(false)}
-                    style={{ display:"block", padding:"12px 16px", borderRadius:10, color:"rgba(255,255,255,0.85)", fontSize:".9rem", fontWeight:500, textDecoration:"none", marginBottom:2, transition:"background .2s, color .2s" }}
-                    onMouseEnter={e => { (e.target as HTMLElement).style.color="#D4AF37"; (e.target as HTMLElement).style.background="rgba(212,175,55,0.07)"; }}
-                    onMouseLeave={e => { (e.target as HTMLElement).style.color="rgba(255,255,255,0.85)"; (e.target as HTMLElement).style.background="transparent"; }}
+                    style={{ display:"block", padding:"12px 16px", borderRadius:10, color:"#5C3D11", fontSize:".9rem", fontWeight:500, textDecoration:"none", marginBottom:2, transition:"background .2s, color .2s" }}
+                    onMouseEnter={e => { (e.target as HTMLElement).style.color="#8B6010"; (e.target as HTMLElement).style.background="rgba(212,175,55,0.1)"; }}
+                    onMouseLeave={e => { (e.target as HTMLElement).style.color="#5C3D11"; (e.target as HTMLElement).style.background="transparent"; }}
                   >{item.label}</Link>
                 </motion.div>
               ))}

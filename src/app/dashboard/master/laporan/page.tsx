@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import {
@@ -114,10 +114,10 @@ async function downloadXLSX(
 type ReportType = "transaksi" | "buyback" | "cicilan" | "gadai" | "simpanan";
 
 const REPORTS: { id: ReportType; label: string; icon: any; color: string; desc: string }[] = [
-  { id:"transaksi", label:"Transaksi Beli Emas", icon:Coins,          color:"#D4AF37", desc:"Semua transaksi beli emas dalam periode" },
-  { id:"buyback",   label:"Buyback Emas",        icon:ArrowDownCircle,color:"#34d399", desc:"Semua transaksi buyback dalam periode" },
+  { id:"transaksi", label:"Transaksi Beli Emas", icon:Coins,          color:"#8B6010", desc:"Semua transaksi beli emas dalam periode" },
+  { id:"buyback",   label:"Buyback Emas",        icon:ArrowDownCircle,color:"#065f46", desc:"Semua transaksi buyback dalam periode" },
   { id:"cicilan",   label:"Cicilan Emas",         icon:CreditCard,     color:"#a78bfa", desc:"Data cicilan emas dalam periode" },
-  { id:"gadai",     label:"Gadai Emas",           icon:Landmark,       color:"#60a5fa", desc:"Data gadai emas dalam periode" },
+  { id:"gadai",     label:"Gadai Emas",           icon:Landmark,       color:"#1d4ed8", desc:"Data gadai emas dalam periode" },
   { id:"simpanan",  label:"Simpanan",             icon:Wallet,         color:"#f59e0b", desc:"Data simpanan anggota dalam periode" },
 ];
 
@@ -336,31 +336,31 @@ export function LaporanPageContent({ userId, subtitle }: { userId?: string; subt
     <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
       {/* Header */}
       <div>
-        <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Laporan</h1>
-        <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>
+        <h1 style={{ color:"#2D1B00", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Laporan</h1>
+        <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".85rem", margin:"4px 0 0" }}>
           {subtitle || "Download laporan transaksi dalam format Excel (.xlsx)"}
         </p>
       </div>
 
       {/* Filter periode */}
-      <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:16, padding:"20px 22px" }}>
+      <div style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.18)", borderRadius:16, padding:"20px 22px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
-          <Calendar style={{ width:16, height:16, color:"#D4AF37" }} />
-          <p style={{ color:"#D4AF37", fontWeight:700, fontSize:".88rem", margin:0 }}>Filter Periode</p>
+          <Calendar style={{ width:16, height:16, color:"#8B6010" }} />
+          <p style={{ color:"#8B6010", fontWeight:700, fontSize:".88rem", margin:0 }}>Filter Periode</p>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
           <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
-            <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".75rem" }}>Dari Tanggal</label>
+            <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".75rem" }}>Dari Tanggal</label>
             <input type="date" value={from} onChange={e => setFrom(e.target.value)}
-              style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:9, padding:"9px 12px", color:"#fff", fontSize:".88rem", outline:"none", colorScheme:"dark" }} />
+              style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.22)", borderRadius:9, padding:"9px 12px", color:"#2D1B00", fontSize:".88rem", outline:"none", colorScheme:"dark" }} />
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
-            <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".75rem" }}>Sampai Tanggal</label>
+            <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".75rem" }}>Sampai Tanggal</label>
             <input type="date" value={to} onChange={e => setTo(e.target.value)}
-              style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:9, padding:"9px 12px", color:"#fff", fontSize:".88rem", outline:"none", colorScheme:"dark" }} />
+              style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.22)", borderRadius:9, padding:"9px 12px", color:"#2D1B00", fontSize:".88rem", outline:"none", colorScheme:"dark" }} />
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
-            <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".75rem" }}>Shortcut</label>
+            <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".75rem" }}>Shortcut</label>
             <div style={{ display:"flex", gap:6 }}>
               {[
                 { label:"Bulan ini",   fn: () => { setFrom(firstOfMonth); setTo(today); } },
@@ -368,7 +368,7 @@ export function LaporanPageContent({ userId, subtitle }: { userId?: string; subt
                 { label:"Tahun ini",   fn: () => { setFrom(today.slice(0,4)+"-01-01"); setTo(today); } },
               ].map(s => (
                 <button key={s.label} onClick={s.fn}
-                  style={{ background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:7, padding:"6px 10px", color:"#D4AF37", fontSize:".75rem", cursor:"pointer", whiteSpace:"nowrap" }}>
+                  style={{ background:"rgba(212,175,55,0.08)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:7, padding:"6px 10px", color:"#8B6010", fontSize:".75rem", cursor:"pointer", whiteSpace:"nowrap" }}>
                   {s.label}
                 </button>
               ))}
@@ -384,21 +384,21 @@ export function LaporanPageContent({ userId, subtitle }: { userId?: string; subt
           const isActive = active === r.id && loading;
           return (
             <div key={r.id}
-              style={{ background:"rgba(255,255,255,0.03)", border:`1px solid ${r.color}25`, borderRadius:16, padding:"18px 20px", display:"flex", flexDirection:"column", gap:14 }}>
+              style={{ background:"rgba(255,255,255,0.72)", border:`1px solid ${r.color}25`, borderRadius:16, padding:"18px 20px", display:"flex", flexDirection:"column", gap:14 }}>
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                 <span style={{ width:38, height:38, borderRadius:11, background:`${r.color}18`, border:`1px solid ${r.color}30`, display:"inline-flex", alignItems:"center", justifyContent:"center" }}>
                   <Icon style={{ width:18, height:18, color:r.color }} />
                 </span>
                 <div>
-                  <p style={{ color:"#fff", fontWeight:700, fontSize:".9rem", margin:0 }}>{r.label}</p>
-                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".74rem", margin:"2px 0 0" }}>{r.desc}</p>
+                  <p style={{ color:"#2D1B00", fontWeight:700, fontSize:".9rem", margin:0 }}>{r.label}</p>
+                  <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".74rem", margin:"2px 0 0" }}>{r.desc}</p>
                 </div>
               </div>
               <button onClick={() => handleDownload(r.id)} disabled={isActive || !from || !to}
                 style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:7, width:"100%", padding:"10px", borderRadius:10,
-                  background: isActive ? "rgba(255,255,255,0.05)" : `${r.color}18`,
+                  background: isActive ? "rgba(201,162,39,0.1)" : `${r.color}18`,
                   border:`1px solid ${r.color}35`,
-                  color: isActive ? "rgba(255,255,255,0.4)" : r.color,
+                  color: isActive ? "rgba(101,67,14,0.45)" : r.color,
                   cursor: isActive ? "wait" : "pointer", fontWeight:700, fontSize:".84rem", transition:"all .2s" }}>
                 {isActive
                   ? <><RefreshCw style={{ width:14, height:14, animation:"spin 1s linear infinite" }} /> Memuat...</>
@@ -411,7 +411,7 @@ export function LaporanPageContent({ userId, subtitle }: { userId?: string; subt
 
       {/* Hasil preview singkat */}
       {fetched && !loading && (
-        <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:16, padding:"18px 22px" }}>
+        <div style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.18)", borderRadius:16, padding:"18px 22px" }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
             <FileSpreadsheet style={{ width:16, height:16, color:reportInfo?.color || "#fff" }} />
             <p style={{ color:reportInfo?.color || "#fff", fontWeight:700, fontSize:".9rem", margin:0 }}>
@@ -419,23 +419,23 @@ export function LaporanPageContent({ userId, subtitle }: { userId?: string; subt
             </p>
           </div>
           {rows.length === 0 ? (
-            <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".88rem", margin:0 }}>Tidak ada data dalam periode ini.</p>
+            <p style={{ color:"rgba(101,67,14,0.4)", fontSize:".88rem", margin:0 }}>Tidak ada data dalam periode ini.</p>
           ) : (
             <div style={{ display:"flex", gap:24, flexWrap:"wrap" }}>
               <div>
-                <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".73rem", margin:"0 0 3px" }}>Total Data</p>
-                <p style={{ color:"#fff", fontWeight:800, fontSize:"1.2rem", margin:0 }}>{sum?.count ?? rows.length} baris</p>
+                <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".73rem", margin:"0 0 3px" }}>Total Data</p>
+                <p style={{ color:"#2D1B00", fontWeight:800, fontSize:"1.2rem", margin:0 }}>{sum?.count ?? rows.length} baris</p>
               </div>
               {sum && "total" in sum && (
                 <div>
-                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".73rem", margin:"0 0 3px" }}>Total Nominal</p>
+                  <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".73rem", margin:"0 0 3px" }}>Total Nominal</p>
                   <p style={{ color:reportInfo?.color || "#D4AF37", fontWeight:800, fontSize:"1.2rem", margin:0 }}>{fmt(sum.total)}</p>
                 </div>
               )}
               {sum && "totalGram" in sum && (
                 <div>
-                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".73rem", margin:"0 0 3px" }}>Total Gram</p>
-                  <p style={{ color:"#D4AF37", fontWeight:800, fontSize:"1.2rem", margin:0 }}>{(sum.totalGram as number).toFixed(2)} gr</p>
+                  <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".73rem", margin:"0 0 3px" }}>Total Gram</p>
+                  <p style={{ color:"#8B6010", fontWeight:800, fontSize:"1.2rem", margin:0 }}>{(sum.totalGram as number).toFixed(2)} gr</p>
                 </div>
               )}
             </div>

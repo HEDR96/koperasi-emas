@@ -56,35 +56,35 @@ export default function MemberPicker({ value, onChange, placeholder = "Pilih ang
         onClick={() => setOpen(o => !o)}
         style={{
           width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
-          background: "rgba(255,255,255,0.05)", border: `1px solid ${selected ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.1)"}`,
-          borderRadius: 10, padding: "10px 14px", color: selected ? "#fff" : "rgba(255,255,255,0.4)",
+          background: "rgba(255,255,255,0.75)", border: `1px solid ${selected ? "rgba(201,162,39,0.35)" : "rgba(201,162,39,0.2)"}`,
+          borderRadius: 10, padding: "10px 14px", color: selected ? "#2D1B00" : "rgba(101,67,14,0.45)",
           fontSize: ".9rem", cursor: "pointer", boxSizing: "border-box", textAlign: "left",
         }}
       >
         <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {selected ? `${selected.name}${selected.nik ? " · " + selected.nik : ""}` : placeholder}
         </span>
-        <ChevronDown style={{ width: 16, height: 16, color: "rgba(255,255,255,0.4)", flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }} />
+        <ChevronDown style={{ width: 16, height: 16, color: "rgba(101,67,14,0.45)", flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }} />
       </button>
 
       {open && (
         <div style={{
           position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, zIndex: 1000,
-          background: "#1a1a1a", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 10,
-          boxShadow: "0 12px 32px rgba(0,0,0,0.6)", overflow: "hidden",
+          background: "#FFFDE7", border: "1px solid rgba(201,162,39,0.3)", borderRadius: 10,
+          boxShadow: "0 12px 32px rgba(201,162,39,0.2)", overflow: "hidden",
         }}>
-          <div style={{ position: "relative", padding: 8, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-            <Search style={{ position: "absolute", left: 18, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: "rgba(255,255,255,0.3)" }} />
+          <div style={{ position: "relative", padding: 8, borderBottom: "1px solid rgba(201,162,39,0.12)" }}>
+            <Search style={{ position: "absolute", left: 18, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: "rgba(101,67,14,0.4)" }} />
             <input
               autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder="Cari nama / ID..."
-              style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "8px 10px 8px 32px", color: "#fff", fontSize: ".85rem", outline: "none", boxSizing: "border-box" }}
+              style={{ width: "100%", background: "rgba(255,255,255,0.8)", border: "1px solid rgba(201,162,39,0.2)", borderRadius: 8, padding: "8px 10px 8px 32px", color: "#2D1B00", fontSize: ".85rem", outline: "none", boxSizing: "border-box" }}
             />
           </div>
           <div style={{ maxHeight: 220, overflowY: "auto", padding: 4 }}>
             {loading ? (
-              <p style={{ color: "rgba(255,255,255,0.3)", fontSize: ".82rem", padding: "12px 14px", margin: 0 }}>Memuat anggota...</p>
+              <p style={{ color: "rgba(101,67,14,0.45)", fontSize: ".82rem", padding: "12px 14px", margin: 0 }}>Memuat anggota...</p>
             ) : filtered.length === 0 ? (
-              <p style={{ color: "rgba(255,255,255,0.3)", fontSize: ".82rem", padding: "12px 14px", margin: 0 }}>Tidak ada anggota aktif.</p>
+              <p style={{ color: "rgba(101,67,14,0.45)", fontSize: ".82rem", padding: "12px 14px", margin: 0 }}>Tidak ada anggota aktif.</p>
             ) : filtered.map(m => {
               const active = m.id === value;
               return (
@@ -100,10 +100,10 @@ export default function MemberPicker({ value, onChange, placeholder = "Pilih ang
                   onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                 >
                   <span style={{ display: "flex", flexDirection: "column" }}>
-                    <span style={{ color: active ? "#D4AF37" : "#fff", fontWeight: 600, fontSize: ".86rem" }}>{m.name}</span>
-                    <span style={{ color: "rgba(255,255,255,0.4)", fontSize: ".74rem" }}>{m.nik || "—"}</span>
+                    <span style={{ color: active ? "#8B6010" : "#2D1B00", fontWeight: 600, fontSize: ".86rem" }}>{m.name}</span>
+                    <span style={{ color: "rgba(101,67,14,0.5)", fontSize: ".74rem" }}>{m.nik || "—"}</span>
                   </span>
-                  {active && <Check style={{ width: 14, height: 14, color: "#D4AF37", flexShrink: 0 }} />}
+                  {active && <Check style={{ width: 14, height: 14, color: "#8B6010", flexShrink: 0 }} />}
                 </button>
               );
             })}

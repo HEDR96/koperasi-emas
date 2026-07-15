@@ -109,11 +109,11 @@ export default function MemberDashboardPage() {
   const simpananGram = hargaBuyback > 0 ? totalSimpanan / hargaBuyback : 0;
 
   const quickLinks = [
-    { label:"Buyback Emas", href:"/dashboard/member/buyback",  icon:ArrowDownCircle, color:"#34d399" },
-    { label:"Simpanan",     href:"/dashboard/member/simpanan", icon:Landmark,        color:"#60a5fa" },
+    { label:"Buyback Emas", href:"/dashboard/member/buyback",  icon:ArrowDownCircle, color:"#065f46" },
+    { label:"Simpanan",     href:"/dashboard/member/simpanan", icon:Landmark,        color:"#1d4ed8" },
     { label:"Cicilan",      href:"/dashboard/member/cicilan",  icon:CreditCard,      color:"#a78bfa" },
-    { label:"Ajukan Transaksi", href:"/dashboard/member/request", icon:Send,         color:"#D4AF37" },
-    { label:"Histori",      href:"/dashboard/member/histori",  icon:History,         color:"#fff" },
+    { label:"Ajukan Transaksi", href:"/dashboard/member/request", icon:Send,         color:"#8B6010" },
+    { label:"Histori",      href:"/dashboard/member/histori",  icon:History,         color:"#2D1B00" },
   ];
 
   return (
@@ -121,14 +121,14 @@ export default function MemberDashboardPage() {
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>
+          <h1 style={{ color:"#2D1B00", fontSize:"1.4rem", fontWeight:700, margin:0 }}>
             Halo, {user?.name?.split(" ")[0] || "Anggota"} 👋
           </h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>
+          <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".85rem", margin:"4px 0 0" }}>
             Ringkasan emas tersimpan & simpanan Anda
           </p>
         </div>
-        <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
+        <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#8B6010", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:13, height:13 }} /> Refresh
         </button>
       </div>
@@ -139,15 +139,15 @@ export default function MemberDashboardPage() {
         <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }}
           style={{ background:"linear-gradient(135deg,rgba(212,175,55,0.14),rgba(212,175,55,0.04))", border:"1px solid rgba(212,175,55,0.3)", borderRadius:20, padding:24 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
-            <Coins style={{ width:16, height:16, color:"#D4AF37" }} />
-            <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".82rem", margin:0 }}>Total Transaksi Emas</p>
+            <Coins style={{ width:16, height:16, color:"#8B6010" }} />
+            <p style={{ color:"rgba(101,67,14,0.6)", fontSize:".82rem", margin:0 }}>Total Transaksi Emas</p>
           </div>
-          <p style={{ color:"#D4AF37", fontSize:"2.1rem", fontWeight:900, margin:0, lineHeight:1 }}>
+          <p style={{ color:"#8B6010", fontSize:"2.1rem", fontWeight:900, margin:0, lineHeight:1 }}>
             {loading ? "—" : fmtGram(emasGram)}
           </p>
           {hargaBuyback > 0 && (
-            <p style={{ color:"rgba(255,255,255,0.6)", fontSize:".85rem", marginTop:10 }}>
-              ≈ <strong style={{ color:"#fff" }}>{fmt(emasValue)}</strong> <span style={{ color:"rgba(255,255,255,0.35)" }}>(harga buyback)</span>
+            <p style={{ color:"rgba(101,67,14,0.7)", fontSize:".85rem", marginTop:10 }}>
+              ≈ <strong style={{ color:"#2D1B00" }}>{fmt(emasValue)}</strong> <span style={{ color:"rgba(101,67,14,0.4)" }}>(harga buyback)</span>
             </p>
           )}
         </motion.div>
@@ -156,15 +156,15 @@ export default function MemberDashboardPage() {
         <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:.06 }}
           style={{ background:"linear-gradient(135deg,rgba(96,165,250,0.12),rgba(96,165,250,0.03))", border:"1px solid rgba(96,165,250,0.25)", borderRadius:20, padding:24 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
-            <Wallet style={{ width:16, height:16, color:"#60a5fa" }} />
-            <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".82rem", margin:0 }}>Total Simpanan</p>
+            <Wallet style={{ width:16, height:16, color:"#1d4ed8" }} />
+            <p style={{ color:"rgba(101,67,14,0.6)", fontSize:".82rem", margin:0 }}>Total Simpanan</p>
           </div>
-          <p style={{ color:"#60a5fa", fontSize:"2.1rem", fontWeight:900, margin:0, lineHeight:1 }}>
+          <p style={{ color:"#1d4ed8", fontSize:"2.1rem", fontWeight:900, margin:0, lineHeight:1 }}>
             {loading ? "—" : fmt(totalSimpanan)}
           </p>
           {hargaBuyback > 0 && (
-            <p style={{ color:"rgba(255,255,255,0.6)", fontSize:".85rem", marginTop:10 }}>
-              Setara <strong style={{ color:"#fff" }}>{fmtGram(simpananGram)}</strong>
+            <p style={{ color:"rgba(101,67,14,0.7)", fontSize:".85rem", marginTop:10 }}>
+              Setara <strong style={{ color:"#2D1B00" }}>{fmtGram(simpananGram)}</strong>
             </p>
           )}
         </motion.div>
@@ -173,11 +173,11 @@ export default function MemberDashboardPage() {
       {/* Harga terkini */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))", gap:14 }}>
         {[
-          { label:"Harga Beli Emas / gram",   value:hargaEmas,    color:"#D4AF37" },
-          { label:"Harga Buyback / gram",     value:hargaBuyback, color:"#34d399" },
+          { label:"Harga Beli Emas / gram",   value:hargaEmas,    color:"#8B6010" },
+          { label:"Harga Buyback / gram",     value:hargaBuyback, color:"#065f46" },
         ].map(h => (
-          <div key={h.label} style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:14, padding:"16px 18px" }}>
-            <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", marginBottom:6 }}>{h.label}</p>
+          <div key={h.label} style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.15)", borderRadius:14, padding:"16px 18px" }}>
+            <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".75rem", marginBottom:6 }}>{h.label}</p>
             <p style={{ color:h.color, fontWeight:900, fontSize:"1.25rem", margin:0 }}>{loading ? "—" : fmt(h.value)}</p>
           </div>
         ))}
@@ -190,12 +190,12 @@ export default function MemberDashboardPage() {
             <Link href="/dashboard/member/gadai" style={{ textDecoration:"none" }}>
               <div style={{ background:"rgba(96,165,250,0.06)", border:"1px solid rgba(96,165,250,0.22)", borderRadius:16, padding:"16px 18px" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-                  <Landmark style={{ width:15, height:15, color:"#60a5fa" }} />
-                  <p style={{ color:"#60a5fa", fontWeight:700, fontSize:".88rem", margin:0 }}>Gadai Aktif</p>
-                  <span style={{ marginLeft:"auto", textTransform:"capitalize", color:"#D4AF37", fontSize:".75rem", fontWeight:600 }}>{gadaiAktif.status}</span>
+                  <Landmark style={{ width:15, height:15, color:"#1d4ed8" }} />
+                  <p style={{ color:"#1d4ed8", fontWeight:700, fontSize:".88rem", margin:0 }}>Gadai Aktif</p>
+                  <span style={{ marginLeft:"auto", textTransform:"capitalize", color:"#8B6010", fontSize:".75rem", fontWeight:600 }}>{gadaiAktif.status}</span>
                 </div>
-                <p style={{ color:"rgba(255,255,255,0.6)", fontSize:".82rem", margin:0 }}>
-                  Pinjaman {fmt(gadaiAktif.dana_cair)} · Sisa <strong style={{ color:"#f87171" }}>{fmt(gadaiAktif.sisa_tagihan)}</strong>
+                <p style={{ color:"rgba(101,67,14,0.7)", fontSize:".82rem", margin:0 }}>
+                  Pinjaman {fmt(gadaiAktif.dana_cair)} · Sisa <strong style={{ color:"#991b1b" }}>{fmt(gadaiAktif.sisa_tagihan)}</strong>
                 </p>
               </div>
             </Link>
@@ -207,7 +207,7 @@ export default function MemberDashboardPage() {
                   <CreditCard style={{ width:15, height:15, color:"#a78bfa" }} />
                   <p style={{ color:"#a78bfa", fontWeight:700, fontSize:".88rem", margin:0 }}>{c.product_name || "Cicilan Emas"}</p>
                 </div>
-                <p style={{ color:"rgba(255,255,255,0.6)", fontSize:".82rem", margin:0 }}>
+                <p style={{ color:"rgba(101,67,14,0.7)", fontSize:".82rem", margin:0 }}>
                   {c.paid_installments}/{c.tenor} bulan · Angsuran {fmt(c.monthly_amount)}
                 </p>
               </div>
@@ -218,20 +218,20 @@ export default function MemberDashboardPage() {
 
       {/* Quick actions */}
       <div>
-        <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 12px" }}>Akses Cepat</p>
+        <p style={{ color:"rgba(101,67,14,0.55)", fontSize:".78rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 12px" }}>Akses Cepat</p>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))", gap:12 }}>
           {quickLinks.map(q => {
             const Icon = q.icon;
             return (
               <Link key={q.href} href={q.href} style={{ textDecoration:"none" }}>
-                <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:14, padding:"16px 16px", display:"flex", flexDirection:"column", gap:10 }}
+                <div style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.15)", borderRadius:14, padding:"16px 16px", display:"flex", flexDirection:"column", gap:10 }}
                   onMouseEnter={e=>(e.currentTarget as HTMLElement).style.borderColor="rgba(212,175,55,0.3)"}
-                  onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor="rgba(255,255,255,0.07)"}>
+                  onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor="rgba(201,162,39,0.15)"}>
                   <span style={{ width:38, height:38, borderRadius:11, background:`${q.color}1a`, border:`1px solid ${q.color}33`, display:"inline-flex", alignItems:"center", justifyContent:"center", color:q.color }}>
                     <Icon style={{ width:18, height:18 }} />
                   </span>
-                  <span style={{ color:"#fff", fontWeight:600, fontSize:".88rem", display:"flex", alignItems:"center", gap:6 }}>
-                    {q.label} <ArrowRight style={{ width:13, height:13, color:"rgba(255,255,255,0.3)" }} />
+                  <span style={{ color:"#2D1B00", fontWeight:600, fontSize:".88rem", display:"flex", alignItems:"center", gap:6 }}>
+                    {q.label} <ArrowRight style={{ width:13, height:13, color:"rgba(101,67,14,0.35)" }} />
                   </span>
                 </div>
               </Link>
@@ -242,28 +242,28 @@ export default function MemberDashboardPage() {
 
       {/* Recent transactions */}
       <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }}
-        style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, overflow:"hidden" }}>
-        <div style={{ padding:"16px 20px", borderBottom:"1px solid rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-          <h2 style={{ color:"#fff", fontWeight:700, fontSize:"1rem", margin:0 }}>Transaksi Terkini</h2>
-          <Link href="/dashboard/member/histori" style={{ color:"#D4AF37", fontSize:".8rem", textDecoration:"none" }}>Lihat Semua →</Link>
+        style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.15)", borderRadius:16, overflow:"hidden" }}>
+        <div style={{ padding:"16px 20px", borderBottom:"1px solid rgba(201,162,39,0.12)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <h2 style={{ color:"#2D1B00", fontWeight:700, fontSize:"1rem", margin:0 }}>Transaksi Terkini</h2>
+          <Link href="/dashboard/member/histori" style={{ color:"#8B6010", fontSize:".8rem", textDecoration:"none" }}>Lihat Semua →</Link>
         </div>
         {loading ? (
-          <p style={{ padding:"32px", textAlign:"center", color:"rgba(255,255,255,0.3)" }}>Memuat...</p>
+          <p style={{ padding:"32px", textAlign:"center", color:"rgba(101,67,14,0.35)" }}>Memuat...</p>
         ) : recent.length === 0 ? (
-          <p style={{ padding:"32px", textAlign:"center", color:"rgba(255,255,255,0.3)" }}>Belum ada transaksi.</p>
+          <p style={{ padding:"32px", textAlign:"center", color:"rgba(101,67,14,0.35)" }}>Belum ada transaksi.</p>
         ) : (
           <div style={{ display:"flex", flexDirection:"column" }}>
             {recent.map(tx => (
-              <div key={tx.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"13px 20px", borderBottom:"1px solid rgba(255,255,255,0.04)", gap:12 }}>
+              <div key={tx.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"13px 20px", borderBottom:"1px solid rgba(201,162,39,0.1)", gap:12 }}>
                 <div>
-                  <p style={{ color:"#fff", fontWeight:600, fontSize:".88rem", margin:0 }}>
+                  <p style={{ color:"#2D1B00", fontWeight:600, fontSize:".88rem", margin:0 }}>
                     {TYPE_LABEL[tx.type] || tx.type}
-                    {tx.gram ? <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}> · {Number(tx.gram).toFixed(1)} gr</span> : null}
+                    {tx.gram ? <span style={{ color:"rgba(101,67,14,0.45)", fontWeight:400 }}> · {Number(tx.gram).toFixed(1)} gr</span> : null}
                   </p>
-                  <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".75rem", margin:"2px 0 0" }}>{fmtDate(tx.transaction_date || tx.created_at)}</p>
+                  <p style={{ color:"rgba(101,67,14,0.4)", fontSize:".75rem", margin:"2px 0 0" }}>{fmtDate(tx.transaction_date || tx.created_at)}</p>
                 </div>
                 <div style={{ textAlign:"right" }}>
-                  <p style={{ color:"#D4AF37", fontWeight:700, fontSize:".9rem", margin:0 }}>{fmt(tx.amount)}</p>
+                  <p style={{ color:"#8B6010", fontWeight:700, fontSize:".9rem", margin:0 }}>{fmt(tx.amount)}</p>
                   <span style={{ color:STATUS_COLOR[tx.status]||"#fff", fontSize:".72rem" }}>{STATUS_LABEL[tx.status]||tx.status}</span>
                 </div>
               </div>

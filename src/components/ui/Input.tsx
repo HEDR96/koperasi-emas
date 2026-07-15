@@ -1,4 +1,4 @@
-import { InputHTMLAttributes, forwardRef } from "react";
+﻿import { InputHTMLAttributes, forwardRef } from "react";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -16,7 +16,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         <div style={{ position:"relative", display:"flex", alignItems:"center" }}>
           {prefix && (
-            <span style={{ position:"absolute", left:12, color:"rgba(255,255,255,0.35)", fontSize:".85rem", pointerEvents:"none" }}>{prefix}</span>
+            <span style={{ position:"absolute", left:12, color:"rgba(101,67,14,0.4)", fontSize:".85rem", pointerEvents:"none" }}>{prefix}</span>
           )}
           <input
             ref={ref}
@@ -32,7 +32,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {suffix && (
-            <span style={{ position:"absolute", right:12, color:"rgba(255,255,255,0.35)", fontSize:".85rem", pointerEvents:"none" }}>{suffix}</span>
+            <span style={{ position:"absolute", right:12, color:"rgba(101,67,14,0.4)", fontSize:".85rem", pointerEvents:"none" }}>{suffix}</span>
           )}
         </div>
         {error && <p style={{ fontSize:".75rem", color:"#f87171" }}>{error}</p>}

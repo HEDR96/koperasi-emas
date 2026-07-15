@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -152,8 +152,8 @@ export default function AdminManagementPage() {
   }
 
   const inputStyle: React.CSSProperties = {
-    width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-    borderRadius: 10, padding: "10px 14px", color: "#fff", fontSize: ".9rem", outline: "none", boxSizing: "border-box",
+    width: "100%", background: "rgba(255,255,255,0.75)", border: "1px solid rgba(201,162,39,0.2)",
+    borderRadius: 10, padding: "10px 14px", color: "#2D1B00", fontSize: ".9rem", outline: "none", boxSizing: "border-box",
   };
 
   return (
@@ -161,18 +161,18 @@ export default function AdminManagementPage() {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h1 style={{ color: "#fff", fontSize: "1.4rem", fontWeight: 700, margin: 0 }}>Kelola Admin</h1>
-          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: ".85rem", margin: "4px 0 0" }}>
+          <h1 style={{ color: "#2D1B00", fontSize: "1.4rem", fontWeight: 700, margin: 0 }}>Kelola Admin</h1>
+          <p style={{ color: "rgba(101,67,14,0.45)", fontSize: ".85rem", margin: "4px 0 0" }}>
             Daftar seluruh admin aktif beserta hak akses mereka.
           </p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <button onClick={load}
-            style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
+            style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#8B6010", cursor:"pointer", fontSize:".85rem" }}>
             <RefreshCw style={{ width:14, height:14 }} /> Refresh
           </button>
           <button onClick={() => { setShowModal(true); setError(""); setSuccess(""); setForm(DEFAULT_FORM); }}
-            style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.15)", border:"1px solid rgba(212,175,55,0.3)", borderRadius:10, padding:"8px 16px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem", fontWeight:600 }}>
+            style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.15)", border:"1px solid rgba(212,175,55,0.3)", borderRadius:10, padding:"8px 16px", color:"#8B6010", cursor:"pointer", fontSize:".85rem", fontWeight:600 }}>
             <UserPlus style={{ width:14, height:14 }} /> Daftar Admin Baru
           </button>
         </div>
@@ -180,38 +180,38 @@ export default function AdminManagementPage() {
 
       {/* Table */}
       <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }}
-        style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, overflow:"hidden" }}>
+        style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.15)", borderRadius:16, overflow:"hidden" }}>
         <div style={{ overflowX:"auto" }}>
           <table style={{ width:"100%", borderCollapse:"collapse" }}>
             <thead>
-              <tr style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+              <tr style={{ borderBottom:"1px solid rgba(201,162,39,0.12)" }}>
                 {["Nama","HP","Status","Permissions","Aksi"].map(h => (
-                  <th key={h} style={{ padding:"13px 18px", textAlign:"left", color:"rgba(255,255,255,0.3)", fontSize:".75rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", whiteSpace:"nowrap" }}>{h}</th>
+                  <th key={h} style={{ padding:"13px 18px", textAlign:"left", color:"rgba(101,67,14,0.35)", fontSize:".75rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", whiteSpace:"nowrap" }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} style={{ padding:"40px", textAlign:"center", color:"rgba(255,255,255,0.3)" }}>Memuat...</td></tr>
+                <tr><td colSpan={5} style={{ padding:"40px", textAlign:"center", color:"rgba(101,67,14,0.35)" }}>Memuat...</td></tr>
               ) : admins.length === 0 ? (
-                <tr><td colSpan={5} style={{ padding:"40px", textAlign:"center", color:"rgba(255,255,255,0.3)" }}>Belum ada admin terdaftar.</td></tr>
+                <tr><td colSpan={5} style={{ padding:"40px", textAlign:"center", color:"rgba(101,67,14,0.35)" }}>Belum ada admin terdaftar.</td></tr>
               ) : admins.map(a => (
-                <tr key={a.id} style={{ borderBottom:"1px solid rgba(255,255,255,0.04)" }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background="rgba(255,255,255,0.02)"}
+                <tr key={a.id} style={{ borderBottom:"1px solid rgba(201,162,39,0.1)" }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background="rgba(201,162,39,0.04)"}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background="transparent"}
                 >
                   <td style={{ padding:"13px 18px" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                      <div style={{ width:34, height:34, borderRadius:9, background:"rgba(212,175,55,0.15)", display:"flex", alignItems:"center", justifyContent:"center", color:"#D4AF37", fontWeight:700, fontSize:".9rem", flexShrink:0 }}>
+                      <div style={{ width:34, height:34, borderRadius:9, background:"rgba(212,175,55,0.15)", display:"flex", alignItems:"center", justifyContent:"center", color:"#8B6010", fontWeight:700, fontSize:".9rem", flexShrink:0 }}>
                         {a.name?.[0] || "A"}
                       </div>
-                      <span style={{ color:"#fff", fontWeight:600, fontSize:".9rem" }}>{a.name}</span>
+                      <span style={{ color:"#2D1B00", fontWeight:600, fontSize:".9rem" }}>{a.name}</span>
                     </div>
                   </td>
-                  <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.55)", fontSize:".85rem" }}>{a.phone || "—"}</td>
+                  <td style={{ padding:"13px 18px", color:"rgba(101,67,14,0.6)", fontSize:".85rem" }}>{a.phone || "—"}</td>
                   <td style={{ padding:"13px 18px" }}>
                     <span style={{
-                      background: a.status === "active" ? "rgba(52,211,153,0.12)" : "rgba(248,113,113,0.12)",
+                      background: a.status === "active" ? "rgba(6,95,70,0.09)" : "rgba(153,27,27,0.09)",
                       color: a.status === "active" ? "#34d399" : "#f87171",
                       borderRadius:6, padding:"3px 10px", fontSize:".75rem", fontWeight:600, textTransform:"capitalize",
                     }}>{a.status}</span>
@@ -226,17 +226,17 @@ export default function AdminManagementPage() {
                           {a.permissions.can_manage_promos         && <Badge label="Promo" />}
                           {a.permissions.can_view_reports          && <Badge label="Laporan" />}
                         </>
-                      ) : <span style={{ color:"rgba(255,255,255,0.25)", fontSize:".75rem" }}>—</span>}
+                      ) : <span style={{ color:"rgba(101,67,14,0.3)", fontSize:".75rem" }}>—</span>}
                     </div>
                   </td>
                   <td style={{ padding:"13px 18px" }}>
                     <div style={{ display:"flex", gap:8 }}>
                       <button onClick={() => toggleStatus(a)}
-                        style={{ background: a.status === "active" ? "rgba(248,113,113,0.1)" : "rgba(52,211,153,0.1)", border:`1px solid ${a.status==="active"?"rgba(248,113,113,0.25)":"rgba(52,211,153,0.25)"}`, borderRadius:8, padding:"5px 12px", color: a.status==="active" ? "#f87171" : "#34d399", cursor:"pointer", fontSize:".78rem", fontWeight:600 }}>
+                        style={{ background: a.status === "active" ? "rgba(153,27,27,0.08)" : "rgba(6,95,70,0.08)", border:`1px solid ${a.status==="active"?"rgba(248,113,113,0.25)":"rgba(52,211,153,0.25)"}`, borderRadius:8, padding:"5px 12px", color: a.status==="active" ? "#f87171" : "#34d399", cursor:"pointer", fontSize:".78rem", fontWeight:600 }}>
                         {a.status === "active" ? "Suspend" : "Aktifkan"}
                       </button>
                       <button onClick={() => handleDelete(a.id, a.name)}
-                        style={{ background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:8, padding:"5px 10px", color:"#f87171", cursor:"pointer" }}>
+                        style={{ background:"rgba(153,27,27,0.06)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:8, padding:"5px 10px", color:"#991b1b", cursor:"pointer" }}>
                         <Trash2 style={{ width:13, height:13 }} />
                       </button>
                     </div>
@@ -259,43 +259,43 @@ export default function AdminManagementPage() {
               style={{ width:"min(480px,94vw)", background:"#111", border:"1px solid rgba(212,175,55,0.2)", borderRadius:20, padding:28, maxHeight:"90vh", overflowY:"auto" }}
             >
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:22 }}>
-                <h2 style={{ color:"#fff", fontWeight:700, fontSize:"1.1rem", margin:0 }}>Daftar Admin Baru</h2>
+                <h2 style={{ color:"#2D1B00", fontWeight:700, fontSize:"1.1rem", margin:0 }}>Daftar Admin Baru</h2>
                 <button onClick={() => setShowModal(false)}
-                  style={{ background:"rgba(255,255,255,0.07)", border:"none", borderRadius:8, width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>
+                  style={{ background:"rgba(255,255,255,0.72)", border:"none", borderRadius:8, width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(101,67,14,0.55)", cursor:"pointer" }}>
                   <X style={{ width:15, height:15 }} />
                 </button>
               </div>
               <form onSubmit={handleSubmit} style={{ display:"flex", flexDirection:"column", gap:14 }}>
                 <div>
-                  <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:6 }}>Nama Lengkap *</label>
+                  <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"block", marginBottom:6 }}>Nama Lengkap *</label>
                   <input value={form.name} onChange={e => setForm(f => ({...f, name:e.target.value}))} placeholder="Budi Santoso" style={inputStyle} />
                 </div>
                 <div>
-                  <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:6 }}>Email *</label>
+                  <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"block", marginBottom:6 }}>Email *</label>
                   <input type="email" value={form.email} onChange={e => setForm(f => ({...f, email:e.target.value}))} placeholder="admin@koperasi.com" style={inputStyle} />
                 </div>
                 <div>
-                  <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:6 }}>Password *</label>
+                  <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"block", marginBottom:6 }}>Password *</label>
                   <input type="password" value={form.password} onChange={e => setForm(f => ({...f, password:e.target.value}))} placeholder="Min. 8 karakter" style={inputStyle} />
                 </div>
                 <div>
-                  <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:6 }}>Nomor HP</label>
+                  <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"block", marginBottom:6 }}>Nomor HP</label>
                   <input value={form.phone} onChange={e => setForm(f => ({...f, phone:e.target.value}))} placeholder="08123456789" style={inputStyle} />
                 </div>
                 <div>
-                  <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:10 }}>Hak Akses</label>
+                  <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"block", marginBottom:10 }}>Hak Akses</label>
                   <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                     {PERM_LABELS.map(p => (
                       <label key={p.key} style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer" }}>
                         <input type="checkbox" checked={!!form[p.key]} onChange={e => setForm(f => ({...f, [p.key]:e.target.checked}))}
                           style={{ width:16, height:16, accentColor:"#D4AF37" }} />
-                        <span style={{ color:"rgba(255,255,255,0.7)", fontSize:".88rem" }}>{p.label}</span>
+                        <span style={{ color:"rgba(101,67,14,0.75)", fontSize:".88rem" }}>{p.label}</span>
                       </label>
                     ))}
                   </div>
                 </div>
-                {error   && <p style={{ color:"#f87171", fontSize:".83rem", margin:0 }}>{error}</p>}
-                {success && <p style={{ color:"#34d399", fontSize:".83rem", margin:0 }}>{success}</p>}
+                {error   && <p style={{ color:"#991b1b", fontSize:".83rem", margin:0 }}>{error}</p>}
+                {success && <p style={{ color:"#065f46", fontSize:".83rem", margin:0 }}>{success}</p>}
                 <button type="submit" disabled={submitting}
                   style={{ background:"linear-gradient(135deg,#D4AF37,#f0d060)", border:"none", borderRadius:12, padding:"12px", color:"#0a0a0a", fontWeight:700, fontSize:".95rem", cursor:submitting?"not-allowed":"pointer", opacity:submitting?.7:1, marginTop:6 }}>
                   {submitting ? "Mendaftarkan..." : "Daftar Admin"}
@@ -311,7 +311,7 @@ export default function AdminManagementPage() {
 
 function Badge({ label }: { label: string }) {
   return (
-    <span style={{ background:"rgba(212,175,55,0.12)", color:"#D4AF37", borderRadius:5, padding:"2px 8px", fontSize:".72rem", fontWeight:600 }}>
+    <span style={{ background:"rgba(212,175,55,0.12)", color:"#8B6010", borderRadius:5, padding:"2px 8px", fontSize:".72rem", fontWeight:600 }}>
       {label}
     </span>
   );

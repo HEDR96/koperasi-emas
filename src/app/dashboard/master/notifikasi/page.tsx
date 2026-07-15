@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -102,7 +102,7 @@ export default function NotifikasiPage() {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h1 style={{ color: "#fff", fontSize: "1.4rem", fontWeight: 700, margin: 0, display: "flex", alignItems: "center", gap: 10 }}>
+          <h1 style={{ color: "#2D1B00", fontSize: "1.4rem", fontWeight: 700, margin: 0, display: "flex", alignItems: "center", gap: 10 }}>
             Notifikasi
             {unreadCount > 0 && (
               <span style={{ background: "rgba(212,175,55,0.2)", color: "#D4AF37", borderRadius: 20, padding: "2px 10px", fontSize: ".75rem", fontWeight: 700 }}>
@@ -110,18 +110,18 @@ export default function NotifikasiPage() {
               </span>
             )}
           </h1>
-          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: ".85rem", margin: "4px 0 0" }}>
+          <p style={{ color: "rgba(101,67,14,0.45)", fontSize: ".85rem", margin: "4px 0 0" }}>
             Semua notifikasi sistem koperasi.
           </p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <button onClick={load}
-            style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.09)", borderRadius:10, padding:"8px 14px", color:"rgba(255,255,255,0.5)", cursor:"pointer", fontSize:".85rem" }}>
+            style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(255,255,255,0.72)", border:"1px solid rgba(255,255,255,0.09)", borderRadius:10, padding:"8px 14px", color:"rgba(101,67,14,0.55)", cursor:"pointer", fontSize:".85rem" }}>
             <RefreshCw style={{ width:14, height:14 }} /> Refresh
           </button>
           {unreadCount > 0 && (
             <button onClick={markAllRead} disabled={marking}
-              style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 16px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem", fontWeight:600 }}>
+              style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 16px", color:"#8B6010", cursor:"pointer", fontSize:".85rem", fontWeight:600 }}>
               <CheckCheck style={{ width:14, height:14 }} /> Tandai Semua Dibaca
             </button>
           )}
@@ -133,18 +133,18 @@ export default function NotifikasiPage() {
         <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }}
           style={{ background:"rgba(167,139,250,0.06)", border:"1px solid rgba(167,139,250,0.15)", borderRadius:16, padding:"32px", textAlign:"center" }}>
           <Bell style={{ width:40, height:40, color:"rgba(167,139,250,0.4)", margin:"0 auto 14px" }} />
-          <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".95rem", margin:"0 0 8px", fontWeight:600 }}>Tabel notifikasi belum dibuat</p>
-          <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".82rem", margin:0 }}>
+          <p style={{ color:"rgba(101,67,14,0.55)", fontSize:".95rem", margin:"0 0 8px", fontWeight:600 }}>Tabel notifikasi belum dibuat</p>
+          <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".82rem", margin:0 }}>
             Jalankan migrasi SQL untuk membuat tabel <code style={{ color:"#a78bfa" }}>notifications</code> terlebih dahulu.
           </p>
         </motion.div>
       ) : loading ? (
-        <p style={{ color:"rgba(255,255,255,0.3)" }}>Memuat notifikasi...</p>
+        <p style={{ color:"rgba(101,67,14,0.35)" }}>Memuat notifikasi...</p>
       ) : notifs.length === 0 ? (
         <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }}
-          style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, padding:"48px", textAlign:"center" }}>
-          <Bell style={{ width:40, height:40, color:"rgba(255,255,255,0.1)", margin:"0 auto 14px" }} />
-          <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".95rem", margin:0 }}>Belum ada notifikasi.</p>
+          style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.15)", borderRadius:16, padding:"48px", textAlign:"center" }}>
+          <Bell style={{ width:40, height:40, color:"rgba(201,162,39,0.2)", margin:"0 auto 14px" }} />
+          <p style={{ color:"rgba(101,67,14,0.4)", fontSize:".95rem", margin:0 }}>Belum ada notifikasi.</p>
         </motion.div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -154,7 +154,7 @@ export default function NotifikasiPage() {
               onClick={() => !n.is_read && markOne(n.id)}
               style={{
                 background: n.is_read ? "rgba(255,255,255,0.02)" : "rgba(212,175,55,0.05)",
-                border: `1px solid ${n.is_read ? "rgba(255,255,255,0.06)" : "rgba(212,175,55,0.12)"}`,
+                border: `1px solid ${n.is_read ? "rgba(201,162,39,0.12)" : "rgba(212,175,55,0.12)"}`,
                 borderRadius: 14, padding: "16px 18px",
                 cursor: n.is_read ? "default" : "pointer",
                 display: "flex", gap: 14, alignItems: "flex-start",
@@ -165,7 +165,7 @@ export default function NotifikasiPage() {
                 {!n.is_read ? (
                   <div style={{ width:8, height:8, borderRadius:"50%", background:"#D4AF37" }} />
                 ) : (
-                  <div style={{ width:8, height:8, borderRadius:"50%", background:"rgba(255,255,255,0.1)" }} />
+                  <div style={{ width:8, height:8, borderRadius:"50%", background:"rgba(201,162,39,0.2)" }} />
                 )}
               </div>
               <div style={{ flex:1, minWidth:0 }}>
@@ -173,16 +173,16 @@ export default function NotifikasiPage() {
                   <p style={{ color: n.is_read ? "rgba(255,255,255,0.7)" : "#fff", fontWeight: n.is_read ? 500 : 700, fontSize:".9rem", margin:0 }}>
                     {n.title}
                   </p>
-                  <span style={{ background: TYPE_BG[n.type]||"rgba(255,255,255,0.08)", color: TYPE_COLOR[n.type]||"rgba(255,255,255,0.5)", borderRadius:5, padding:"2px 8px", fontSize:".7rem", fontWeight:600, textTransform:"capitalize" }}>
+                  <span style={{ background: TYPE_BG[n.type]||"rgba(201,162,39,0.15)", color: TYPE_COLOR[n.type]||"rgba(101,67,14,0.55)", borderRadius:5, padding:"2px 8px", fontSize:".7rem", fontWeight:600, textTransform:"capitalize" }}>
                     {n.type}
                   </span>
                 </div>
-                <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".83rem", margin:"0 0 6px", lineHeight:1.5 }}>{n.body}</p>
-                <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".75rem", margin:0 }}>{timeAgo(n.created_at)}</p>
+                <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".83rem", margin:"0 0 6px", lineHeight:1.5 }}>{n.body}</p>
+                <p style={{ color:"rgba(101,67,14,0.3)", fontSize:".75rem", margin:0 }}>{timeAgo(n.created_at)}</p>
               </div>
               {n.link && (
                 <a href={n.link}
-                  style={{ color:"#D4AF37", fontSize:".75rem", textDecoration:"none", flexShrink:0, marginTop:2 }}
+                  style={{ color:"#8B6010", fontSize:".75rem", textDecoration:"none", flexShrink:0, marginTop:2 }}
                   onClick={e => e.stopPropagation()}>
                   Lihat →
                 </a>

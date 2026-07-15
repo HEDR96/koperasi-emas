@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -16,8 +16,8 @@ const EMPTY: Omit<Testi, "id"> = {
 };
 
 const inp: React.CSSProperties = {
-  width:"100%", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)",
-  borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".88rem", outline:"none", boxSizing:"border-box",
+  width:"100%", background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.2)",
+  borderRadius:10, padding:"10px 14px", color:"#2D1B00", fontSize:".88rem", outline:"none", boxSizing:"border-box",
 };
 
 export default function TestimoniPage() {
@@ -63,7 +63,7 @@ export default function TestimoniPage() {
 
   const f = (key: keyof typeof form, label: string, type="text", rows=0) => (
     <div>
-      <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>{label}</label>
+      <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>{label}</label>
       {rows > 0 ? (
         <textarea rows={rows} value={(form as any)[key] ?? ""}
           onChange={e => setForm(p => ({...p, [key]: e.target.value}))}
@@ -80,10 +80,10 @@ export default function TestimoniPage() {
     <div style={{ display:"flex", flexDirection:"column", gap:24, maxWidth:860 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Kelola Testimoni</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Edit, tambah, dan hapus testimoni anggota di landing page</p>
+          <h1 style={{ color:"#2D1B00", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Kelola Testimoni</h1>
+          <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".85rem", margin:"4px 0 0" }}>Edit, tambah, dan hapus testimoni anggota di landing page</p>
         </div>
-        <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
+        <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#8B6010", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:13, height:13 }} /> Refresh
         </button>
       </div>
@@ -91,7 +91,7 @@ export default function TestimoniPage() {
       {/* Form */}
       <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }}
         style={{ background:"rgba(212,175,55,0.04)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:16, padding:22 }}>
-        <p style={{ color:"#D4AF37", fontWeight:700, fontSize:".9rem", marginBottom:18 }}>
+        <p style={{ color:"#8B6010", fontWeight:700, fontSize:".9rem", marginBottom:18 }}>
           {editId !== null ? "✏️ Edit Testimoni" : "＋ Tambah Testimoni Baru"}
         </p>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:14, marginBottom:14 }}>
@@ -103,26 +103,26 @@ export default function TestimoniPage() {
           {f("urutan",      "Urutan Tampil", "number")}
         </div>
         <div style={{ marginBottom:14 }}>
-          <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Rating (1-5)</label>
+          <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Rating (1-5)</label>
           <div style={{ display:"flex", gap:8 }}>
             {[1,2,3,4,5].map(n => (
               <button key={n} onClick={() => setForm(p=>({...p,rating:n}))}
-                style={{ width:36, height:36, borderRadius:9, border:"1px solid rgba(255,255,255,0.1)", background: form.rating >= n ? "rgba(212,175,55,0.2)" : "rgba(255,255,255,0.03)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                <Star style={{ width:16, height:16, color: form.rating >= n ? "#D4AF37" : "rgba(255,255,255,0.2)", fill: form.rating >= n ? "#D4AF37" : "none" }} />
+                style={{ width:36, height:36, borderRadius:9, border:"1px solid rgba(201,162,39,0.2)", background: form.rating >= n ? "rgba(212,175,55,0.2)" : "rgba(255,255,255,0.03)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <Star style={{ width:16, height:16, color: form.rating >= n ? "#D4AF37" : "rgba(101,67,14,0.25)", fill: form.rating >= n ? "#D4AF37" : "none" }} />
               </button>
             ))}
           </div>
         </div>
         {f("komentar", "Komentar / Testimoni", "text", 3)}
         <div style={{ display:"flex", alignItems:"center", gap:12, marginTop:14, flexWrap:"wrap" }}>
-          <label style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", color:"rgba(255,255,255,0.6)", fontSize:".85rem" }}>
+          <label style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", color:"rgba(101,67,14,0.7)", fontSize:".85rem" }}>
             <input type="checkbox" checked={form.is_active} onChange={e=>setForm(p=>({...p,is_active:e.target.checked}))} />
             Tampilkan di landing page
           </label>
           <div style={{ marginLeft:"auto", display:"flex", gap:10 }}>
             {editId !== null && (
               <button onClick={() => { setForm(EMPTY); setEditId(null); }}
-                style={{ padding:"10px 18px", borderRadius:10, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", color:"rgba(255,255,255,0.5)", cursor:"pointer", fontSize:".88rem" }}>
+                style={{ padding:"10px 18px", borderRadius:10, background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.2)", color:"rgba(101,67,14,0.55)", cursor:"pointer", fontSize:".88rem" }}>
                 Batal
               </button>
             )}
@@ -135,38 +135,38 @@ export default function TestimoniPage() {
       </motion.div>
 
       {/* List */}
-      {loading ? <p style={{ color:"rgba(255,255,255,0.3)" }}>Memuat...</p> : (
+      {loading ? <p style={{ color:"rgba(101,67,14,0.35)" }}>Memuat...</p> : (
         <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
           {items.map((t, i) => (
             <motion.div key={t.id} initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay:i*.04 }}
-              style={{ background:"rgba(255,255,255,0.02)", border:`1px solid ${t.is_active?"rgba(212,175,55,0.15)":"rgba(255,255,255,0.06)"}`, borderRadius:14, padding:"16px 20px", display:"flex", alignItems:"flex-start", gap:14 }}>
+              style={{ background:"rgba(255,255,255,0.72)", border:`1px solid ${t.is_active?"rgba(212,175,55,0.15)":"rgba(201,162,39,0.12)"}`, borderRadius:14, padding:"16px 20px", display:"flex", alignItems:"flex-start", gap:14 }}>
               <div style={{ width:40, height:40, borderRadius:10, background:"linear-gradient(135deg,#D4AF37,#F5D060)", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, color:"#0a0a0a", fontSize:".85rem", flexShrink:0 }}>
                 {t.inisial || t.nama.slice(0,2).toUpperCase()}
               </div>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4, flexWrap:"wrap" }}>
-                  <span style={{ color:"#fff", fontWeight:700, fontSize:".9rem" }}>{t.nama}</span>
-                  <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem" }}>{t.peran}</span>
+                  <span style={{ color:"#2D1B00", fontWeight:700, fontSize:".9rem" }}>{t.nama}</span>
+                  <span style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem" }}>{t.peran}</span>
                   <div style={{ display:"flex", gap:2 }}>
-                    {[1,2,3,4,5].map(n=><Star key={n} style={{ width:11, height:11, color: t.rating>=n?"#D4AF37":"rgba(255,255,255,0.15)", fill: t.rating>=n?"#D4AF37":"none" }} />)}
+                    {[1,2,3,4,5].map(n=><Star key={n} style={{ width:11, height:11, color: t.rating>=n?"#D4AF37":"rgba(101,67,14,0.2)", fill: t.rating>=n?"#D4AF37":"none" }} />)}
                   </div>
-                  {!t.is_active && <span style={{ background:"rgba(248,113,113,0.15)", color:"#f87171", fontSize:".7rem", padding:"2px 8px", borderRadius:6 }}>Disembunyikan</span>}
+                  {!t.is_active && <span style={{ background:"rgba(153,27,27,0.1)", color:"#991b1b", fontSize:".7rem", padding:"2px 8px", borderRadius:6 }}>Disembunyikan</span>}
                 </div>
-                <p style={{ color:"rgba(255,255,255,0.65)", fontSize:".82rem", lineHeight:1.5, margin:0 }}>"{t.komentar}"</p>
+                <p style={{ color:"rgba(101,67,14,0.7)", fontSize:".82rem", lineHeight:1.5, margin:0 }}>"{t.komentar}"</p>
                 {(t.emas_saved || t.tahun_gabung) && (
                   <div style={{ display:"flex", gap:12, marginTop:8 }}>
-                    {t.emas_saved && <span style={{ color:"#D4AF37", fontSize:".75rem", fontWeight:600 }}>🥇 {t.emas_saved}</span>}
-                    {t.tahun_gabung && <span style={{ color:"rgba(255,255,255,0.35)", fontSize:".75rem" }}>Bergabung {t.tahun_gabung}</span>}
+                    {t.emas_saved && <span style={{ color:"#8B6010", fontSize:".75rem", fontWeight:600 }}>🥇 {t.emas_saved}</span>}
+                    {t.tahun_gabung && <span style={{ color:"rgba(101,67,14,0.4)", fontSize:".75rem" }}>Bergabung {t.tahun_gabung}</span>}
                   </div>
                 )}
               </div>
               <div style={{ display:"flex", gap:8, flexShrink:0 }}>
                 <button onClick={() => startEdit(t)}
-                  style={{ padding:"6px 12px", borderRadius:8, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.2)", color:"#D4AF37", cursor:"pointer", fontSize:".78rem" }}>
+                  style={{ padding:"6px 12px", borderRadius:8, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.2)", color:"#8B6010", cursor:"pointer", fontSize:".78rem" }}>
                   Edit
                 </button>
                 <button onClick={() => handleDelete(t.id)}
-                  style={{ padding:"6px 8px", borderRadius:8, background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.2)", color:"#f87171", cursor:"pointer" }}>
+                  style={{ padding:"6px 8px", borderRadius:8, background:"rgba(153,27,27,0.08)", border:"1px solid rgba(248,113,113,0.2)", color:"#991b1b", cursor:"pointer" }}>
                   <Trash2 style={{ width:13, height:13 }} />
                 </button>
               </div>

@@ -27,8 +27,8 @@ const fmtRibuan = (v: string) => {
 const onlyDigits = (v: string) => v.replace(/\D/g, "");
 
 const inp: React.CSSProperties = {
-  width:"100%", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)",
-  borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".9rem", outline:"none", boxSizing:"border-box",
+  width:"100%", background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.2)",
+  borderRadius:10, padding:"10px 14px", color:"#2D1B00", fontSize:".9rem", outline:"none", boxSizing:"border-box",
 };
 
 // Beli Emas dipindahkan ke menu Produk → tab Pembelian (pilih produk, approve di sana).
@@ -221,13 +221,13 @@ export default function InputTransaksiPage() {
     <div style={{ display:"flex", flexDirection:"column", gap:24, maxWidth:900 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Input Transaksi Manual</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>
-            Status <b style={{color:"#D4AF37"}}>Menunggu</b> akan masuk ke Pusat Approval; pilih <b style={{color:"#34d399"}}>Selesai</b> untuk mencatat transaksi historis langsung.
+          <h1 style={{ color:"#2D1B00", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Input Transaksi Manual</h1>
+          <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".85rem", margin:"4px 0 0" }}>
+            Status <b style={{color:"#8B6010"}}>Menunggu</b> akan masuk ke Pusat Approval; pilih <b style={{color:"#065f46"}}>Selesai</b> untuk mencatat transaksi historis langsung.
           </p>
         </div>
         <button onClick={() => { loadRecent(); }}
-          style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
+          style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#8B6010", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:13, height:13 }} /> Refresh
         </button>
       </div>
@@ -238,27 +238,27 @@ export default function InputTransaksiPage() {
         <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }}
           style={{ background:"rgba(212,175,55,0.04)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:16, padding:22, display:"flex", flexDirection:"column", gap:16 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <PlusCircle style={{ width:16, height:16, color:"#D4AF37" }} />
-            <p style={{ color:"#D4AF37", fontWeight:700, fontSize:".9rem", margin:0 }}>Form Transaksi</p>
+            <PlusCircle style={{ width:16, height:16, color:"#8B6010" }} />
+            <p style={{ color:"#8B6010", fontWeight:700, fontSize:".9rem", margin:0 }}>Form Transaksi</p>
           </div>
 
-          {error && <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:10, padding:"10px 14px", color:"#f87171", fontSize:".82rem" }}>{error}</div>}
-          {saved && <div style={{ background:"rgba(52,211,153,0.1)", border:"1px solid rgba(52,211,153,0.2)", borderRadius:10, padding:"10px 14px", color:"#34d399", fontSize:".82rem" }}>Transaksi berhasil disimpan!</div>}
+          {error && <div style={{ background:"rgba(153,27,27,0.08)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:10, padding:"10px 14px", color:"#991b1b", fontSize:".82rem" }}>{error}</div>}
+          {saved && <div style={{ background:"rgba(6,95,70,0.08)", border:"1px solid rgba(52,211,153,0.2)", borderRadius:10, padding:"10px 14px", color:"#065f46", fontSize:".82rem" }}>Transaksi berhasil disimpan!</div>}
 
           {/* Pilih anggota */}
           <div>
-            <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Anggota *</label>
+            <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Anggota *</label>
             <MemberPicker value={form.user_id} onChange={m=>setForm(p=>({...p,user_id:m?.id||""}))} />
           </div>
 
           {/* Tipe & Status */}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
-              <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tipe Transaksi *</label>
+              <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tipe Transaksi *</label>
               <Select value={form.type} onChange={v=>setForm(p=>({...p,type:v,gram:"",amount:"",price_per_gram:"",dp:"",voucher_id:""}))} options={TYPE_OPTS} />
             </div>
             <div>
-              <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Status</label>
+              <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Status</label>
               <Select value={form.status} onChange={v=>setForm(p=>({...p,status:v}))} options={STATUS_OPTS} />
             </div>
           </div>
@@ -267,7 +267,7 @@ export default function InputTransaksiPage() {
           <>
               {/* Berat */}
               <div>
-                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Berat (gram)</label>
+                <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Berat (gram)</label>
                 {gramOpts.length > 0 ? (
                   <Select value={form.gram} onChange={v=>setForm(p=>({...p,gram:v,...autoFields(v,p.type,p.tenor)}))} options={gramOpts} placeholder="Pilih berat" />
                 ) : (
@@ -277,36 +277,36 @@ export default function InputTransaksiPage() {
 
               {/* Jumlah otomatis (read-only) */}
               {form.amount && (
-                <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:10, padding:"10px 14px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                  <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".82rem" }}>Jumlah (otomatis)</span>
-                  <span style={{ color:"#D4AF37", fontWeight:700, fontSize:".92rem" }}>Rp {fmtRibuan(form.amount)}</span>
+                <div style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.18)", borderRadius:10, padding:"10px 14px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <span style={{ color:"rgba(101,67,14,0.45)", fontSize:".82rem" }}>Jumlah (otomatis)</span>
+                  <span style={{ color:"#8B6010", fontWeight:700, fontSize:".92rem" }}>Rp {fmtRibuan(form.amount)}</span>
                 </div>
               )}
 
               {/* Harga & Metode */}
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
-                  <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Harga/gram (Rp)</label>
+                  <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Harga/gram (Rp)</label>
                   <div style={{ position:"relative" }}>
-                    <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".9rem", pointerEvents:"none" }}>Rp</span>
+                    <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(101,67,14,0.45)", fontSize:".9rem", pointerEvents:"none" }}>Rp</span>
                     <input inputMode="numeric" value={fmtRibuan(form.price_per_gram)} onChange={e=>setForm(p=>({...p,price_per_gram:onlyDigits(e.target.value)}))} style={{ ...inp, paddingLeft:36 }} placeholder="0" />
                   </div>
                 </div>
                 <div>
-                  <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Metode Bayar</label>
+                  <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Metode Bayar</label>
                   <Select value={form.payment_method} onChange={v=>setForm(p=>({...p,payment_method:v}))} options={PAYMENT_METHODS} />
                 </div>
               </div>
 
               {/* Tanggal */}
               <div>
-                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tanggal Transaksi</label>
+                <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tanggal Transaksi</label>
                 <input type="datetime-local" value={form.created_at} onChange={e=>setForm(p=>({...p,created_at:e.target.value}))} style={inp} />
               </div>
 
               {/* Catatan */}
               <div>
-                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Catatan</label>
+                <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Catatan</label>
                 <textarea rows={2} value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))}
                   style={{ ...inp, resize:"vertical", fontFamily:"inherit" }} placeholder="Keterangan tambahan..." />
               </div>
@@ -316,44 +316,44 @@ export default function InputTransaksiPage() {
           {form.type === "cicilan" && (
             <div style={{ background:"rgba(167,139,250,0.05)", border:"1px solid rgba(167,139,250,0.2)", borderRadius:12, padding:16, display:"flex", flexDirection:"column", gap:12 }}>
               <div>
-                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tenor (bulan)</label>
+                <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Tenor (bulan)</label>
                 <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                   {[3,6,12,24,36,48,60].map(t => (
                     <button key={t} type="button" onClick={()=>setForm(p=>({...p,tenor:String(t), ...autoFields(p.gram, p.type, String(t))}))}
                       style={{ flex:"1 0 auto", minWidth:48, padding:"8px", borderRadius:8, fontWeight:700, fontSize:".85rem", cursor:"pointer",
-                        border: cicilanTenor===t ? "1px solid #a78bfa" : "1px solid rgba(255,255,255,0.1)",
+                        border: cicilanTenor===t ? "1px solid #a78bfa" : "1px solid rgba(201,162,39,0.2)",
                         background: cicilanTenor===t ? "rgba(167,139,250,0.15)" : "rgba(255,255,255,0.04)",
-                        color: cicilanTenor===t ? "#a78bfa" : "rgba(255,255,255,0.5)" }}>{t}</button>
+                        color: cicilanTenor===t ? "#a78bfa" : "rgba(101,67,14,0.55)" }}>{t}</button>
                   ))}
                 </div>
               </div>
               {/* DP / uang muka yang sudah disetorkan — otomatis sesuai DP yang disetujui, bisa diubah */}
               <div>
-                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>DP / Uang Muka Disetorkan (Rp)</label>
+                <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>DP / Uang Muka Disetorkan (Rp)</label>
                 <div style={{ position:"relative" }}>
-                  <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.4)", fontSize:".9rem", pointerEvents:"none" }}>Rp</span>
+                  <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(101,67,14,0.45)", fontSize:".9rem", pointerEvents:"none" }}>Rp</span>
                   <input inputMode="numeric" value={fmtRibuan(form.dp)} onChange={e=>setForm(p=>({...p,dp:onlyDigits(e.target.value)}))} style={{ ...inp, paddingLeft:36 }} placeholder="0" />
                 </div>
-                <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", margin:"5px 0 0" }}>Terisi otomatis sesuai DP yang disetujui; ubah bila nominal yang disetor berbeda.</p>
+                <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".7rem", margin:"5px 0 0" }}>Terisi otomatis sesuai DP yang disetujui; ubah bila nominal yang disetor berbeda.</p>
               </div>
               {/* Voucher potongan angsuran */}
               <div>
-                <label style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Voucher (opsional)</label>
+                <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Voucher (opsional)</label>
                 {vouchers.length > 0 ? (
                   <Select value={form.voucher_id} onChange={v=>setForm(p=>({...p,voucher_id:v}))}
                     options={[{ value:"", label:"Tanpa voucher" }, ...vouchers.map(v=>({ value:v.id, label:`${v.code} — ${fmtDiscount(v.discount_type,v.discount_value)}${v.description?` (${v.description})`:""}` }))]}
                     placeholder="Tanpa voucher" />
                 ) : (
-                  <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".78rem", margin:0 }}>Belum ada voucher aktif untuk angsuran.</p>
+                  <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".78rem", margin:0 }}>Belum ada voucher aktif untuk angsuran.</p>
                 )}
               </div>
               {form.amount && Number(form.amount) > 0 && (
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", paddingTop:8, borderTop:"1px solid rgba(255,255,255,0.07)" }}>
-                  <span style={{ color:"rgba(255,255,255,0.6)", fontSize:".85rem", fontWeight:600 }}>Angsuran/bulan</span>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", paddingTop:8, borderTop:"1px solid rgba(201,162,39,0.15)" }}>
+                  <span style={{ color:"rgba(101,67,14,0.7)", fontSize:".85rem", fontWeight:600 }}>Angsuran/bulan</span>
                   <span style={{ color:"#a78bfa", fontSize:"1.1rem", fontWeight:900 }}>{fmt(cicilanAngsuran)}</span>
                 </div>
               )}
-              <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:0 }}>
+              <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".72rem", margin:0 }}>
                 Total{selectedVoucher?" (setelah voucher)":""} / tenor = {fmt(cicilanAmountFinal)} / {cicilanTenor} = {fmt(cicilanAngsuran)}/bln · DP {form.dp?fmt(Number(form.dp)):"Rp 0"} · akan masuk ke Kelola Cicilan.
               </p>
             </div>
@@ -368,35 +368,35 @@ export default function InputTransaksiPage() {
         {/* Recent transactions */}
         <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:.06 }}
           style={{ display:"flex", flexDirection:"column", gap:12 }}>
-          <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>
+          <p style={{ color:"rgba(101,67,14,0.55)", fontSize:".78rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>
             10 Transaksi Terbaru
           </p>
           {recent.length === 0 ? (
-            <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".85rem" }}>Belum ada transaksi.</p>
+            <p style={{ color:"rgba(101,67,14,0.3)", fontSize:".85rem" }}>Belum ada transaksi.</p>
           ) : (
             recent.map((tx, i) => (
               <div key={tx.id}
-                style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:12, padding:"12px 16px" }}>
+                style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.12)", borderRadius:12, padding:"12px 16px" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
                   <span style={{ color: TYPE_COLOR[tx.type] || "#fff", fontWeight:700, fontSize:".82rem" }}>
                     {TYPE_LABEL[tx.type] || tx.type}
                   </span>
-                  <span style={{ color:"rgba(255,255,255,0.45)", fontSize:".72rem" }}>
+                  <span style={{ color:"rgba(101,67,14,0.45)", fontSize:".72rem" }}>
                     Tgl transaksi: {fmtTgl(tx.transaction_date || tx.created_at)}
                   </span>
                 </div>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                  <span style={{ color:"rgba(255,255,255,0.55)", fontSize:".8rem" }}>
+                  <span style={{ color:"rgba(101,67,14,0.6)", fontSize:".8rem" }}>
                     {tx.profiles?.name || "-"}
                     {tx.gram ? ` · ${Number(tx.gram).toFixed(1)}g` : ""}
                   </span>
-                  <span style={{ color:"#fff", fontWeight:700, fontSize:".85rem" }}>{fmt(tx.amount)}</span>
+                  <span style={{ color:"#2D1B00", fontWeight:700, fontSize:".85rem" }}>{fmt(tx.amount)}</span>
                 </div>
-                <div style={{ marginTop:6, paddingTop:6, borderTop:"1px solid rgba(255,255,255,0.05)", display:"flex", justifyContent:"space-between", alignItems:"center", gap:8, flexWrap:"wrap" }}>
-                  <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".7rem" }}>
-                    Diinput oleh: <span style={{ color:"#D4AF37" }}>{staff[tx.recorded_by] || "—"}</span>
+                <div style={{ marginTop:6, paddingTop:6, borderTop:"1px solid rgba(201,162,39,0.12)", display:"flex", justifyContent:"space-between", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+                  <span style={{ color:"rgba(101,67,14,0.45)", fontSize:".7rem" }}>
+                    Diinput oleh: <span style={{ color:"#8B6010" }}>{staff[tx.recorded_by] || "—"}</span>
                   </span>
-                  <span style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem" }}>
+                  <span style={{ color:"rgba(101,67,14,0.35)", fontSize:".7rem" }}>
                     Diinput: {fmtTglJam(tx.created_at)}
                   </span>
                 </div>

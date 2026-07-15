@@ -9,7 +9,7 @@ export default function RegisterPage() {
   const router = useRouter();
   useEffect(() => { router.replace("/auth/login"); }, [router]);
   return (
-    <div style={{ minHeight:"60vh", display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.5)", fontSize:".9rem" }}>
+    <div style={{ minHeight:"60vh", display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(101,67,14,0.6)", fontSize:".9rem" }}>
       Mengalihkan ke halaman login...
     </div>
   );

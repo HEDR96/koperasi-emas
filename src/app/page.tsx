@@ -11,7 +11,7 @@ import ContactSection from "@/components/sections/ContactSection";
 
 export default function HomePage() {
   return (
-    <main className="bg-[#0a0a0a] text-white">
+    <main style={{ background:"radial-gradient(ellipse 130% 85% at 50% 15%, #FFFFFF 0%, #FFFDE7 45%, #FFF8C4 80%, #F5E598 100%)", backgroundAttachment:"fixed", color:"#2D1B00", minHeight:"100vh" }}>
       <Navbar />
       <HeroSection />
       <GoldPriceSection />

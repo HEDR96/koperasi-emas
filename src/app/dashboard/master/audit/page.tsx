@@ -16,10 +16,10 @@ const SIMPANAN_LABEL: Record<string,string> = { pokok:"Simpanan Pokok", wajib:"S
 interface Item { id: string; ts: string; kind: "transaksi"|"gadai"|"simpanan"|"member"; who: string; detail: string; amount?: number; status?: string; }
 
 const KIND_META: Record<string,{icon:any;color:string;label:string}> = {
-  transaksi: { icon:Coins,    color:"#D4AF37", label:"Transaksi" },
-  gadai:     { icon:Landmark, color:"#60a5fa", label:"Gadai" },
+  transaksi: { icon:Coins,    color:"#8B6010", label:"Transaksi" },
+  gadai:     { icon:Landmark, color:"#1d4ed8", label:"Gadai" },
   simpanan:  { icon:Wallet,   color:"#a78bfa", label:"Simpanan" },
-  member:    { icon:UserPlus, color:"#34d399", label:"Anggota" },
+  member:    { icon:UserPlus, color:"#065f46", label:"Anggota" },
 };
 
 const FILTERS = ["semua","transaksi","gadai","simpanan","member"] as const;
@@ -71,10 +71,10 @@ export default function MasterAuditPage() {
     <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Log Aktivitas</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Riwayat aktivitas terbaru seluruh sistem</p>
+          <h1 style={{ color:"#2D1B00", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Log Aktivitas</h1>
+          <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".85rem", margin:"4px 0 0" }}>Riwayat aktivitas terbaru seluruh sistem</p>
         </div>
-        <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
+        <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#8B6010", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:13, height:13 }} /> Refresh
         </button>
       </div>
@@ -82,17 +82,17 @@ export default function MasterAuditPage() {
       <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
         {FILTERS.map(f => (
           <button key={f} onClick={()=>setFilter(f)}
-            style={{ padding:"6px 14px", borderRadius:8, border:`1px solid ${filter===f?"rgba(212,175,55,0.35)":"rgba(255,255,255,0.08)"}`, background:filter===f?"rgba(212,175,55,0.1)":"transparent", color:filter===f?"#D4AF37":"rgba(255,255,255,0.45)", cursor:"pointer", fontSize:".8rem", fontWeight:filter===f?700:400, textTransform:"capitalize" }}>
+            style={{ padding:"6px 14px", borderRadius:8, border:`1px solid ${filter===f?"rgba(212,175,55,0.35)":"rgba(201,162,39,0.15)"}`, background:filter===f?"rgba(212,175,55,0.1)":"transparent", color:filter===f?"#D4AF37":"rgba(255,255,255,0.45)", cursor:"pointer", fontSize:".8rem", fontWeight:filter===f?700:400, textTransform:"capitalize" }}>
             {f}
           </button>
         ))}
       </div>
 
-      {loading ? <p style={{ color:"rgba(255,255,255,0.3)" }}>Memuat...</p>
+      {loading ? <p style={{ color:"rgba(101,67,14,0.35)" }}>Memuat...</p>
         : filtered.length === 0 ? (
-          <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:16, padding:"48px", textAlign:"center" }}>
-            <Activity style={{ width:38, height:38, color:"rgba(255,255,255,0.15)", margin:"0 auto 12px" }} />
-            <p style={{ color:"rgba(255,255,255,0.4)", margin:0 }}>Belum ada aktivitas.</p>
+          <div style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.12)", borderRadius:16, padding:"48px", textAlign:"center" }}>
+            <Activity style={{ width:38, height:38, color:"rgba(101,67,14,0.2)", margin:"0 auto 12px" }} />
+            <p style={{ color:"rgba(101,67,14,0.45)", margin:0 }}>Belum ada aktivitas.</p>
           </div>
         ) : (
           <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
@@ -101,18 +101,18 @@ export default function MasterAuditPage() {
               const Icon = meta.icon;
               return (
                 <motion.div key={it.id} initial={{ opacity:0, y:6 }} animate={{ opacity:1, y:0 }} transition={{ delay:Math.min(i*.015,.3) }}
-                  style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:12, padding:"12px 16px", display:"flex", alignItems:"center", gap:14 }}>
+                  style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.12)", borderRadius:12, padding:"12px 16px", display:"flex", alignItems:"center", gap:14 }}>
                   <div style={{ width:34, height:34, borderRadius:9, background:`${meta.color}18`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                     <Icon style={{ width:16, height:16, color:meta.color }} />
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <p style={{ color:"#fff", fontWeight:600, fontSize:".86rem", margin:0 }}>
-                      {it.who} <span style={{ color:"rgba(255,255,255,0.4)", fontWeight:400 }}>· {it.detail}</span>
+                    <p style={{ color:"#2D1B00", fontWeight:600, fontSize:".86rem", margin:0 }}>
+                      {it.who} <span style={{ color:"rgba(101,67,14,0.45)", fontWeight:400 }}>· {it.detail}</span>
                     </p>
-                    <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".73rem", margin:"2px 0 0" }}>{fmtDate(it.ts)}</p>
+                    <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".73rem", margin:"2px 0 0" }}>{fmtDate(it.ts)}</p>
                   </div>
                   {it.amount != null && <span style={{ color:meta.color, fontWeight:700, fontSize:".85rem", whiteSpace:"nowrap" }}>{fmt(it.amount)}</span>}
-                  {it.status && <span style={{ color:"rgba(255,255,255,0.45)", fontSize:".72rem", textTransform:"capitalize", marginLeft:8 }}>{it.status}</span>}
+                  {it.status && <span style={{ color:"rgba(101,67,14,0.45)", fontSize:".72rem", textTransform:"capitalize", marginLeft:8 }}>{it.status}</span>}
                 </motion.div>
               );
             })}

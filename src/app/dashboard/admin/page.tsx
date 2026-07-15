@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -81,9 +81,9 @@ export default function AdminDashboardPage() {
   }
 
   const cards = [
-    { label:"Pending Approval", value:pendingCount, icon:Clock,        color:"#fbbf24", bg:"rgba(251,191,36,0.1)" },
-    { label:"Transaksi Hari Ini",value:todayCount,  icon:CheckCircle,  color:"#34d399", bg:"rgba(52,211,153,0.1)" },
-    { label:"Total Member",      value:memberCount, icon:Users,        color:"#60a5fa", bg:"rgba(96,165,250,0.1)" },
+    { label:"Pending Approval", value:pendingCount, icon:Clock,        color:"#92400e", bg:"rgba(146,64,14,0.08)" },
+    { label:"Transaksi Hari Ini",value:todayCount,  icon:CheckCircle,  color:"#065f46", bg:"rgba(6,95,70,0.08)" },
+    { label:"Total Member",      value:memberCount, icon:Users,        color:"#1d4ed8", bg:"rgba(29,78,216,0.08)" },
   ];
 
   return (
@@ -91,13 +91,13 @@ export default function AdminDashboardPage() {
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Admin Dashboard</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>
+          <h1 style={{ color:"#2D1B00", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Admin Dashboard</h1>
+          <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".85rem", margin:"4px 0 0" }}>
             Selamat datang, {user?.name}. Pantau aktivitas harian di sini.
           </p>
         </div>
         <button onClick={load}
-          style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
+          style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(201,162,39,0.1)", border:"1px solid rgba(201,162,39,0.25)", borderRadius:10, padding:"8px 14px", color:"#8B6010", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:14, height:14 }} /> Refresh
         </button>
       </div>
@@ -109,15 +109,15 @@ export default function AdminDashboardPage() {
           return (
             <motion.div key={c.label}
               initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ delay:i*0.08 }}
-              style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, padding:"20px 22px" }}
+              style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.2)", borderRadius:16, padding:"20px 22px" }}
             >
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
-                <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", margin:0 }}>{c.label}</p>
+                <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", margin:0 }}>{c.label}</p>
                 <div style={{ background:c.bg, borderRadius:8, padding:8 }}>
                   <Icon style={{ width:16, height:16, color:c.color }} />
                 </div>
               </div>
-              <p style={{ color:"#fff", fontSize:"1.8rem", fontWeight:800, margin:0, lineHeight:1 }}>
+              <p style={{ color:"#2D1B00", fontSize:"1.8rem", fontWeight:800, margin:0, lineHeight:1 }}>
                 {loading ? "—" : c.value.toLocaleString("id-ID")}
               </p>
             </motion.div>
@@ -127,58 +127,58 @@ export default function AdminDashboardPage() {
 
       {/* Pending Transactions */}
       <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.25 }}
-        style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, overflow:"hidden" }}>
-        <div style={{ padding:"18px 22px", borderBottom:"1px solid rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-          <h2 style={{ color:"#fff", fontWeight:700, fontSize:"1rem", margin:0 }}>Permintaan Menunggu Approval</h2>
+        style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.2)", borderRadius:16, overflow:"hidden" }}>
+        <div style={{ padding:"18px 22px", borderBottom:"1px solid rgba(201,162,39,0.15)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <h2 style={{ color:"#2D1B00", fontWeight:700, fontSize:"1rem", margin:0 }}>Permintaan Menunggu Approval</h2>
           <Link href="/dashboard/admin/transaksi"
-            style={{ color:"#D4AF37", fontSize:".8rem", textDecoration:"none" }}>
+            style={{ color:"#8B6010", fontSize:".8rem", textDecoration:"none" }}>
             Lihat Semua →
           </Link>
         </div>
 
         {loading ? (
-          <p style={{ padding:"32px", textAlign:"center", color:"rgba(255,255,255,0.3)" }}>Memuat...</p>
+          <p style={{ padding:"32px", textAlign:"center", color:"rgba(101,67,14,0.35)" }}>Memuat...</p>
         ) : pending.length === 0 ? (
-          <p style={{ padding:"32px", textAlign:"center", color:"rgba(255,255,255,0.3)" }}>Tidak ada transaksi pending.</p>
+          <p style={{ padding:"32px", textAlign:"center", color:"rgba(101,67,14,0.35)" }}>Tidak ada transaksi pending.</p>
         ) : (
           <div style={{ overflowX:"auto" }}>
             <table style={{ width:"100%", borderCollapse:"collapse" }}>
               <thead>
-                <tr style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+                <tr style={{ borderBottom:"1px solid rgba(201,162,39,0.12)" }}>
                   {["Member","Jenis","Gram","Jumlah","Tanggal","Aksi"].map(h => (
-                    <th key={h} style={{ padding:"12px 18px", textAlign:"left", color:"rgba(255,255,255,0.3)", fontSize:".75rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", whiteSpace:"nowrap" }}>{h}</th>
+                    <th key={h} style={{ padding:"12px 18px", textAlign:"left", color:"rgba(101,67,14,0.4)", fontSize:".75rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", whiteSpace:"nowrap" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {pending.map(tx => (
-                  <tr key={tx.id} style={{ borderBottom:"1px solid rgba(255,255,255,0.04)" }}
-                    onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background="rgba(255,255,255,0.02)"}
+                  <tr key={tx.id} style={{ borderBottom:"1px solid rgba(201,162,39,0.08)" }}
+                    onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background="rgba(201,162,39,0.04)"}
                     onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background="transparent"}
                   >
-                    <td style={{ padding:"13px 18px", color:"#fff", fontSize:".88rem", fontWeight:600 }}>
+                    <td style={{ padding:"13px 18px", color:"#2D1B00", fontSize:".88rem", fontWeight:600 }}>
                       {(tx.profiles as any)?.name || "—"}
                     </td>
-                    <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.6)", fontSize:".85rem" }}>
+                    <td style={{ padding:"13px 18px", color:"rgba(101,67,14,0.7)", fontSize:".85rem" }}>
                       {TYPE_LABEL[tx.type] || tx.type}
                     </td>
-                    <td style={{ padding:"13px 18px", color:"#D4AF37", fontSize:".85rem" }}>
+                    <td style={{ padding:"13px 18px", color:"#8B6010", fontSize:".85rem" }}>
                       {tx.gram ? tx.gram + " gr" : "—"}
                     </td>
-                    <td style={{ padding:"13px 18px", color:"#D4AF37", fontWeight:600, fontSize:".85rem" }}>
+                    <td style={{ padding:"13px 18px", color:"#8B6010", fontWeight:600, fontSize:".85rem" }}>
                       {fmt(tx.amount)}
                     </td>
-                    <td style={{ padding:"13px 18px", color:"rgba(255,255,255,0.4)", fontSize:".8rem", whiteSpace:"nowrap" }}>
+                    <td style={{ padding:"13px 18px", color:"rgba(101,67,14,0.45)", fontSize:".8rem", whiteSpace:"nowrap" }}>
                       {fmtDate(tx.transaction_date || tx.created_at)}
                     </td>
                     <td style={{ padding:"13px 18px" }}>
                       <div style={{ display:"flex", gap:6 }}>
                         <button onClick={() => approve(tx.id)} disabled={acting===tx.id}
-                          style={{ background:"rgba(52,211,153,0.1)", border:"1px solid rgba(52,211,153,0.25)", borderRadius:8, padding:"5px 12px", color:"#34d399", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===tx.id?.6:1 }}>
+                          style={{ background:"rgba(6,95,70,0.08)", border:"1px solid rgba(6,95,70,0.2)", borderRadius:8, padding:"5px 12px", color:"#065f46", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===tx.id?.6:1 }}>
                           Setujui
                         </button>
                         <button onClick={() => reject(tx.id)} disabled={acting===tx.id}
-                          style={{ background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:8, padding:"5px 12px", color:"#f87171", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===tx.id?.6:1 }}>
+                          style={{ background:"rgba(153,27,27,0.06)", border:"1px solid rgba(153,27,27,0.18)", borderRadius:8, padding:"5px 12px", color:"#991b1b", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===tx.id?.6:1 }}>
                           Tolak
                         </button>
                       </div>
@@ -193,5 +193,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-
-

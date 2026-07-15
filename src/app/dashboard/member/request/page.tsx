@@ -23,7 +23,7 @@ const STATUS_COLOR: Record<string,string> = {
 };
 const STATUS_BG: Record<string,string> = {
   pending:"rgba(251,191,36,0.12)", processing:"rgba(96,165,250,0.12)",
-  completed:"rgba(52,211,153,0.12)", rejected:"rgba(248,113,113,0.12)",
+  completed:"rgba(6,95,70,0.09)", rejected:"rgba(153,27,27,0.09)",
 };
 const STATUS_LABEL: Record<string,string> = {
   pending:"Menunggu Persetujuan", processing:"Diproses", completed:"Disetujui", rejected:"Ditolak",
@@ -64,9 +64,9 @@ interface GoldRow { gram: number; harga: number; }
 interface BuybackRow { gram: number; harga: number; }
 
 const inputStyle: React.CSSProperties = {
-  width: "100%", background: "rgba(255,255,255,0.05)",
-  border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10,
-  padding: "11px 14px", color: "#fff", fontSize: ".9rem",
+  width: "100%", background: "rgba(255,255,255,0.75)",
+  border: "1px solid rgba(201,162,39,0.2)", borderRadius: 10,
+  padding: "11px 14px", color: "#2D1B00", fontSize: ".9rem",
   outline: "none", boxSizing: "border-box",
 };
 
@@ -215,8 +215,8 @@ export default function MemberRequestPage() {
 
       {/* Header */}
       <div>
-        <h1 style={{ color: "#fff", fontSize: "1.4rem", fontWeight: 700, margin: 0 }}>Ajukan Transaksi</h1>
-        <p style={{ color: "rgba(255,255,255,0.4)", fontSize: ".85rem", margin: "4px 0 0" }}>
+        <h1 style={{ color: "#2D1B00", fontSize: "1.4rem", fontWeight: 700, margin: 0 }}>Ajukan Transaksi</h1>
+        <p style={{ color: "rgba(101,67,14,0.45)", fontSize: ".85rem", margin: "4px 0 0" }}>
           Permintaan Anda akan ditinjau dan disetujui oleh admin.
         </p>
       </div>
@@ -225,9 +225,9 @@ export default function MemberRequestPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
         {TX_TYPES.map(t => (
           <button key={t.value} onClick={() => setForm(f => ({ ...f, type:t.value, gram:"", amount:"" }))}
-            style={{ background: form.type === t.value ? `${t.color}18` : "rgba(255,255,255,0.03)", border: `1px solid ${form.type === t.value ? t.color+"55" : "rgba(255,255,255,0.07)"}`, borderRadius: 14, padding: "14px 12px", cursor: "pointer", textAlign: "left", transition: "all .2s" }}>
+            style={{ background: form.type === t.value ? `${t.color}18` : "rgba(255,255,255,0.03)", border: `1px solid ${form.type === t.value ? t.color+"55" : "rgba(201,162,39,0.12)"}`, borderRadius: 14, padding: "14px 12px", cursor: "pointer", textAlign: "left", transition: "all .2s" }}>
             <p style={{ color: form.type === t.value ? t.color : "rgba(255,255,255,0.7)", fontWeight: 700, fontSize: ".88rem", margin: "0 0 4px" }}>{t.label}</p>
-            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: ".74rem", margin: 0, lineHeight: 1.4 }}>{t.desc}</p>
+            <p style={{ color: "rgba(101,67,14,0.4)", fontSize: ".74rem", margin: 0, lineHeight: 1.4 }}>{t.desc}</p>
           </button>
         ))}
       </div>
@@ -238,7 +238,7 @@ export default function MemberRequestPage() {
 
         {success && (
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-            style={{ background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.2)", borderRadius: 10, padding: "12px 16px", color: "#34d399", display: "flex", alignItems: "center", gap: 8, marginBottom: 18, fontSize: ".88rem" }}>
+            style={{ background: "rgba(6,95,70,0.08)", border: "1px solid rgba(52,211,153,0.2)", borderRadius: 10, padding: "12px 16px", color: "#34d399", display: "flex", alignItems: "center", gap: 8, marginBottom: 18, fontSize: ".88rem" }}>
             <CheckCircle style={{ width: 15, height: 15, flexShrink: 0 }} />
             {success}
           </motion.div>
@@ -249,18 +249,18 @@ export default function MemberRequestPage() {
           {/* Beli Emas — dropdown gram → harga otomatis */}
           {form.type === "buy" && (
             <div>
-              <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:6 }}>Pilih Berat Emas *</label>
+              <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"block", marginBottom:6 }}>Pilih Berat Emas *</label>
               {loadingPrices ? (
-                <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".8rem" }}>Memuat harga...</p>
+                <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".8rem" }}>Memuat harga...</p>
               ) : gramBuyOpts.length === 0 ? (
-                <p style={{ color:"#f87171", fontSize:".8rem" }}>Harga emas belum tersedia.</p>
+                <p style={{ color:"#991b1b", fontSize:".8rem" }}>Harga emas belum tersedia.</p>
               ) : (
                 <Select value={form.gram} onChange={onGramChange} options={gramBuyOpts} placeholder="Pilih berat emas" />
               )}
               {form.gram && form.amount && (
                 <div style={{ marginTop:10, background:"rgba(212,175,55,0.07)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:10, padding:"10px 14px", display:"flex", justifyContent:"space-between" }}>
-                  <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>Total Bayar</span>
-                  <span style={{ color:"#D4AF37", fontWeight:900, fontSize:".95rem" }}>{fmt(Number(form.amount))}</span>
+                  <span style={{ color:"rgba(101,67,14,0.55)", fontSize:".83rem" }}>Total Bayar</span>
+                  <span style={{ color:"#8B6010", fontWeight:900, fontSize:".95rem" }}>{fmt(Number(form.amount))}</span>
                 </div>
               )}
             </div>
@@ -269,18 +269,18 @@ export default function MemberRequestPage() {
           {/* Buyback — dropdown gram → dana diterima otomatis */}
           {form.type === "buyback" && (
             <div>
-              <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:6 }}>Pilih Berat Emas yang Dijual *</label>
+              <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"block", marginBottom:6 }}>Pilih Berat Emas yang Dijual *</label>
               {loadingPrices ? (
-                <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".8rem" }}>Memuat harga...</p>
+                <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".8rem" }}>Memuat harga...</p>
               ) : gramSellOpts.length === 0 ? (
-                <p style={{ color:"#f87171", fontSize:".8rem" }}>Harga buyback belum tersedia.</p>
+                <p style={{ color:"#991b1b", fontSize:".8rem" }}>Harga buyback belum tersedia.</p>
               ) : (
                 <Select value={form.gram} onChange={onGramChange} options={gramSellOpts} placeholder="Pilih berat emas" />
               )}
               {form.gram && form.amount && (
                 <div style={{ marginTop:10, background:"rgba(96,165,250,0.07)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:10, padding:"10px 14px", display:"flex", justifyContent:"space-between" }}>
-                  <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".83rem" }}>Dana Diterima</span>
-                  <span style={{ color:"#60a5fa", fontWeight:900, fontSize:".95rem" }}>{fmt(Number(form.amount))}</span>
+                  <span style={{ color:"rgba(101,67,14,0.55)", fontSize:".83rem" }}>Dana Diterima</span>
+                  <span style={{ color:"#1d4ed8", fontWeight:900, fontSize:".95rem" }}>{fmt(Number(form.amount))}</span>
                 </div>
               )}
             </div>
@@ -289,7 +289,7 @@ export default function MemberRequestPage() {
           {/* Setor Simpanan — input manual */}
           {form.type === "tabungan" && (
             <div>
-              <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:6 }}>Jumlah Setoran (Rp) *</label>
+              <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"block", marginBottom:6 }}>Jumlah Setoran (Rp) *</label>
               <RupiahInput value={form.amount} onValueChange={v=>setForm(f=>({...f,amount:v}))} style={inputStyle} />
             </div>
           )}
@@ -297,14 +297,14 @@ export default function MemberRequestPage() {
           {/* Payment method — tidak untuk buyback */}
           {form.type !== "buyback" && (
             <div>
-              <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 6 }}>Metode Pembayaran</label>
+              <label style={{ color: "rgba(101,67,14,0.55)", fontSize: ".8rem", display: "block", marginBottom: 6 }}>Metode Pembayaran</label>
               <Select value={form.paymentMethod} onChange={v => setForm(f => ({ ...f, paymentMethod: v }))} options={PAYMENT_METHODS} />
             </div>
           )}
 
           {/* Notes */}
           <div>
-            <label style={{ color: "rgba(255,255,255,0.5)", fontSize: ".8rem", display: "block", marginBottom: 6 }}>Catatan (opsional)</label>
+            <label style={{ color: "rgba(101,67,14,0.55)", fontSize: ".8rem", display: "block", marginBottom: 6 }}>Catatan (opsional)</label>
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               placeholder="Contoh: Bukti transfer sudah dikirim via WA"
               rows={2}
@@ -328,40 +328,40 @@ export default function MemberRequestPage() {
           <h2 style={{ color: "rgba(255,255,255,0.7)", fontSize: ".9rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", margin: 0 }}>
             Riwayat Permintaan
             {pendingCount > 0 && (
-              <span style={{ marginLeft: 8, background: "rgba(251,191,36,0.15)", color: "#fbbf24", borderRadius: 20, padding: "2px 8px", fontSize: ".72rem" }}>
+              <span style={{ marginLeft: 8, background: "rgba(146,64,14,0.1)", color: "#fbbf24", borderRadius: 20, padding: "2px 8px", fontSize: ".72rem" }}>
                 {pendingCount} Pending
               </span>
             )}
           </h2>
           <button onClick={loadRequests}
-            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.3)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: ".78rem" }}>
+            style={{ background: "none", border: "none", color: "rgba(101,67,14,0.35)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: ".78rem" }}>
             <RefreshCw style={{ width: 12, height: 12 }} /> Refresh
           </button>
         </div>
 
         {loadingReq ? (
-          <p style={{ color: "rgba(255,255,255,0.3)", fontSize: ".85rem" }}>Memuat...</p>
+          <p style={{ color: "rgba(101,67,14,0.35)", fontSize: ".85rem" }}>Memuat...</p>
         ) : myRequests.length === 0 ? (
-          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, padding: "32px", textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: ".88rem" }}>
+          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(201,162,39,0.12)", borderRadius: 14, padding: "32px", textAlign: "center", color: "rgba(101,67,14,0.35)", fontSize: ".88rem" }}>
             Belum ada permintaan transaksi.
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {myRequests.map(req => (
               <motion.div key={req.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(201,162,39,0.15)", borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
                 <div style={{ flex: 1, minWidth: 160 }}>
                   <p style={{ color: "#fff", fontWeight: 600, fontSize: ".88rem", margin: "0 0 3px" }}>
                     {TX_TYPES.find(t => t.value === req.type)?.label || req.type}
                   </p>
-                  <p style={{ color: "rgba(255,255,255,0.35)", fontSize: ".75rem", margin: 0 }}>
+                  <p style={{ color: "rgba(101,67,14,0.4)", fontSize: ".75rem", margin: 0 }}>
                     {fmtDate((req as any).transaction_date || req.created_at)}
                     {req.gram && ` · ${req.gram} gr`}
                     {req.payment_method && ` · ${req.payment_method}`}
                   </p>
                 </div>
                 <p style={{ color: "#D4AF37", fontWeight: 700, fontSize: ".95rem", margin: 0 }}>{fmt(req.amount)}</p>
-                <span style={{ background: STATUS_BG[req.status]||"rgba(255,255,255,0.08)", color: STATUS_COLOR[req.status]||"#fff", borderRadius: 8, padding: "4px 10px", fontSize: ".75rem", fontWeight: 600, display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
+                <span style={{ background: STATUS_BG[req.status]||"rgba(201,162,39,0.15)", color: STATUS_COLOR[req.status]||"#fff", borderRadius: 8, padding: "4px 10px", fontSize: ".75rem", fontWeight: 600, display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
                   {STATUS_ICON[req.status]}
                   {STATUS_LABEL[req.status] || req.status}
                 </span>

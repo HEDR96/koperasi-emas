@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 
@@ -28,7 +28,7 @@ export default function RupiahInput({
 }: RupiahInputProps) {
   return (
     <div style={{ position: "relative", width: "100%", ...wrapperStyle }}>
-      <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.4)", fontSize: ".85rem", pointerEvents: "none" }}>Rp</span>
+      <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "rgba(101,67,14,0.45)", fontSize: ".85rem", pointerEvents: "none" }}>Rp</span>
       <input
         inputMode="numeric"
         value={fmtRibuan(value)}

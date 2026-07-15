@@ -148,56 +148,56 @@ export default function SimpananPage() {
     <div style={{ display:"flex", flexDirection:"column", gap:24, maxWidth:800 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Simpanan Koperasi</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Rincian Simpanan dan konversi ke emas</p>
+          <h1 style={{ color:"#2D1B00", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Simpanan Koperasi</h1>
+          <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".85rem", margin:"4px 0 0" }}>Rincian Simpanan dan konversi ke emas</p>
         </div>
-        <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
+        <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#8B6010", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:13, height:13 }} /> Refresh
         </button>
       </div>
 
       {submitted && (
         <motion.div initial={{ opacity:0, y:-8 }} animate={{ opacity:1, y:0 }}
-          style={{ background:"rgba(52,211,153,0.1)", border:"1px solid rgba(52,211,153,0.25)", borderRadius:12, padding:"14px 18px", color:"#34d399", fontSize:".88rem" }}>
+          style={{ background:"rgba(6,95,70,0.08)", border:"1px solid rgba(52,211,153,0.25)", borderRadius:12, padding:"14px 18px", color:"#065f46", fontSize:".88rem" }}>
           Pengajuan gadai berhasil dikirim! Admin akan memproses dalam 1x24 jam.
         </motion.div>
       )}
 
-      {loading ? <p style={{ color:"rgba(255,255,255,0.3)" }}>Memuat data simpanan...</p> : (
+      {loading ? <p style={{ color:"rgba(101,67,14,0.35)" }}>Memuat data simpanan...</p> : (
         <>
           {/* Total card */}
           <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }}
             style={{ background:"linear-gradient(135deg,rgba(212,175,55,0.12),rgba(212,175,55,0.04))", border:"1px solid rgba(212,175,55,0.3)", borderRadius:20, padding:24 }}>
-            <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".82rem", marginBottom:6 }}>Total Simpanan</p>
-            <p style={{ color:"#D4AF37", fontSize:"2.2rem", fontWeight:900, margin:0, lineHeight:1 }}>{fmt(totalSimpanan)}</p>
+            <p style={{ color:"rgba(101,67,14,0.55)", fontSize:".82rem", marginBottom:6 }}>Total Simpanan</p>
+            <p style={{ color:"#8B6010", fontSize:"2.2rem", fontWeight:900, margin:0, lineHeight:1 }}>{fmt(totalSimpanan)}</p>
             {buybackHarga > 0 && (
               <div style={{ marginTop:14, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
-                <Coins style={{ width:15, height:15, color:"#D4AF37" }} />
-                <span style={{ color:"rgba(255,255,255,0.6)", fontSize:".85rem" }}>
-                  Setara <strong style={{ color:"#D4AF37" }}>{fmtGram(gramSetara)}</strong> · harga gadai {fmt(buybackHarga)}/gram
+                <Coins style={{ width:15, height:15, color:"#8B6010" }} />
+                <span style={{ color:"rgba(101,67,14,0.7)", fontSize:".85rem" }}>
+                  Setara <strong style={{ color:"#8B6010" }}>{fmtGram(gramSetara)}</strong> · harga gadai {fmt(buybackHarga)}/gram
                 </span>
               </div>
             )}
-            <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".75rem", marginTop:8 }}>
+            <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".75rem", marginTop:8 }}>
               Nilai Simpanan dapat digunakan sebagai jaminan gadai pinjaman
             </p>
           </motion.div>
 
           {/* Detail simpanan */}
           {rows.length === 0 ? (
-            <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".88rem", textAlign:"center", padding:"24px 0" }}>Belum ada setoran simpanan.</p>
+            <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".88rem", textAlign:"center", padding:"24px 0" }}>Belum ada setoran simpanan.</p>
           ) : (
-            <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, overflow:"hidden" }}>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 130px 1fr", padding:"8px 18px", borderBottom:"1px solid rgba(255,255,255,0.06)", background:"rgba(255,255,255,0.03)" }}>
-                <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>Nominal</p>
-                <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>Tgl Transaksi</p>
-                <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>Keterangan</p>
+            <div style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.15)", borderRadius:16, overflow:"hidden" }}>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 130px 1fr", padding:"8px 18px", borderBottom:"1px solid rgba(201,162,39,0.12)", background:"rgba(255,255,255,0.72)" }}>
+                <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>Nominal</p>
+                <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>Tgl Transaksi</p>
+                <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>Keterangan</p>
               </div>
               {rows.map((r, i) => (
-                <div key={r.id} style={{ display:"grid", gridTemplateColumns:"1fr 130px 1fr", padding:"10px 18px", borderBottom: i < rows.length-1 ? "1px solid rgba(255,255,255,0.04)" : "none", alignItems:"center" }}>
-                  <p style={{ color:"#fff", fontWeight:700, fontSize:".88rem", margin:0 }}>{fmt(r.amount)}</p>
-                  <p style={{ color:"rgba(255,255,255,0.55)", fontSize:".82rem", margin:0 }}>{fmtDate(r.transaction_date || r.created_at)}</p>
-                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".82rem", margin:0 }}>{r.description || "-"}</p>
+                <div key={r.id} style={{ display:"grid", gridTemplateColumns:"1fr 130px 1fr", padding:"10px 18px", borderBottom: i < rows.length-1 ? "1px solid rgba(201,162,39,0.1)" : "none", alignItems:"center" }}>
+                  <p style={{ color:"#2D1B00", fontWeight:700, fontSize:".88rem", margin:0 }}>{fmt(r.amount)}</p>
+                  <p style={{ color:"rgba(101,67,14,0.6)", fontSize:".82rem", margin:0 }}>{fmtDate(r.transaction_date || r.created_at)}</p>
+                  <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".82rem", margin:0 }}>{r.description || "-"}</p>
                 </div>
               ))}
             </div>
@@ -206,46 +206,46 @@ export default function SimpananPage() {
           {/* Gadai Section */}
           <div style={{ background:"rgba(96,165,250,0.05)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:16, padding:22 }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-              <Landmark style={{ width:20, height:20, color:"#60a5fa" }} />
+              <Landmark style={{ width:20, height:20, color:"#1d4ed8" }} />
               <div>
-                <p style={{ color:"#60a5fa", fontWeight:700, fontSize:"1rem", margin:0 }}>Gadai Simpanan</p>
-                <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".78rem", margin:0 }}>Ajukan pinjaman dengan simpanan sebagai jaminan</p>
+                <p style={{ color:"#1d4ed8", fontWeight:700, fontSize:"1rem", margin:0 }}>Gadai Simpanan</p>
+                <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", margin:0 }}>Ajukan pinjaman dengan simpanan sebagai jaminan</p>
               </div>
             </div>
 
             {activeGadai ? (
-              <div style={{ background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:12, padding:"14px 16px", display:"flex", alignItems:"center", gap:10 }}>
-                <AlertCircle style={{ width:18, height:18, color:"#f87171", flexShrink:0 }} />
+              <div style={{ background:"rgba(153,27,27,0.06)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:12, padding:"14px 16px", display:"flex", alignItems:"center", gap:10 }}>
+                <AlertCircle style={{ width:18, height:18, color:"#991b1b", flexShrink:0 }} />
                 <div>
-                  <p style={{ color:"#f87171", fontWeight:600, fontSize:".88rem", margin:0 }}>Ada Gadai Aktif</p>
-                  <p style={{ color:"rgba(255,255,255,0.45)", fontSize:".78rem", margin:0 }}>
-                    Pinjaman {fmt(activeGadai.dana_cair)} · Status: <strong style={{ color:"#D4AF37", textTransform:"capitalize" }}>{activeGadai.status}</strong>
+                  <p style={{ color:"#991b1b", fontWeight:600, fontSize:".88rem", margin:0 }}>Ada Gadai Aktif</p>
+                  <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", margin:0 }}>
+                    Pinjaman {fmt(activeGadai.dana_cair)} · Status: <strong style={{ color:"#8B6010", textTransform:"capitalize" }}>{activeGadai.status}</strong>
                     {" "}· Sisa tagihan: {fmt(activeGadai.sisa_tagihan)}
                   </p>
-                  <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".72rem", margin:"4px 0 0" }}>Lunasi gadai ini terlebih dahulu untuk mengajukan gadai baru.</p>
+                  <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".72rem", margin:"4px 0 0" }}>Lunasi gadai ini terlebih dahulu untuk mengajukan gadai baru.</p>
                 </div>
               </div>
             ) : totalSimpanan > 0 ? (
               <div>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:14, fontSize:".82rem" }}>
                   {[
-                    { label:"Maks. Pinjaman", value:fmt(maxPinjaman), color:"#60a5fa" },
-                    { label:"Jaminan (setara gram)", value:fmtGram(gramSetara), color:"#D4AF37" },
-                    { label:"Tenor Tersedia", value:"1 - 4 bulan", color:"#34d399" },
+                    { label:"Maks. Pinjaman", value:fmt(maxPinjaman), color:"#1d4ed8" },
+                    { label:"Jaminan (setara gram)", value:fmtGram(gramSetara), color:"#8B6010" },
+                    { label:"Tenor Tersedia", value:"1 - 4 bulan", color:"#065f46" },
                   ].map(i => (
-                    <div key={i.label} style={{ background:"rgba(255,255,255,0.03)", borderRadius:10, padding:"12px 14px" }}>
-                      <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".72rem", margin:"0 0 4px" }}>{i.label}</p>
+                    <div key={i.label} style={{ background:"rgba(255,255,255,0.72)", borderRadius:10, padding:"12px 14px" }}>
+                      <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".72rem", margin:"0 0 4px" }}>{i.label}</p>
                       <p style={{ color:i.color, fontWeight:700, margin:0 }}>{i.value}</p>
                     </div>
                   ))}
                 </div>
                 <button onClick={() => { setShowGadai(true); setSubmitted(false); setGadaiErr(""); setPinjamanInput(""); setTenor(1); }}
-                  style={{ display:"flex", alignItems:"center", gap:8, padding:"11px 22px", borderRadius:10, background:"rgba(96,165,250,0.15)", border:"1px solid rgba(96,165,250,0.35)", color:"#60a5fa", fontWeight:700, fontSize:".9rem", cursor:"pointer" }}>
+                  style={{ display:"flex", alignItems:"center", gap:8, padding:"11px 22px", borderRadius:10, background:"rgba(29,78,216,0.1)", border:"1px solid rgba(96,165,250,0.35)", color:"#1d4ed8", fontWeight:700, fontSize:".9rem", cursor:"pointer" }}>
                   <ArrowRight style={{ width:16, height:16 }} /> Ajukan Gadai
                 </button>
               </div>
             ) : (
-              <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Belum ada simpanan yang dapat dijadikan jaminan gadai.</p>
+              <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".85rem" }}>Belum ada simpanan yang dapat dijadikan jaminan gadai.</p>
             )}
           </div>
         </>
@@ -262,15 +262,15 @@ export default function SimpananPage() {
               initial={{ opacity:0, scale:.92, y:20 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.92 }}
               style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:1001, width:"min(440px,94vw)", background:"rgba(12,12,12,0.98)", border:"1px solid rgba(96,165,250,0.3)", borderRadius:20, padding:26 }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
-                <h3 style={{ color:"#fff", fontWeight:700, fontSize:"1.05rem", margin:0 }}>Ajukan Gadai Simpanan</h3>
+                <h3 style={{ color:"#2D1B00", fontWeight:700, fontSize:"1.05rem", margin:0 }}>Ajukan Gadai Simpanan</h3>
                 <button onClick={() => setShowGadai(false)}
-                  style={{ background:"rgba(255,255,255,0.07)", border:"none", borderRadius:8, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>
+                  style={{ background:"rgba(255,255,255,0.72)", border:"none", borderRadius:8, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(101,67,14,0.55)", cursor:"pointer" }}>
                   <X style={{ width:15, height:15 }} />
                 </button>
               </div>
 
               {gadaiErr && (
-                <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.25)", borderRadius:10, padding:"10px 14px", color:"#f87171", fontSize:".82rem", marginBottom:14 }}>
+                <div style={{ background:"rgba(153,27,27,0.08)", border:"1px solid rgba(248,113,113,0.25)", borderRadius:10, padding:"10px 14px", color:"#991b1b", fontSize:".82rem", marginBottom:14 }}>
                   {gadaiErr}
                 </div>
               )}
@@ -278,38 +278,38 @@ export default function SimpananPage() {
               <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
                 {/* Info maks pinjaman */}
                 <div style={{ background:"rgba(96,165,250,0.06)", border:"1px solid rgba(96,165,250,0.18)", borderRadius:10, padding:"10px 14px" }}>
-                  <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".75rem", margin:"0 0 2px" }}>Maksimal Pinjaman</p>
-                  <p style={{ color:"#60a5fa", fontWeight:900, fontSize:"1.1rem", margin:0 }}>{fmt(maxPinjaman)}</p>
-                  <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".7rem", margin:"2px 0 0" }}>
+                  <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".75rem", margin:"0 0 2px" }}>Maksimal Pinjaman</p>
+                  <p style={{ color:"#1d4ed8", fontWeight:900, fontSize:"1.1rem", margin:0 }}>{fmt(maxPinjaman)}</p>
+                  <p style={{ color:"rgba(101,67,14,0.3)", fontSize:".7rem", margin:"2px 0 0" }}>
                     = Simpanan {fmt(totalSimpanan)} × 80%{gadaiParams.adminAnggota > 0 ? ` − admin ${fmt(gadaiParams.adminAnggota)}` : ""}
                   </p>
                 </div>
 
                 {/* Input pinjaman (Rupiah) */}
                 <div>
-                  <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"flex", justifyContent:"space-between", marginBottom:7 }}>
+                  <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"flex", justifyContent:"space-between", marginBottom:7 }}>
                     <span>Jumlah Pinjaman (Rp)</span>
-                    <button type="button" onClick={() => setPinjamanInput(String(maxPinjaman))} style={{ background:"none", border:"none", color:"#D4AF37", cursor:"pointer", fontSize:".76rem" }}>Maks</button>
+                    <button type="button" onClick={() => setPinjamanInput(String(maxPinjaman))} style={{ background:"none", border:"none", color:"#8B6010", cursor:"pointer", fontSize:".76rem" }}>Maks</button>
                   </label>
                   <div style={{ position:"relative" }}>
-                    <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.35)", fontSize:".85rem", pointerEvents:"none" }}>Rp</span>
+                    <span style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(101,67,14,0.4)", fontSize:".85rem", pointerEvents:"none" }}>Rp</span>
                     <input inputMode="numeric" value={fmtRibuan(pinjamanInput)}
                       onChange={e => setPinjamanInput(e.target.value.replace(/\D/g,""))}
-                      style={{ width:"100%", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, padding:"11px 14px 11px 40px", color:"#fff", fontSize:"1rem", outline:"none", boxSizing:"border-box" }}
+                      style={{ width:"100%", background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.22)", borderRadius:10, padding:"11px 14px 11px 40px", color:"#2D1B00", fontSize:"1rem", outline:"none", boxSizing:"border-box" }}
                       placeholder="0" />
                   </div>
                 </div>
 
                 {/* Tenor */}
                 <div>
-                  <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Tenor (bulan)</label>
+                  <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"block", marginBottom:7 }}>Tenor (bulan)</label>
                   <div style={{ display:"flex", gap:8 }}>
                     {[1,2,3,4].map(t => (
                       <button key={t} onClick={() => setTenor(t)}
                         style={{ flex:1, padding:"10px", borderRadius:10, fontWeight:700, fontSize:".9rem", cursor:"pointer",
-                          border: tenor===t ? "1px solid #60a5fa" : "1px solid rgba(255,255,255,0.1)",
-                          background: tenor===t ? "rgba(96,165,250,0.15)" : "rgba(255,255,255,0.04)",
-                          color: tenor===t ? "#60a5fa" : "rgba(255,255,255,0.5)" }}>
+                          border: tenor===t ? "1px solid #60a5fa" : "1px solid rgba(201,162,39,0.2)",
+                          background: tenor===t ? "rgba(29,78,216,0.1)" : "rgba(255,255,255,0.04)",
+                          color: tenor===t ? "#60a5fa" : "rgba(101,67,14,0.55)" }}>
                         {t}
                       </button>
                     ))}
@@ -320,18 +320,18 @@ export default function SimpananPage() {
                 {pinjamanRp > 0 && (
                   <div style={{ background:"rgba(96,165,250,0.07)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:12, padding:"14px 16px" }}>
                     <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
-                      <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".82rem" }}>Pinjaman (dana cair)</span>
-                      <span style={{ color:"#fff", fontWeight:700 }}>{fmt(pinjamanRp)}</span>
+                      <span style={{ color:"rgba(101,67,14,0.55)", fontSize:".82rem" }}>Pinjaman (dana cair)</span>
+                      <span style={{ color:"#2D1B00", fontWeight:700 }}>{fmt(pinjamanRp)}</span>
                     </div>
                     <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
-                      <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".82rem" }}>Tenor</span>
-                      <span style={{ color:"#fff", fontWeight:700 }}>{tenor} bulan</span>
+                      <span style={{ color:"rgba(101,67,14,0.55)", fontSize:".82rem" }}>Tenor</span>
+                      <span style={{ color:"#2D1B00", fontWeight:700 }}>{tenor} bulan</span>
                     </div>
-                    <div style={{ display:"flex", justifyContent:"space-between", paddingTop:8, borderTop:"1px solid rgba(255,255,255,0.07)" }}>
-                      <span style={{ color:"rgba(255,255,255,0.7)", fontSize:".88rem", fontWeight:600 }}>Angsuran/bulan</span>
-                      <span style={{ color:"#60a5fa", fontSize:"1.1rem", fontWeight:900 }}>{fmt(angsuran)}</span>
+                    <div style={{ display:"flex", justifyContent:"space-between", paddingTop:8, borderTop:"1px solid rgba(201,162,39,0.15)" }}>
+                      <span style={{ color:"rgba(101,67,14,0.75)", fontSize:".88rem", fontWeight:600 }}>Angsuran/bulan</span>
+                      <span style={{ color:"#1d4ed8", fontSize:"1.1rem", fontWeight:900 }}>{fmt(angsuran)}</span>
                     </div>
-                    <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".72rem", marginTop:6, marginBottom:0 }}>
+                    <p style={{ color:"rgba(101,67,14,0.3)", fontSize:".72rem", marginTop:6, marginBottom:0 }}>
                       {fmt(pinjamanRp)} × (1 + {gadaiParams.persenAnggota}%) / {tenor} = {fmt(angsuran)}/bln
                     </p>
                   </div>
@@ -341,7 +341,7 @@ export default function SimpananPage() {
                   style={{ padding:"13px", borderRadius:11, background:"linear-gradient(135deg,#60a5fa,#93c5fd)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:"1rem", cursor:submitting?"not-allowed":"pointer", opacity:submitting?0.7:1 }}>
                   {submitting ? "Mengajukan..." : "Ajukan Gadai"}
                 </button>
-                <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".75rem", textAlign:"center", margin:0 }}>
+                <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".75rem", textAlign:"center", margin:0 }}>
                   Pengajuan akan diproses admin dalam 1×24 jam kerja
                 </p>
               </div>

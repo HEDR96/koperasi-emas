@@ -38,20 +38,55 @@ export default function HeroSection() {
     >
       {/* Ambient glow orbs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div style={{ position:"absolute", top:"-20%", left:"-10%", width:"50vw", height:"50vw", borderRadius:"50%", background:"radial-gradient(circle, rgba(212,175,55,0.07) 0%, transparent 70%)", filter:"blur(60px)" }} />
-        <div style={{ position:"absolute", bottom:"-10%", right:"-5%", width:"40vw", height:"40vw", borderRadius:"50%", background:"radial-gradient(circle, rgba(212,175,55,0.05) 0%, transparent 70%)", filter:"blur(50px)" }} />
+        <div style={{ position:"absolute", top:"-20%", left:"-10%", width:"50vw", height:"50vw", borderRadius:"50%", background:"radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 70%)", filter:"blur(60px)" }} />
+        <div style={{ position:"absolute", bottom:"-10%", right:"-5%", width:"40vw", height:"40vw", borderRadius:"50%", background:"radial-gradient(circle, rgba(201,162,39,0.1) 0%, transparent 70%)", filter:"blur(50px)" }} />
         {/* Grid */}
-        <div style={{ position:"absolute", inset:0, opacity:0.04, backgroundImage:"linear-gradient(rgba(212,175,55,1) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,1) 1px, transparent 1px)", backgroundSize:"80px 80px" }} />
+        <div style={{ position:"absolute", inset:0, opacity:0.06, backgroundImage:"linear-gradient(rgba(201,162,39,1) 1px, transparent 1px), linear-gradient(90deg, rgba(201,162,39,1) 1px, transparent 1px)", backgroundSize:"80px 80px" }} />
         {/* Particles */}
         {PARTICLES.map((p, i) => (
           <div key={i} style={{
             position:"absolute", left:p.l, top:p.t,
             width:3, height:3, borderRadius:"50%",
-            background:"#D4AF37", opacity:0,
+            background:"#C9A227", opacity:0,
             animation:`particle-float ${p.d} ease-in infinite`,
             animationDelay: p.delay,
           }} />
         ))}
+      </div>
+
+      {/* Gold wave + bar decorations at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ zIndex:2 }}>
+        <svg viewBox="0 0 1440 280" xmlns="http://www.w3.org/2000/svg" style={{ display:"block", width:"100%" }} preserveAspectRatio="none">
+          <path fill="#C9A227" fillOpacity="0.85" d="M0,200 C180,240 360,140 540,160 C720,180 900,260 1080,220 C1260,180 1380,200 1440,210 L1440,280 L0,280 Z" />
+          <path fill="#D4AF37" fillOpacity="0.45" d="M0,220 C200,180 400,250 620,230 C840,210 1000,170 1200,210 C1340,235 1400,225 1440,220 L1440,280 L0,280 Z" />
+          <path fill="#B8960C" fillOpacity="0.3" d="M0,250 C300,220 600,270 900,245 C1100,228 1300,255 1440,250 L1440,280 L0,280 Z" />
+        </svg>
+        {/* Gold bars */}
+        <div style={{ position:"absolute", bottom:0, left:0, display:"flex", alignItems:"flex-end", gap:8, padding:"0 24px 0 12px" }}>
+          <div style={{ width:56, height:80, background:"linear-gradient(170deg,#F5D060 0%,#C9A227 40%,#8B6010 100%)", borderRadius:"4px 4px 2px 2px", boxShadow:"4px 4px 16px rgba(0,0,0,0.2)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2 }}>
+            <div style={{ width:36, height:36, background:"rgba(255,255,255,0.15)", borderRadius:4, display:"flex", alignItems:"center", justifyContent:"center", fontSize:".55rem", fontWeight:900, color:"#fff", textAlign:"center", lineHeight:1.1 }}>LM</div>
+            <div style={{ fontSize:".45rem", color:"rgba(255,255,255,0.8)", fontWeight:700, letterSpacing:".05em", textAlign:"center", lineHeight:1.2 }}>FINE<br/>GOLD<br/>999.9</div>
+          </div>
+          <div style={{ width:10, height:10, background:"linear-gradient(135deg,#F5D060,#8B6010)", borderRadius:"50%", marginBottom:30, boxShadow:"2px 2px 8px rgba(0,0,0,0.2)" }} />
+        </div>
+        <div style={{ position:"absolute", bottom:0, right:12, display:"flex", alignItems:"flex-end", gap:8 }}>
+          <div style={{ width:10, height:10, background:"linear-gradient(135deg,#F5D060,#8B6010)", borderRadius:"50%", marginBottom:30, boxShadow:"2px 2px 8px rgba(0,0,0,0.2)" }} />
+          <div style={{ width:56, height:80, background:"linear-gradient(170deg,#F5D060 0%,#C9A227 40%,#8B6010 100%)", borderRadius:"4px 4px 2px 2px", boxShadow:"-4px 4px 16px rgba(0,0,0,0.2)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2 }}>
+            <div style={{ width:36, height:36, background:"rgba(255,255,255,0.15)", borderRadius:4, display:"flex", alignItems:"center", justifyContent:"center", fontSize:".55rem", fontWeight:900, color:"#fff", textAlign:"center", lineHeight:1.1 }}>LM</div>
+            <div style={{ fontSize:".45rem", color:"rgba(255,255,255,0.8)", fontWeight:700, letterSpacing:".05em", textAlign:"center", lineHeight:1.2 }}>FINE<br/>GOLD<br/>999.9</div>
+          </div>
+        </div>
+        {/* Gold ribbon curl top-right */}
+        <svg viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg" style={{ position:"absolute", top:"-60px", right:0, width:90, height:140, opacity:.75 }}>
+          <path d="M100,10 C80,30 110,60 85,80 C60,100 90,130 70,155" stroke="url(#ribbonGrad)" strokeWidth="8" fill="none" strokeLinecap="round" />
+          <defs>
+            <linearGradient id="ribbonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#F5D060" />
+              <stop offset="50%" stopColor="#C9A227" />
+              <stop offset="100%" stopColor="#8B6010" />
+            </linearGradient>
+          </defs>
+        </svg>
       </div>
 
       <motion.div style={{ y, opacity }} className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-24 pb-16">
@@ -59,7 +94,7 @@ export default function HeroSection() {
         {/* Trust badge */}
         <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay:.2 }}
           className="inline-flex items-center gap-2 glass-dark gold-border-glow px-4 py-2 rounded-full text-sm mb-8"
-          style={{ color:"#D4AF37" }}>
+          style={{ color:"#8B6010" }}>
           <Shield style={{ width:16, height:16 }} />
           <span style={{ fontWeight:500 }}>Terdaftar Kementerian Koperasi & UKM RI</span>
           <Award style={{ width:16, height:16 }} />
@@ -68,7 +103,7 @@ export default function HeroSection() {
         {/* Headline */}
         <motion.h1
           initial={{ opacity:0, y:30 }} animate={{ opacity:1, y:0 }} transition={{ delay:.35, duration:.8 }}
-          style={{ fontSize:"clamp(2rem, 6vw, 4.5rem)", fontWeight:900, lineHeight:1.1, marginBottom:"1.5rem", color:"#fff", letterSpacing:"-0.02em" }}
+          style={{ fontSize:"clamp(2rem, 6vw, 4.5rem)", fontWeight:900, lineHeight:1.1, marginBottom:"1.5rem", color:"#2D1B00", letterSpacing:"-0.02em" }}
         >
           Investasi Emas{" "}
           <span className="text-gold-gradient">{s.tagline || "Aman & Terpercaya"}</span>
@@ -83,7 +118,7 @@ export default function HeroSection() {
         {/* Sub */}
         <motion.p
           initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay:.5 }}
-          style={{ fontSize:"clamp(1rem,2vw,1.2rem)", color:"rgba(255,255,255,0.85)", maxWidth:640, margin:"0 auto 2.5rem", lineHeight:1.7 }}
+          style={{ fontSize:"clamp(1rem,2vw,1.2rem)", color:"rgba(101,67,14,0.75)", maxWidth:640, margin:"0 auto 2.5rem", lineHeight:1.7 }}
         >
           Platform koperasi emas terpercaya untuk {s.totalAnggota || "150.000+"} anggota Indonesia.
           Tabung, cicil, buyback, gadai simpanan, dan dapatkan SHU tahunan.
@@ -112,7 +147,7 @@ export default function HeroSection() {
 
       {/* Scroll cue */}
       <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:1.6 }}
-        style={{ position:"absolute", bottom:28, left:"50%", transform:"translateX(-50%)", display:"flex", flexDirection:"column", alignItems:"center", gap:6, color:"rgba(255,255,255,0.25)" }}
+        style={{ position:"absolute", bottom:28, left:"50%", transform:"translateX(-50%)", display:"flex", flexDirection:"column", alignItems:"center", gap:6, color:"rgba(101,67,14,0.35)", zIndex:3 }}
       >
         <span style={{ fontSize:".65rem", letterSpacing:".15em", textTransform:"uppercase" }}>Scroll</span>
         <motion.div animate={{ y:[0,8,0] }} transition={{ duration:1.5, repeat:Infinity }}>

@@ -37,7 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="id" className={inter.variable} suppressHydrationWarning>
       <body
         className="antialiased min-h-screen"
-        style={{ background: "#0a0a0a", color: "#f0f0f0", fontFamily: "var(--font-inter), system-ui, sans-serif" }}
+        style={{ background: "radial-gradient(ellipse 130% 85% at 50% 15%, #FFFFFF 0%, #FFFDE7 45%, #FFF8C4 80%, #F5E598 100%)", backgroundAttachment: "fixed", color: "#2D1B00", fontFamily: "var(--font-inter), system-ui, sans-serif" }}
       >
         {children}
       </body>

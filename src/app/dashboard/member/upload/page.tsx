@@ -14,8 +14,8 @@ const fmt = (n: number) =>
 const fmtDate = (s: string) => new Date(s).toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"});
 
 const inp: React.CSSProperties = {
-  width:"100%", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)",
-  borderRadius:10, padding:"10px 14px", color:"#fff", fontSize:".9rem", outline:"none", boxSizing:"border-box",
+  width:"100%", background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.2)",
+  borderRadius:10, padding:"10px 14px", color:"#2D1B00", fontSize:".9rem", outline:"none", boxSizing:"border-box",
 };
 const TYPE_LABEL: Record<string,string> = { buy:"Beli Emas", buyback:"Buyback", cicilan:"Cicilan", tabungan:"Simpanan (lama)" };
 
@@ -86,23 +86,23 @@ export default function MemberUploadPage() {
     <div style={{ display:"flex", flexDirection:"column", gap:24, maxWidth:680 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
         <div>
-          <h1 style={{ color:"#fff", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Upload Bukti Pembayaran</h1>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Kirim bukti pembayaran untuk transaksi pending</p>
+          <h1 style={{ color:"#2D1B00", fontSize:"1.4rem", fontWeight:700, margin:0 }}>Upload Bukti Pembayaran</h1>
+          <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".85rem", margin:"4px 0 0" }}>Kirim bukti pembayaran untuk transaksi pending</p>
         </div>
-        <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
+        <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#8B6010", cursor:"pointer", fontSize:".85rem" }}>
           <RefreshCw style={{ width:13, height:13 }} /> Refresh
         </button>
       </div>
 
       <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }}
-        style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, padding:22, display:"flex", flexDirection:"column", gap:16 }}>
-        {error && <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:10, padding:"10px 14px", color:"#f87171", fontSize:".82rem" }}>{error}</div>}
-        {saved && <div style={{ background:"rgba(52,211,153,0.1)", border:"1px solid rgba(52,211,153,0.2)", borderRadius:10, padding:"10px 14px", color:"#34d399", fontSize:".82rem", display:"flex", alignItems:"center", gap:8 }}><CheckCircle style={{width:14,height:14}}/> Bukti pembayaran terkirim!</div>}
+        style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.15)", borderRadius:16, padding:22, display:"flex", flexDirection:"column", gap:16 }}>
+        {error && <div style={{ background:"rgba(153,27,27,0.08)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:10, padding:"10px 14px", color:"#991b1b", fontSize:".82rem" }}>{error}</div>}
+        {saved && <div style={{ background:"rgba(6,95,70,0.08)", border:"1px solid rgba(52,211,153,0.2)", borderRadius:10, padding:"10px 14px", color:"#065f46", fontSize:".82rem", display:"flex", alignItems:"center", gap:8 }}><CheckCircle style={{width:14,height:14}}/> Bukti pembayaran terkirim!</div>}
 
         <div>
-          <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Transaksi *</label>
-          {loading ? <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".85rem" }}>Memuat...</p>
-            : pendingTx.length === 0 ? <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".85rem" }}>Tidak ada transaksi pending. Ajukan transaksi dulu di menu Ajukan Transaksi.</p>
+          <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"block", marginBottom:7 }}>Transaksi *</label>
+          {loading ? <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".85rem" }}>Memuat...</p>
+            : pendingTx.length === 0 ? <p style={{ color:"rgba(101,67,14,0.4)", fontSize:".85rem" }}>Tidak ada transaksi pending. Ajukan transaksi dulu di menu Ajukan Transaksi.</p>
             : (
               <Select value={form.transaction_id} placeholder="— Pilih transaksi —"
                 onChange={v=>{ const tx=pendingTx.find(t=>t.id===v); setForm(p=>({...p, transaction_id:v, amount:tx?String(tx.amount):""})); }}
@@ -112,23 +112,23 @@ export default function MemberUploadPage() {
 
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
           <div>
-            <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Nominal (Rp)</label>
+            <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"block", marginBottom:7 }}>Nominal (Rp)</label>
             <RupiahInput value={form.amount} onValueChange={v=>setForm(p=>({...p,amount:v}))} style={inp} />
           </div>
           <div>
-            <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Metode</label>
+            <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"block", marginBottom:7 }}>Metode</label>
             <Select value={form.payment_method} onChange={v=>setForm(p=>({...p,payment_method:v}))} options={PAYMENT_METHODS} />
           </div>
         </div>
 
         <div>
-          <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Link Bukti Transfer (opsional)</label>
+          <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"block", marginBottom:7 }}>Link Bukti Transfer (opsional)</label>
           <input value={form.proof_url} onChange={e=>setForm(p=>({...p,proof_url:e.target.value}))} style={inp} placeholder="URL foto bukti (Drive / imgur / dll)" />
-          <p style={{ color:"rgba(255,255,255,0.25)", fontSize:".72rem", marginTop:5 }}>Tempel link foto bukti transfer, atau kirim via WhatsApp ke admin.</p>
+          <p style={{ color:"rgba(101,67,14,0.3)", fontSize:".72rem", marginTop:5 }}>Tempel link foto bukti transfer, atau kirim via WhatsApp ke admin.</p>
         </div>
 
         <div>
-          <label style={{ color:"rgba(255,255,255,0.5)", fontSize:".8rem", display:"block", marginBottom:7 }}>Catatan</label>
+          <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"block", marginBottom:7 }}>Catatan</label>
           <textarea rows={2} value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))} style={{ ...inp, resize:"vertical", fontFamily:"inherit" }} placeholder="Keterangan tambahan..." />
         </div>
 
@@ -141,12 +141,12 @@ export default function MemberUploadPage() {
       {/* Riwayat pembayaran */}
       {myPayments.length > 0 && (
         <div>
-          <p style={{ color:"rgba(255,255,255,0.5)", fontSize:".78rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 12px" }}>Riwayat Bukti Bayar</p>
+          <p style={{ color:"rgba(101,67,14,0.55)", fontSize:".78rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 12px" }}>Riwayat Bukti Bayar</p>
           <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
             {myPayments.map(p=>(
-              <div key={p.id} style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:12, padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
-                <span style={{ color:"rgba(255,255,255,0.6)", fontSize:".82rem" }}>{p.payment_method||"—"} · {fmtDate(p.created_at)}</span>
-                <span style={{ color:"#D4AF37", fontWeight:700, fontSize:".85rem" }}>{fmt(p.amount)}</span>
+              <div key={p.id} style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.12)", borderRadius:12, padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+                <span style={{ color:"rgba(101,67,14,0.7)", fontSize:".82rem" }}>{p.payment_method||"—"} · {fmtDate(p.created_at)}</span>
+                <span style={{ color:"#8B6010", fontWeight:700, fontSize:".85rem" }}>{fmt(p.amount)}</span>
                 <span style={{ color:STATUS_COLOR[p.status]||"#fff", fontSize:".74rem", textTransform:"capitalize" }}>{p.status==="verified"?"Terverifikasi":p.status==="rejected"?"Ditolak":"Menunggu"}</span>
               </div>
             ))}

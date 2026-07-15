@@ -27,19 +27,19 @@ function ProdukCard({ item, index, onAddCart, inCart }: { item: ProdukItem; inde
     <motion.div
       initial={{ opacity:0, y:24 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} transition={{ delay:index*0.07 }}
       whileHover={{ y:-6, transition:{ duration:0.2 } }}
-      style={{ background:"rgba(14,14,14,0.85)", border:"1px solid rgba(212,175,55,0.15)", borderRadius:20, overflow:"hidden", display:"flex", flexDirection:"column", transition:"border-color .3s, box-shadow .3s" }}
-      onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.borderColor="rgba(212,175,55,0.4)"; (e.currentTarget as HTMLElement).style.boxShadow="0 20px 48px rgba(212,175,55,0.1)"; }}
-      onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.borderColor="rgba(212,175,55,0.15)"; (e.currentTarget as HTMLElement).style.boxShadow="none"; }}>
-      <div style={{ position:"relative", width:"100%", paddingTop:"62%", background:"rgba(212,175,55,0.06)", flexShrink:0 }}>
+      style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.22)", borderRadius:20, overflow:"hidden", display:"flex", flexDirection:"column", transition:"border-color .3s, box-shadow .3s" }}
+      onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.borderColor="rgba(201,162,39,0.5)"; (e.currentTarget as HTMLElement).style.boxShadow="0 20px 48px rgba(201,162,39,0.15)"; }}
+      onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.borderColor="rgba(201,162,39,0.22)"; (e.currentTarget as HTMLElement).style.boxShadow="none"; }}>
+      <div style={{ position:"relative", width:"100%", paddingTop:"62%", background:"rgba(201,162,39,0.06)", flexShrink:0 }}>
         {item.image_url && !imgError ? (
           <img src={gdriveImage(item.image_url)} alt={item.title} onError={()=>setImgError(true)} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
         ) : (
           <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <ShoppingBag style={{ width:40, height:40, color:"rgba(212,175,55,0.25)" }} />
+            <ShoppingBag style={{ width:40, height:40, color:"rgba(201,162,39,0.3)" }} />
           </div>
         )}
         {item.gram_weight!=null && (
-          <div style={{ position:"absolute", top:12, right:12, background:"linear-gradient(135deg,#D4AF37,#F5D060)", color:"#0a0a0a", borderRadius:10, padding:"4px 10px", fontSize:".75rem", fontWeight:900 }}>
+          <div style={{ position:"absolute", top:12, right:12, background:"linear-gradient(135deg,#D4AF37,#F5D060)", color:"#2D1B00", borderRadius:10, padding:"4px 10px", fontSize:".75rem", fontWeight:900 }}>
             {item.gram_weight} gram
           </div>
         )}
@@ -50,13 +50,13 @@ function ProdukCard({ item, index, onAddCart, inCart }: { item: ProdukItem; inde
         )}
       </div>
       <div style={{ padding:"16px 18px 20px", display:"flex", flexDirection:"column", gap:8, flex:1 }}>
-        <h3 style={{ color:"#fff", fontWeight:800, fontSize:".95rem", lineHeight:1.3, margin:0 }}>{item.title}</h3>
-        {item.price!=null && <p style={{ color:"#D4AF37", fontWeight:900, fontSize:"1.05rem", margin:0 }}>{fmtRp(item.price)}</p>}
-        {item.stok!=null && item.stok>0 && <p style={{ color:"#60a5fa", fontSize:".76rem", margin:0, fontWeight:600 }}>Stok: {item.stok}</p>}
-        {item.description && <p style={{ color:"rgba(255,255,255,0.65)", fontSize:".8rem", lineHeight:1.6, flex:1, margin:0 }}>{item.description}</p>}
-        {item.expired_at && <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".72rem", margin:0 }}>s/d {new Date(item.expired_at).toLocaleString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}</p>}
+        <h3 style={{ color:"#2D1B00", fontWeight:800, fontSize:".95rem", lineHeight:1.3, margin:0 }}>{item.title}</h3>
+        {item.price!=null && <p style={{ color:"#8B6010", fontWeight:900, fontSize:"1.05rem", margin:0 }}>{fmtRp(item.price)}</p>}
+        {item.stok!=null && item.stok>0 && <p style={{ color:"#1d4ed8", fontSize:".76rem", margin:0, fontWeight:600 }}>Stok: {item.stok}</p>}
+        {item.description && <p style={{ color:"rgba(101,67,14,0.75)", fontSize:".8rem", lineHeight:1.6, flex:1, margin:0 }}>{item.description}</p>}
+        {item.expired_at && <p style={{ color:"rgba(101,67,14,0.4)", fontSize:".72rem", margin:0 }}>s/d {new Date(item.expired_at).toLocaleString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}</p>}
         <button disabled={habis} onClick={() => onAddCart(item)}
-          style={{ marginTop:4, display:"flex", alignItems:"center", justifyContent:"center", gap:8, width:"100%", padding:"10px", borderRadius:12, background:habis?"rgba(255,255,255,0.04)":inCart?"rgba(52,211,153,0.15)":"linear-gradient(135deg,#D4AF37,#F5D060)", border:inCart?"1px solid rgba(52,211,153,0.3)":"none", color:habis?"rgba(255,255,255,0.3)":inCart?"#34d399":"#0a0a0a", fontWeight:800, fontSize:".82rem", cursor:habis?"not-allowed":"pointer" }}>
+          style={{ marginTop:4, display:"flex", alignItems:"center", justifyContent:"center", gap:8, width:"100%", padding:"10px", borderRadius:12, background:habis?"rgba(101,67,14,0.04)":inCart?"rgba(6,95,70,0.08)":"linear-gradient(135deg,#D4AF37,#F5D060)", border:inCart?"1px solid rgba(6,95,70,0.2)":"none", color:habis?"rgba(101,67,14,0.35)":inCart?"#065f46":"#2D1B00", fontWeight:800, fontSize:".82rem", cursor:habis?"not-allowed":"pointer" }}>
           <ShoppingCart style={{ width:14, height:14 }} />
           {habis ? "Stok Habis" : inCart ? "Tambah Lagi" : "Tambah ke Keranjang"}
         </button>
@@ -73,8 +73,8 @@ const PLACEHOLDER_ITEMS: ProdukItem[] = [
 ];
 
 const inp: React.CSSProperties = {
-  width:"100%", background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.12)",
-  borderRadius:10, padding:"10px 12px 10px 36px", color:"#fff", fontSize:".85rem",
+  width:"100%", background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.2)",
+  borderRadius:10, padding:"10px 12px 10px 36px", color:"#2D1B00", fontSize:".85rem",
   outline:"none", boxSizing:"border-box",
 };
 
@@ -176,32 +176,30 @@ export default function PromoSection() {
 
   return (
     <section id="produk" style={{ padding:"80px 0", position:"relative", overflow:"hidden" }}>
-      <div style={{ position:"absolute", inset:0, background:"linear-gradient(180deg,#000,rgba(13,9,0,0.6),#000)", pointerEvents:"none" }} />
-
       <div style={{ position:"relative", maxWidth:1200, margin:"0 auto", padding:"0 24px" }}>
         {/* Header */}
         <motion.div initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }}
           style={{ textAlign:"center", marginBottom:48, position:"relative" }}>
           {cartCount > 0 && (
             <button onClick={()=>setCartOpen(true)}
-              style={{ position:"absolute", right:0, top:0, display:"flex", alignItems:"center", gap:6, padding:"8px 16px", background:"linear-gradient(135deg,#D4AF37,#F5D060)", border:"none", borderRadius:12, color:"#0a0a0a", cursor:"pointer", fontWeight:800, fontSize:".82rem" }}>
+              style={{ position:"absolute", right:0, top:0, display:"flex", alignItems:"center", gap:6, padding:"8px 16px", background:"linear-gradient(135deg,#D4AF37,#F5D060)", border:"none", borderRadius:12, color:"#2D1B00", cursor:"pointer", fontWeight:800, fontSize:".82rem" }}>
               <ShoppingCart style={{ width:15, height:15 }} /> Keranjang ({cartCount})
             </button>
           )}
-          <span style={{ display:"inline-flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.3)", borderRadius:20, padding:"5px 16px", color:"#D4AF37", fontWeight:700, fontSize:".78rem", marginBottom:14 }}>
+          <span style={{ display:"inline-flex", alignItems:"center", gap:6, background:"rgba(201,162,39,0.1)", border:"1px solid rgba(201,162,39,0.3)", borderRadius:20, padding:"5px 16px", color:"#8B6010", fontWeight:700, fontSize:".78rem", marginBottom:14 }}>
             <Package style={{ width:14, height:14 }} /> Produk & Penawaran
           </span>
-          <h2 style={{ color:"#fff", fontWeight:900, fontSize:"clamp(1.8rem,4vw,2.8rem)", marginBottom:12 }}>
+          <h2 style={{ color:"#2D1B00", fontWeight:900, fontSize:"clamp(1.8rem,4vw,2.8rem)", marginBottom:12 }}>
             Produk{" "}<span className="text-gold-gradient">Unggulan Kami</span>
           </h2>
-          <p style={{ color:"rgba(255,255,255,0.75)", fontSize:"clamp(.9rem,2vw,1.05rem)", maxWidth:500, margin:"0 auto" }}>
+          <p style={{ color:"rgba(45,27,0,0.8)", fontSize:"clamp(.9rem,2vw,1.05rem)", maxWidth:500, margin:"0 auto" }}>
             Pilih produk, tambahkan ke keranjang, dan pesan langsung via WhatsApp.
           </p>
         </motion.div>
 
         {/* grid */}
         {loading ? (
-          <div style={{ textAlign:"center", padding:"60px 0", color:"rgba(255,255,255,0.3)" }}>
+          <div style={{ textAlign:"center", padding:"60px 0", color:"rgba(101,67,14,0.35)" }}>
             <RefreshCw style={{ width:28, height:28, animation:"spin 1s linear infinite", margin:"0 auto 12px" }} />
             <p>Memuat produk...</p>
           </div>
@@ -213,13 +211,13 @@ export default function PromoSection() {
                 <AnimatePresence>
                   {justAdded===item.id && (
                     <motion.div initial={{ opacity:0, scale:.8 }} animate={{ opacity:1, scale:1 }} exit={{ opacity:0, scale:.8 }}
-                      style={{ position:"absolute", top:12, left:12, background:"#34d399", color:"#fff", borderRadius:10, padding:"4px 10px", fontSize:".74rem", fontWeight:800, pointerEvents:"none" }}>
+                      style={{ position:"absolute", top:12, left:12, background:"#065f46", color:"#fff", borderRadius:10, padding:"4px 10px", fontSize:".74rem", fontWeight:800, pointerEvents:"none" }}>
                       ✓ Ditambahkan
                     </motion.div>
                   )}
                   {stockWarn===item.id && (
                     <motion.div initial={{ opacity:0, scale:.8 }} animate={{ opacity:1, scale:1 }} exit={{ opacity:0, scale:.8 }}
-                      style={{ position:"absolute", top:12, left:12, background:"#f87171", color:"#fff", borderRadius:10, padding:"4px 10px", fontSize:".74rem", fontWeight:800, pointerEvents:"none" }}>
+                      style={{ position:"absolute", top:12, left:12, background:"#991b1b", color:"#fff", borderRadius:10, padding:"4px 10px", fontSize:".74rem", fontWeight:800, pointerEvents:"none" }}>
                       Stok penuh!
                     </motion.div>
                   )}
@@ -235,7 +233,7 @@ export default function PromoSection() {
             <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:20 }}
               style={{ position:"fixed", bottom:80, right:24, zIndex:40 }}>
               <button onClick={()=>setCartOpen(true)}
-                style={{ display:"flex", alignItems:"center", gap:10, padding:"12px 20px", background:"linear-gradient(135deg,#D4AF37,#F5D060)", border:"none", borderRadius:50, color:"#0a0a0a", fontWeight:900, fontSize:".9rem", cursor:"pointer", boxShadow:"0 8px 32px rgba(212,175,55,0.35)" }}>
+                style={{ display:"flex", alignItems:"center", gap:10, padding:"12px 20px", background:"linear-gradient(135deg,#D4AF37,#F5D060)", border:"none", borderRadius:50, color:"#2D1B00", fontWeight:900, fontSize:".9rem", cursor:"pointer", boxShadow:"0 8px 32px rgba(201,162,39,0.35)" }}>
                 <ShoppingCart style={{ width:18, height:18 }} /> {cartCount} item · {fmtRp(cartTotal)}
               </button>
             </motion.div>
@@ -247,23 +245,23 @@ export default function PromoSection() {
       <AnimatePresence>
         {cartOpen && (
           <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
-            style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", backdropFilter:"blur(4px)", zIndex:100, display:"flex", alignItems:"flex-end", justifyContent:"flex-end" }}
+            style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.4)", backdropFilter:"blur(4px)", zIndex:100, display:"flex", alignItems:"flex-end", justifyContent:"flex-end" }}
             onClick={e=>{ if(e.target===e.currentTarget) setCartOpen(false); }}>
             <motion.div initial={{ x:440 }} animate={{ x:0 }} exit={{ x:440 }} transition={{ type:"spring", stiffness:280, damping:28 }}
-              style={{ width:"100%", maxWidth:440, height:"100vh", background:"#0e0e0e", borderLeft:"1px solid rgba(212,175,55,0.2)", display:"flex", flexDirection:"column", overflow:"hidden" }}>
+              style={{ width:"100%", maxWidth:440, height:"100vh", background:"rgba(255,252,220,0.97)", borderLeft:"1px solid rgba(201,162,39,0.25)", display:"flex", flexDirection:"column", overflow:"hidden" }}>
 
               {/* header */}
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 20px 14px", borderBottom:"1px solid rgba(255,255,255,0.07)", flexShrink:0 }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 20px 14px", borderBottom:"1px solid rgba(201,162,39,0.15)", flexShrink:0 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                  <div style={{ width:34, height:34, borderRadius:9, background:"rgba(212,175,55,0.1)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <ShoppingCart style={{ width:15, height:15, color:"#D4AF37" }} />
+                  <div style={{ width:34, height:34, borderRadius:9, background:"rgba(201,162,39,0.12)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <ShoppingCart style={{ width:15, height:15, color:"#8B6010" }} />
                   </div>
                   <div>
-                    <p style={{ color:"#fff", fontWeight:800, margin:0, fontSize:".9rem" }}>Keranjang</p>
-                    <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".72rem", margin:"1px 0 0" }}>{cartCount} item dipilih</p>
+                    <p style={{ color:"#2D1B00", fontWeight:800, margin:0, fontSize:".9rem" }}>Keranjang</p>
+                    <p style={{ color:"rgba(101,67,14,0.4)", fontSize:".72rem", margin:"1px 0 0" }}>{cartCount} item dipilih</p>
                   </div>
                 </div>
-                <button onClick={()=>setCartOpen(false)} style={{ width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, color:"rgba(255,255,255,0.4)", cursor:"pointer" }}>
+                <button onClick={()=>setCartOpen(false)} style={{ width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(201,162,39,0.1)", border:"1px solid rgba(201,162,39,0.2)", borderRadius:8, color:"rgba(101,67,14,0.5)", cursor:"pointer" }}>
                   <X style={{ width:13, height:13 }} />
                 </button>
               </div>
@@ -273,7 +271,7 @@ export default function PromoSection() {
 
                 {/* cart items */}
                 {cart.length===0 ? (
-                  <div style={{ textAlign:"center", padding:"40px 0", color:"rgba(255,255,255,0.25)" }}>
+                  <div style={{ textAlign:"center", padding:"40px 0", color:"rgba(101,67,14,0.3)" }}>
                     <ShoppingCart style={{ width:32, height:32, margin:"0 auto 10px" }} />
                     <p style={{ fontSize:".85rem" }}>Keranjang kosong</p>
                   </div>
@@ -281,25 +279,25 @@ export default function PromoSection() {
                   <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                     {cart.map(it => (
                       <motion.div key={it.product_id} layout initial={{ opacity:0 }} animate={{ opacity:1 }}
-                        style={{ display:"flex", alignItems:"center", gap:10, background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:12, padding:"10px 12px" }}>
+                        style={{ display:"flex", alignItems:"center", gap:10, background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.2)", borderRadius:12, padding:"10px 12px" }}>
                         {it.image_url ? (
                           <img src={gdriveImage(it.image_url!)} alt={it.title} style={{ width:44, height:44, objectFit:"cover", borderRadius:8, flexShrink:0 }} onError={e=>{(e.currentTarget as HTMLImageElement).style.display="none";}} />
                         ) : (
-                          <div style={{ width:44, height:44, borderRadius:8, background:"rgba(212,175,55,0.08)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                            <Package style={{ width:18, height:18, color:"rgba(212,175,55,0.3)" }} />
+                          <div style={{ width:44, height:44, borderRadius:8, background:"rgba(201,162,39,0.08)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                            <Package style={{ width:18, height:18, color:"rgba(201,162,39,0.35)" }} />
                           </div>
                         )}
                         <div style={{ flex:1, minWidth:0 }}>
-                          <p style={{ color:"#fff", fontWeight:700, fontSize:".82rem", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{it.title}{it.gram_weight?` (${it.gram_weight}gr)`:""}</p>
-                          <p style={{ color:"#D4AF37", fontWeight:700, fontSize:".8rem", margin:"2px 0 0" }}>{fmtRp(it.price*it.quantity)}</p>
-                          {stockWarn===it.product_id && <p style={{ color:"#f87171", fontSize:".72rem", margin:"2px 0 0" }}>Stok maksimal {it.stok}</p>}
-                          {it.stok!=null && <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", margin:"1px 0 0" }}>Stok: {it.stok}</p>}
+                          <p style={{ color:"#2D1B00", fontWeight:700, fontSize:".82rem", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{it.title}{it.gram_weight?` (${it.gram_weight}gr)`:""}</p>
+                          <p style={{ color:"#8B6010", fontWeight:700, fontSize:".8rem", margin:"2px 0 0" }}>{fmtRp(it.price*it.quantity)}</p>
+                          {stockWarn===it.product_id && <p style={{ color:"#991b1b", fontSize:".72rem", margin:"2px 0 0" }}>Stok maksimal {it.stok}</p>}
+                          {it.stok!=null && <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".7rem", margin:"1px 0 0" }}>Stok: {it.stok}</p>}
                         </div>
                         <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
-                          <button onClick={()=>updateQty(it.product_id,-1)} style={{ width:24, height:24, borderRadius:6, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", color:"#fff", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}><Minus style={{ width:10, height:10 }} /></button>
-                          <span style={{ color:"#fff", fontWeight:700, minWidth:18, textAlign:"center", fontSize:".83rem" }}>{it.quantity}</span>
-                          <button onClick={()=>updateQty(it.product_id,1)} disabled={it.stok!=null&&it.quantity>=it.stok} style={{ width:24, height:24, borderRadius:6, background:it.stok!=null&&it.quantity>=it.stok?"rgba(255,255,255,0.03)":"rgba(212,175,55,0.1)", border:it.stok!=null&&it.quantity>=it.stok?"1px solid rgba(255,255,255,0.08)":"1px solid rgba(212,175,55,0.25)", color:it.stok!=null&&it.quantity>=it.stok?"rgba(255,255,255,0.2)":"#D4AF37", cursor:it.stok!=null&&it.quantity>=it.stok?"not-allowed":"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}><Plus style={{ width:10, height:10 }} /></button>
-                          <button onClick={()=>removeFromCart(it.product_id)} style={{ width:24, height:24, borderRadius:6, background:"rgba(248,113,113,0.06)", border:"1px solid rgba(248,113,113,0.15)", color:"#f87171", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", marginLeft:2 }}><X style={{ width:10, height:10 }} /></button>
+                          <button onClick={()=>updateQty(it.product_id,-1)} style={{ width:24, height:24, borderRadius:6, background:"rgba(201,162,39,0.1)", border:"1px solid rgba(201,162,39,0.2)", color:"#2D1B00", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}><Minus style={{ width:10, height:10 }} /></button>
+                          <span style={{ color:"#2D1B00", fontWeight:700, minWidth:18, textAlign:"center", fontSize:".83rem" }}>{it.quantity}</span>
+                          <button onClick={()=>updateQty(it.product_id,1)} disabled={it.stok!=null&&it.quantity>=it.stok} style={{ width:24, height:24, borderRadius:6, background:it.stok!=null&&it.quantity>=it.stok?"rgba(101,67,14,0.04)":"rgba(201,162,39,0.1)", border:it.stok!=null&&it.quantity>=it.stok?"1px solid rgba(201,162,39,0.1)":"1px solid rgba(201,162,39,0.3)", color:it.stok!=null&&it.quantity>=it.stok?"rgba(101,67,14,0.25)":"#8B6010", cursor:it.stok!=null&&it.quantity>=it.stok?"not-allowed":"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}><Plus style={{ width:10, height:10 }} /></button>
+                          <button onClick={()=>removeFromCart(it.product_id)} style={{ width:24, height:24, borderRadius:6, background:"rgba(153,27,27,0.06)", border:"1px solid rgba(153,27,27,0.15)", color:"#991b1b", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", marginLeft:2 }}><X style={{ width:10, height:10 }} /></button>
                         </div>
                       </motion.div>
                     ))}
@@ -309,15 +307,15 @@ export default function PromoSection() {
                 {/* form nama & nomor */}
                 {cart.length > 0 && (
                   <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                    <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>Data Pemesan</p>
+                    <p style={{ color:"rgba(101,67,14,0.4)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>Data Pemesan</p>
                     <div style={{ position:"relative" }}>
-                      <User style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", width:14, height:14, color:"rgba(255,255,255,0.3)", pointerEvents:"none" }} />
+                      <User style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", width:14, height:14, color:"rgba(101,67,14,0.35)", pointerEvents:"none" }} />
                       <input value={custName} onChange={e=>{setCustName(e.target.value); setNameErr(false);}}
-                        placeholder="Nama lengkap *" style={{ ...inp, borderColor: nameErr?"rgba(248,113,113,0.5)":"rgba(255,255,255,0.12)" }} />
+                        placeholder="Nama lengkap *" style={{ ...inp, borderColor: nameErr?"rgba(153,27,27,0.4)":"rgba(201,162,39,0.2)" }} />
                     </div>
-                    {nameErr && <p style={{ color:"#f87171", fontSize:".75rem", margin:"-4px 0 0" }}>Nama wajib diisi</p>}
+                    {nameErr && <p style={{ color:"#991b1b", fontSize:".75rem", margin:"-4px 0 0" }}>Nama wajib diisi</p>}
                     <div style={{ position:"relative" }}>
-                      <Phone style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", width:14, height:14, color:"rgba(255,255,255,0.3)", pointerEvents:"none" }} />
+                      <Phone style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", width:14, height:14, color:"rgba(101,67,14,0.35)", pointerEvents:"none" }} />
                       <input value={custPhone} onChange={e=>setCustPhone(e.target.value)}
                         placeholder="Nomor WhatsApp (opsional)" style={inp} type="tel" />
                     </div>
@@ -327,22 +325,22 @@ export default function PromoSection() {
                 {/* rekomendasi produk lain */}
                 {rekomendasi.length > 0 && (
                   <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                    <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>Produk Lainnya</p>
+                    <p style={{ color:"rgba(101,67,14,0.4)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:0 }}>Produk Lainnya</p>
                     {rekomendasi.map(prod => (
-                      <div key={prod.id} style={{ display:"flex", alignItems:"center", gap:10, background:"rgba(255,255,255,0.02)", border:"1px solid rgba(212,175,55,0.1)", borderRadius:12, padding:"10px 12px" }}>
+                      <div key={prod.id} style={{ display:"flex", alignItems:"center", gap:10, background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.15)", borderRadius:12, padding:"10px 12px" }}>
                         {prod.image_url ? (
                           <img src={gdriveImage(prod.image_url)} alt={prod.title} style={{ width:40, height:40, objectFit:"cover", borderRadius:8, flexShrink:0 }} onError={e=>{(e.currentTarget as HTMLImageElement).style.display="none";}} />
                         ) : (
-                          <div style={{ width:40, height:40, borderRadius:8, background:"rgba(212,175,55,0.06)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                            <Package style={{ width:16, height:16, color:"rgba(212,175,55,0.25)" }} />
+                          <div style={{ width:40, height:40, borderRadius:8, background:"rgba(201,162,39,0.06)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                            <Package style={{ width:16, height:16, color:"rgba(201,162,39,0.3)" }} />
                           </div>
                         )}
                         <div style={{ flex:1, minWidth:0 }}>
-                          <p style={{ color:"rgba(255,255,255,0.8)", fontWeight:700, fontSize:".82rem", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{prod.title}{prod.gram_weight?` (${prod.gram_weight}gr)`:""}</p>
-                          {prod.price && <p style={{ color:"#D4AF37", fontSize:".78rem", fontWeight:700, margin:"2px 0 0" }}>{fmtRp(prod.price)}</p>}
+                          <p style={{ color:"rgba(45,27,0,0.85)", fontWeight:700, fontSize:".82rem", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{prod.title}{prod.gram_weight?` (${prod.gram_weight}gr)`:""}</p>
+                          {prod.price && <p style={{ color:"#8B6010", fontSize:".78rem", fontWeight:700, margin:"2px 0 0" }}>{fmtRp(prod.price)}</p>}
                         </div>
                         <button onClick={()=>addToCart(prod)}
-                          style={{ flexShrink:0, display:"flex", alignItems:"center", gap:5, padding:"6px 10px", borderRadius:8, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", color:"#D4AF37", cursor:"pointer", fontSize:".75rem", fontWeight:700 }}>
+                          style={{ flexShrink:0, display:"flex", alignItems:"center", gap:5, padding:"6px 10px", borderRadius:8, background:"rgba(201,162,39,0.12)", border:"1px solid rgba(201,162,39,0.3)", color:"#8B6010", cursor:"pointer", fontSize:".75rem", fontWeight:700 }}>
                           <Plus style={{ width:11, height:11 }} /> Tambah
                         </button>
                       </div>
@@ -353,13 +351,13 @@ export default function PromoSection() {
 
               {/* footer */}
               {cart.length>0 && (
-                <div style={{ borderTop:"1px solid rgba(255,255,255,0.07)", padding:"14px 20px 20px", display:"flex", flexDirection:"column", gap:10, flexShrink:0 }}>
+                <div style={{ borderTop:"1px solid rgba(201,162,39,0.15)", padding:"14px 20px 20px", display:"flex", flexDirection:"column", gap:10, flexShrink:0 }}>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                    <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".85rem" }}>Total</span>
-                    <span style={{ color:"#D4AF37", fontWeight:900, fontSize:"1.1rem" }}>{fmtRp(cartTotal)}</span>
+                    <span style={{ color:"rgba(101,67,14,0.55)", fontSize:".85rem" }}>Total</span>
+                    <span style={{ color:"#8B6010", fontWeight:900, fontSize:"1.1rem" }}>{fmtRp(cartTotal)}</span>
                   </div>
                   <button onClick={handlePesan}
-                    style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, width:"100%", padding:"13px", borderRadius:14, background:"linear-gradient(135deg,#D4AF37,#F5D060)", border:"none", color:"#0a0a0a", fontWeight:900, fontSize:".9rem", cursor:"pointer" }}>
+                    style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, width:"100%", padding:"13px", borderRadius:14, background:"linear-gradient(135deg,#D4AF37,#F5D060)", border:"none", color:"#2D1B00", fontWeight:900, fontSize:".9rem", cursor:"pointer" }}>
                     <MessageCircle style={{ width:16, height:16 }} />
                     Pesan via WhatsApp
                     <ArrowRight style={{ width:14, height:14 }} />
