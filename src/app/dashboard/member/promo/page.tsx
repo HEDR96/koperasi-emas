@@ -44,6 +44,10 @@ export default function MemberProdukPage() {
   const [submittingOrder, setSubmittingOrder] = useState(false);
   const [orderErr, setOrderErr] = useState("");
 
+  /* multi-product cart */
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
+
   /* ── produk saya (yang saya ajukan) ── */
   const [myProducts, setMyProducts] = useState<any[]>([]);
   const [tambahModal, setTambahModal] = useState(false);
@@ -174,34 +178,44 @@ export default function MemberProdukPage() {
     load();
   }
 
-  async function submitDirectOrder() {
-    if (!orderModal || !user) return;
+  function addModalToCart() {
+    if (!orderModal) return;
     const { produk, qty } = orderModal;
-    if (!produk.price) { setOrderErr("Produk belum ada harga."); return; }
+    setCart(prev => {
+      const existing = prev.find(it => it.product_id === produk.id);
+      if (existing) return prev.map(it => it.product_id === produk.id ? { ...it, quantity: it.quantity + qty } : it);
+      return [...prev, { product_id: produk.id, title: produk.title, gram_weight: produk.gram_weight ?? null, price: produk.price, quantity: qty, image_url: produk.image_url ?? null }];
+    });
+    setOrderModal(null);
+    setCartOpen(true);
+  }
+
+  function updateCartQty(product_id: string, delta: number) {
+    setCart(prev => prev.map(it => {
+      if (it.product_id !== product_id) return it;
+      return { ...it, quantity: Math.max(0, it.quantity + delta) };
+    }).filter(it => it.quantity > 0));
+  }
+
+  async function submitCartOrder() {
+    if (!cart.length || !user) return;
     setSubmittingOrder(true); setOrderErr("");
-    const item = { product_id: produk.id, title: produk.title, gram_weight: produk.gram_weight ?? null, price: produk.price, quantity: qty, image_url: produk.image_url ?? null };
+    const total = cart.reduce((s, it) => s + it.price * it.quantity, 0);
     const { error } = await (supabase.from("product_orders") as any).insert({
       user_id: user.id,
       customer_name: user.name || user.email,
       customer_phone: user.phone || null,
-      items: [item],
-      total_amount: produk.price * qty,
+      items: cart,
+      total_amount: total,
       status: "pending",
       source: "dashboard",
     });
     if (error) { setOrderErr(error.message); setSubmittingOrder(false); return; }
-    setOrderModal(null); setSubmittingOrder(false); load();
+    setCart([]); setCartOpen(false); setSubmittingOrder(false); load();
   }
 
-  function dismissCart() { localStorage.removeItem(CART_KEY); setPendingCart([]); }
-
-  function waOrder(items: CartItem[]) {
-    const lines = ["Halo, saya ingin memesan produk berikut:", ""];
-    items.forEach((it,i) => lines.push(`${i+1}. ${it.title}${it.gram_weight?` (${it.gram_weight}gr)`:""} ×${it.quantity} — ${fmt(it.price*it.quantity)}`));
-    const total = items.reduce((s,it)=>s+it.price*it.quantity,0);
-    lines.push("","Total: "+fmt(total),"","Mohon konfirmasi. Terima kasih.");
-    return `https://wa.me/${waNum}?text=${encodeURIComponent(lines.join("\n"))}`;
-  }
+  const cartTotal = cart.reduce((s, it) => s + it.price * it.quantity, 0);
+  const cartCount = cart.reduce((s, it) => s + it.quantity, 0);
 
   const statusColor = (s: string) => s==="approved"?"#34d399":s==="rejected"?"#f87171":s==="pending"?"#fbbf24":"rgba(255,255,255,0.3)";
 
@@ -213,6 +227,12 @@ export default function MemberProdukPage() {
           <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Produk & penawaran aktif untuk Anda</p>
         </div>
         <div style={{ display:"flex", gap:8 }}>
+          {cartCount > 0 && (
+            <button onClick={() => setCartOpen(true)}
+              style={{ display:"flex", alignItems:"center", gap:7, background:"linear-gradient(135deg,#D4AF37,#F5D060)", border:"none", borderRadius:10, padding:"8px 16px", color:"#0a0a0a", cursor:"pointer", fontSize:".85rem", fontWeight:800 }}>
+              <ShoppingCart style={{ width:14, height:14 }} /> Keranjang ({cartCount})
+            </button>
+          )}
           <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
             <RefreshCw style={{ width:13, height:13 }} /> Refresh
           </button>
@@ -378,9 +398,9 @@ export default function MemberProdukPage() {
                     <span style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", marginLeft:4 }}>= {fmt(orderModal.produk.price * orderModal.qty)}</span>
                   </div>
                 </div>
-                <button onClick={submitDirectOrder} disabled={submittingOrder}
-                  style={{ padding:"12px", borderRadius:11, background:"linear-gradient(135deg,#D4AF37,#F5D060)", border:"none", color:"#0a0a0a", fontWeight:800, fontSize:".88rem", cursor:submittingOrder?"not-allowed":"pointer", opacity:submittingOrder?.6:1 }}>
-                  {submittingOrder?"Mengirim…":"Kirim Pesanan"}
+                <button onClick={addModalToCart}
+                  style={{ padding:"12px", borderRadius:11, background:"linear-gradient(135deg,#D4AF37,#F5D060)", border:"none", color:"#0a0a0a", fontWeight:800, fontSize:".88rem", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:7 }}>
+                  <ShoppingCart style={{ width:15, height:15 }} /> Tambah ke Keranjang
                 </button>
               </div>
             </motion.div>
@@ -460,6 +480,75 @@ export default function MemberProdukPage() {
                   <button onClick={closeTambah} style={{ padding:"12px 18px", borderRadius:11, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", color:"rgba(255,255,255,0.35)", cursor:"pointer", fontSize:".85rem" }}>Batal</button>
                 </div>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── CART SIDEBAR ── */}
+      <AnimatePresence>
+        {cartOpen && (
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+            style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", backdropFilter:"blur(4px)", zIndex:200, display:"flex", alignItems:"flex-end", justifyContent:"flex-end" }}
+            onClick={e => { if(e.target===e.currentTarget) setCartOpen(false); }}>
+            <motion.div initial={{ x:460 }} animate={{ x:0 }} exit={{ x:460 }} transition={{ type:"spring", stiffness:280, damping:28 }}
+              style={{ width:"100%", maxWidth:440, height:"100vh", background:"#0e0e0e", borderLeft:"1px solid rgba(212,175,55,0.2)", display:"flex", flexDirection:"column", overflow:"hidden" }}>
+              {/* header */}
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 20px 14px", borderBottom:"1px solid rgba(255,255,255,0.07)", flexShrink:0 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  <div style={{ width:34, height:34, borderRadius:9, background:"rgba(212,175,55,0.1)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <ShoppingCart style={{ width:15, height:15, color:"#D4AF37" }} />
+                  </div>
+                  <div>
+                    <p style={{ color:"#fff", fontWeight:800, margin:0, fontSize:".9rem" }}>Keranjang Pesanan</p>
+                    <p style={{ color:"rgba(255,255,255,0.35)", fontSize:".72rem", margin:"1px 0 0" }}>{cartCount} item dipilih</p>
+                  </div>
+                </div>
+                <button onClick={() => setCartOpen(false)} style={{ width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, color:"rgba(255,255,255,0.4)", cursor:"pointer" }}>
+                  <X style={{ width:13, height:13 }} />
+                </button>
+              </div>
+              {/* items */}
+              <div style={{ flex:1, overflowY:"auto", padding:"16px 20px", display:"flex", flexDirection:"column", gap:10 }}>
+                {cart.length === 0 ? (
+                  <div style={{ textAlign:"center", padding:"40px 0", color:"rgba(255,255,255,0.25)" }}>
+                    <ShoppingCart style={{ width:32, height:32, margin:"0 auto 10px" }} />
+                    <p style={{ fontSize:".85rem" }}>Keranjang kosong</p>
+                  </div>
+                ) : cart.map(it => (
+                  <motion.div key={it.product_id} layout initial={{ opacity:0 }} animate={{ opacity:1 }}
+                    style={{ display:"flex", alignItems:"center", gap:10, background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:12, padding:"10px 12px" }}>
+                    {it.image_url
+                      ? <img src={gdriveImage(it.image_url!)} alt={it.title} style={{ width:44, height:44, objectFit:"cover", borderRadius:8, flexShrink:0 }} onError={e=>{(e.currentTarget as HTMLImageElement).style.display="none";}} />
+                      : <div style={{ width:44, height:44, borderRadius:8, background:"rgba(212,175,55,0.08)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}><Package style={{ width:18, height:18, color:"rgba(212,175,55,0.3)" }} /></div>}
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <p style={{ color:"#fff", fontWeight:700, fontSize:".82rem", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{it.title}{it.gram_weight?` (${it.gram_weight}gr)`:""}</p>
+                      <p style={{ color:"#D4AF37", fontWeight:700, fontSize:".8rem", margin:"2px 0 0" }}>{fmt(it.price * it.quantity)}</p>
+                    </div>
+                    <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
+                      <button onClick={() => updateCartQty(it.product_id, -1)} style={{ width:24, height:24, borderRadius:6, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", color:"#fff", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}><Minus style={{ width:10, height:10 }} /></button>
+                      <span style={{ color:"#fff", fontWeight:700, minWidth:18, textAlign:"center", fontSize:".83rem" }}>{it.quantity}</span>
+                      <button onClick={() => updateCartQty(it.product_id, 1)} style={{ width:24, height:24, borderRadius:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", color:"#D4AF37", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}><Plus style={{ width:10, height:10 }} /></button>
+                      <button onClick={() => setCart(prev => prev.filter(c => c.product_id !== it.product_id))} style={{ width:24, height:24, borderRadius:6, background:"rgba(248,113,113,0.06)", border:"1px solid rgba(248,113,113,0.15)", color:"#f87171", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", marginLeft:2 }}><X style={{ width:10, height:10 }} /></button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+              {/* footer */}
+              {cart.length > 0 && (
+                <div style={{ borderTop:"1px solid rgba(255,255,255,0.07)", padding:"14px 20px 20px", display:"flex", flexDirection:"column", gap:10, flexShrink:0 }}>
+                  {orderErr && <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.3)", borderRadius:8, padding:"8px 12px", color:"#f87171", fontSize:".8rem" }}>{orderErr}</div>}
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                    <span style={{ color:"rgba(255,255,255,0.5)", fontSize:".85rem" }}>Total</span>
+                    <span style={{ color:"#D4AF37", fontWeight:900, fontSize:"1.1rem" }}>{fmt(cartTotal)}</span>
+                  </div>
+                  <button onClick={submitCartOrder} disabled={submittingOrder}
+                    style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, width:"100%", padding:"13px", borderRadius:14, background:"linear-gradient(135deg,#D4AF37,#F5D060)", border:"none", color:"#0a0a0a", fontWeight:900, fontSize:".9rem", cursor:submittingOrder?"not-allowed":"pointer", opacity:submittingOrder?.6:1 }}>
+                    <CheckCircle2 style={{ width:16, height:16 }} />
+                    {submittingOrder ? "Mengirim…" : "Kirim Pesanan"}
+                  </button>
+                </div>
+              )}
             </motion.div>
           </motion.div>
         )}
