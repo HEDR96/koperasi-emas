@@ -227,12 +227,14 @@ export default function MemberProdukPage() {
           <p style={{ color:"rgba(255,255,255,0.4)", fontSize:".85rem", margin:"4px 0 0" }}>Produk & penawaran aktif untuk Anda</p>
         </div>
         <div style={{ display:"flex", gap:8 }}>
-          {cartCount > 0 && (
-            <button onClick={() => setCartOpen(true)}
-              style={{ display:"flex", alignItems:"center", gap:7, background:"linear-gradient(135deg,#D4AF37,#F5D060)", border:"none", borderRadius:10, padding:"8px 16px", color:"#0a0a0a", cursor:"pointer", fontSize:".85rem", fontWeight:800 }}>
-              <ShoppingCart style={{ width:14, height:14 }} /> Keranjang ({cartCount})
-            </button>
-          )}
+          <button onClick={() => setCartOpen(true)}
+            style={{ display:"flex", alignItems:"center", gap:7, background: cartCount > 0 ? "linear-gradient(135deg,#D4AF37,#F5D060)" : "rgba(212,175,55,0.12)", border: cartCount > 0 ? "none" : "1px solid rgba(212,175,55,0.3)", borderRadius:10, padding:"8px 16px", color: cartCount > 0 ? "#0a0a0a" : "#D4AF37", cursor:"pointer", fontSize:".85rem", fontWeight:800, position:"relative" }}>
+            <ShoppingCart style={{ width:14, height:14 }} />
+            Keranjang
+            {cartCount > 0 && (
+              <span style={{ background:"#ef4444", color:"#fff", borderRadius:"50%", width:18, height:18, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:".65rem", fontWeight:900, marginLeft:2 }}>{cartCount}</span>
+            )}
+          </button>
           <button onClick={load} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", borderRadius:10, padding:"8px 14px", color:"#D4AF37", cursor:"pointer", fontSize:".85rem" }}>
             <RefreshCw style={{ width:13, height:13 }} /> Refresh
           </button>
@@ -511,9 +513,9 @@ export default function MemberProdukPage() {
               {/* items */}
               <div style={{ flex:1, overflowY:"auto", padding:"16px 20px", display:"flex", flexDirection:"column", gap:10 }}>
                 {cart.length === 0 ? (
-                  <div style={{ textAlign:"center", padding:"40px 0", color:"rgba(255,255,255,0.25)" }}>
-                    <ShoppingCart style={{ width:32, height:32, margin:"0 auto 10px" }} />
-                    <p style={{ fontSize:".85rem" }}>Keranjang kosong</p>
+                  <div style={{ textAlign:"center", padding:"24px 0 8px", color:"rgba(255,255,255,0.25)" }}>
+                    <ShoppingCart style={{ width:28, height:28, margin:"0 auto 8px" }} />
+                    <p style={{ fontSize:".82rem", margin:0 }}>Keranjang kosong</p>
                   </div>
                 ) : cart.map(it => (
                   <motion.div key={it.product_id} layout initial={{ opacity:0 }} animate={{ opacity:1 }}
@@ -533,6 +535,47 @@ export default function MemberProdukPage() {
                     </div>
                   </motion.div>
                 ))}
+
+                {/* ── Daftar semua produk tersedia di dalam keranjang ── */}
+                {produk.length > 0 && (
+                  <div style={{ marginTop: cart.length > 0 ? 14 : 4 }}>
+                    <p style={{ color:"rgba(255,255,255,0.3)", fontSize:".7rem", fontWeight:700, textTransform:"uppercase", letterSpacing:".06em", margin:"0 0 10px" }}>Produk Tersedia</p>
+                    <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                      {produk.map(p => {
+                        const inCart = cart.find(it => it.product_id === p.id);
+                        const habis = p.stok != null && p.stok <= 0;
+                        return (
+                          <div key={p.id}
+                            style={{ display:"flex", alignItems:"center", gap:10, background:"rgba(255,255,255,0.02)", border:"1px solid rgba(212,175,55,0.1)", borderRadius:12, padding:"10px 12px" }}>
+                            {p.image_url
+                              ? <img src={gdriveImage(p.image_url)} alt={p.title} style={{ width:40, height:40, objectFit:"cover", borderRadius:8, flexShrink:0 }} onError={e=>{(e.currentTarget as HTMLImageElement).style.display="none";}} />
+                              : <div style={{ width:40, height:40, borderRadius:8, background:"rgba(212,175,55,0.06)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}><Package style={{ width:16, height:16, color:"rgba(212,175,55,0.25)" }} /></div>}
+                            <div style={{ flex:1, minWidth:0 }}>
+                              <p style={{ color:"#fff", fontWeight:700, fontSize:".8rem", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{p.title}{p.gram_weight?` (${p.gram_weight}gr)`:""}</p>
+                              <p style={{ color:"#D4AF37", fontWeight:700, fontSize:".75rem", margin:"2px 0 0" }}>{p.price ? fmt(p.price) : "-"}</p>
+                            </div>
+                            {habis ? (
+                              <span style={{ fontSize:".68rem", color:"#f87171", fontWeight:600, flexShrink:0 }}>Habis</span>
+                            ) : inCart ? (
+                              <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
+                                <button onClick={() => updateCartQty(p.id, -1)} style={{ width:24, height:24, borderRadius:6, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", color:"#fff", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}><Minus style={{ width:10, height:10 }} /></button>
+                                <span style={{ color:"#fff", fontWeight:700, minWidth:16, textAlign:"center", fontSize:".82rem" }}>{inCart.quantity}</span>
+                                <button onClick={() => updateCartQty(p.id, 1)} style={{ width:24, height:24, borderRadius:6, background:"rgba(212,175,55,0.1)", border:"1px solid rgba(212,175,55,0.25)", color:"#D4AF37", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}><Plus style={{ width:10, height:10 }} /></button>
+                              </div>
+                            ) : (
+                              <button onClick={() => {
+                                if (!p.price) return;
+                                setCart(prev => [...prev, { product_id: p.id, title: p.title, gram_weight: p.gram_weight ?? null, price: p.price, quantity: 1, image_url: p.image_url ?? null }]);
+                              }} style={{ flexShrink:0, display:"flex", alignItems:"center", gap:5, background:"rgba(212,175,55,0.12)", border:"1px solid rgba(212,175,55,0.3)", borderRadius:8, padding:"5px 10px", color:"#D4AF37", cursor:"pointer", fontSize:".73rem", fontWeight:700 }}>
+                                <Plus style={{ width:11, height:11 }} /> Tambah
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
               {/* footer */}
               {cart.length > 0 && (
