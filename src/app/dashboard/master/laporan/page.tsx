@@ -33,7 +33,8 @@ function parseNotes(notes: string | null): { ongkir: number; diskon: number; cat
   // Format baru: bracket [Ongkir: x, Diskon: y]
   const bracketMatch = notes.match(/\[Ongkir:\s*([\d]+),\s*Diskon:\s*([\d]+)\]/i);
   if (bracketMatch) {
-    const catatan = notes.replace(/\s*\|\s*\[Ongkir:[^\]]+\]/, "").trim() || "-";
+    // hapus bracket dengan atau tanpa pipe prefix
+    const catatan = notes.replace(/\s*\|?\s*\[Ongkir:[^\]]+\]/, "").trim() || "-";
     return { ongkir: Number(bracketMatch[1]), diskon: Number(bracketMatch[2]), catatan };
   }
 
@@ -160,7 +161,7 @@ async function fetchBuyback(from: string, to: string, userId?: string) {
 
 async function fetchCicilan(from: string, to: string, userId?: string) {
   let base = (supabase.from("installments") as any)
-    .select("id, product_name, total_gram, total_amount, monthly_amount, down_payment, tenor, paid_installments, status, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
+    .select("id, product_name, total_gram, total_amount, monthly_amount, down_payment, tenor, paid_installments, status, notes, transaction_date, created_at, profiles:profiles!user_id(name, phone)")
     .limit(5000);
   if (userId) base = base.eq("user_id", userId);
   const { data } = await applyDateFilter(base, from, to).order("transaction_date", { ascending: true, nullsFirst: false });
@@ -231,13 +232,13 @@ async function xlsxBuyback(rows: any[], from: string, to: string) {
 }
 
 async function xlsxCicilan(rows: any[], from: string, to: string) {
-  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Produk","Gram","Total (Rp)","DP (Rp)","Angsuran/Bln (Rp)","Tenor (bln)","Terbayar (bln)","Status","Tgl Input"];
-  const fmt: ColFmt[] = ["auto","auto","auto","phone","auto","gram","rupiah","rupiah","rupiah","number","number","auto","auto"];
+  const headers = ["No","Tanggal Transaksi","Nama Anggota","No HP","Produk","Gram","Total (Rp)","DP (Rp)","Angsuran/Bln (Rp)","Tenor (bln)","Terbayar (bln)","Catatan","Status","Tgl Input"];
+  const fmt: ColFmt[] = ["auto","auto","auto","phone","auto","gram","rupiah","rupiah","rupiah","number","number","auto","auto","auto"];
   const data = rows.map((r, i) => [
     i + 1, tglIndo(r.transaction_date || r.created_at),
     r.profiles?.name || "-", r.profiles?.phone || "-",
     r.product_name || "-", r.total_gram ?? 0, r.total_amount, r.down_payment ?? 0,
-    r.monthly_amount, r.tenor, r.paid_installments ?? 0, r.status, tglIndo(r.created_at),
+    r.monthly_amount, r.tenor, r.paid_installments ?? 0, r.notes || "-", r.status, tglIndo(r.created_at),
   ]);
   await downloadXLSX("Cicilan Emas", headers, data, `Laporan_Cicilan_${from}_sd_${to}.xlsx`, fmt);
 }
