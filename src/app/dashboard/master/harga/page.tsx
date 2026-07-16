@@ -196,6 +196,28 @@ export default function HargaEmasPage() {
       {/* ─── TAB: HARGA EMAS ─── */}
       {tab === "emas" && (
         <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} style={{ display:"flex", flexDirection:"column", gap:20 }}>
+          {/* Add new — dipindah ke atas */}
+          <div style={{ background:"rgba(212,175,55,0.04)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:16, padding:20 }}>
+            <p style={{ color:"#8B6010", fontWeight:700, fontSize:".85rem", marginBottom:14, display:"flex", alignItems:"center", gap:6 }}>
+              <Plus style={{ width:14, height:14 }} /> Input Harga Baru
+            </p>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:14 }}>
+              <div>
+                <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Berat (gram)</label>
+                <input type="number" min={0} step={0.5} value={newGram} onChange={e=>setNewGram(e.target.value)} style={inp} placeholder="1" />
+              </div>
+              <div>
+                <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Harga (Rp)</label>
+                <RupiahInput value={newHarga} onValueChange={setNewHarga} style={inp} placeholder="1.698.000" />
+              </div>
+            </div>
+            <button onClick={saveHargaEmas} disabled={savingEmas||!newGram||!newHarga}
+              style={{ display:"flex", alignItems:"center", gap:8, padding:"11px 20px", borderRadius:10, background: savedEmas?"rgba(52,211,153,0.2)":"linear-gradient(135deg,#D4AF37,#F5D060)", border: savedEmas?"1px solid #34d399":"none", color: savedEmas?"#34d399":"#0a0a0a", fontWeight:700, fontSize:".88rem", cursor:"pointer", transition:"all .3s" }}>
+              {savingEmas ? <><RefreshCw style={{ width:14, height:14 }} /> Menyimpan...</> : savedEmas ? "✓ Tersimpan" : <><Save style={{ width:14, height:14 }} /> Simpan Harga</>}
+            </button>
+            <p style={{ color:"rgba(101,67,14,0.3)", fontSize:".75rem", marginTop:8 }}>Setiap input akan tersimpan sebagai histori perubahan harga.</p>
+          </div>
+
           {/* Current table + markup per baris */}
           <div style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(212,175,55,0.15)", borderRadius:16, overflow:"hidden" }}>
             <div style={{ padding:"14px 20px", borderBottom:"1px solid rgba(201,162,39,0.12)" }}>
@@ -262,27 +284,6 @@ export default function HargaEmasPage() {
             )}
           </div>
 
-          {/* Add new */}
-          <div style={{ background:"rgba(212,175,55,0.04)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:16, padding:20 }}>
-            <p style={{ color:"#8B6010", fontWeight:700, fontSize:".85rem", marginBottom:14, display:"flex", alignItems:"center", gap:6 }}>
-              <Plus style={{ width:14, height:14 }} /> Input Harga Baru
-            </p>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:14 }}>
-              <div>
-                <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Berat (gram)</label>
-                <input type="number" min={0} step={0.5} value={newGram} onChange={e=>setNewGram(e.target.value)} style={inp} placeholder="1" />
-              </div>
-              <div>
-                <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:6 }}>Harga (Rp)</label>
-                <RupiahInput value={newHarga} onValueChange={setNewHarga} style={inp} placeholder="1.698.000" />
-              </div>
-            </div>
-            <button onClick={saveHargaEmas} disabled={savingEmas||!newGram||!newHarga}
-              style={{ display:"flex", alignItems:"center", gap:8, padding:"11px 20px", borderRadius:10, background: savedEmas?"rgba(52,211,153,0.2)":"linear-gradient(135deg,#D4AF37,#F5D060)", border: savedEmas?"1px solid #34d399":"none", color: savedEmas?"#34d399":"#0a0a0a", fontWeight:700, fontSize:".88rem", cursor:"pointer", transition:"all .3s" }}>
-              {savingEmas ? <><RefreshCw style={{ width:14, height:14 }} /> Menyimpan...</> : savedEmas ? "✓ Tersimpan" : <><Save style={{ width:14, height:14 }} /> Simpan Harga</>}
-            </button>
-            <p style={{ color:"rgba(101,67,14,0.3)", fontSize:".75rem", marginTop:8 }}>Setiap input akan tersimpan sebagai histori perubahan harga.</p>
-          </div>
         </motion.div>
       )}
 
