@@ -144,6 +144,7 @@ export default function InputTransaksiPage() {
 
   async function handleSave() {
     if (!form.user_id || !form.amount) { setError("Pilih anggota dan lengkapi data transaksi."); return; }
+    if (!form.notes.trim()) { setError("Catatan wajib diisi."); return; }
     setSaving(true); setError("");
     try {
       if (form.type === "cicilan") {
@@ -306,9 +307,9 @@ export default function InputTransaksiPage() {
 
               {/* Catatan */}
               <div>
-                <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Catatan</label>
+                <label style={{ color:"rgba(101,67,14,0.45)", fontSize:".78rem", display:"block", marginBottom:7 }}>Catatan *</label>
                 <textarea rows={2} value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))}
-                  style={{ ...inp, resize:"vertical", fontFamily:"inherit" }} placeholder="Keterangan tambahan..." />
+                  style={{ ...inp, resize:"vertical", fontFamily:"inherit", borderColor: !form.notes.trim() ? "rgba(248,113,113,0.5)" : "rgba(201,162,39,0.2)" }} placeholder="Keterangan tambahan (wajib)..." />
               </div>
           </>
 
