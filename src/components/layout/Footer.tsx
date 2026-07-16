@@ -99,7 +99,7 @@ export default function Footer() {
           </p>
           <div style={{ display:"flex", gap:20 }}>
             {["Kebijakan Privasi","Syarat & Ketentuan","Sitemap"].map(item => (
-              <a key={item} href="#" style={{ color:"rgba(101,67,14,0.6)", fontSize:".75rem", textDecoration:"none", transition:"color .2s" }}
+              <a key={item} href="#" onClick={e => e.preventDefault()} style={{ color:"rgba(101,67,14,0.6)", fontSize:".75rem", textDecoration:"none", transition:"color .2s", cursor:"default" }}
                 onMouseEnter={e => (e.target as HTMLElement).style.color="#8B6010"}
                 onMouseLeave={e => (e.target as HTMLElement).style.color="rgba(101,67,14,0.6)"}
               >{item}</a>

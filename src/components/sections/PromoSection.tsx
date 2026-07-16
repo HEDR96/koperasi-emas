@@ -32,7 +32,7 @@ function ProdukCard({ item, index, onAddCart, inCart }: { item: ProdukItem; inde
       onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.borderColor="rgba(201,162,39,0.22)"; (e.currentTarget as HTMLElement).style.boxShadow="none"; }}>
       <div style={{ position:"relative", width:"100%", paddingTop:"62%", background:"rgba(201,162,39,0.06)", flexShrink:0 }}>
         {item.image_url && !imgError ? (
-          <img src={gdriveImage(item.image_url)} alt={item.title} onError={()=>setImgError(true)} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
+          <img src={gdriveImage(item.image_url)} alt={item.title} onError={()=>setImgError(true)} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"contain" }} />
         ) : (
           <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
             <ShoppingBag style={{ width:40, height:40, color:"rgba(201,162,39,0.3)" }} />

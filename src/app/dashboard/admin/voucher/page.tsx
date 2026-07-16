@@ -20,7 +20,7 @@ const field: React.CSSProperties = {
   outline:"none", boxSizing:"border-box",
 };
 const lbl: React.CSSProperties = {
-  color:"rgba(255,255,255,0.38)", fontSize:".7rem",
+  color:"rgba(101,67,14,0.55)", fontSize:".7rem",
   fontWeight:700, letterSpacing:".06em", textTransform:"uppercase",
   display:"block", marginBottom:5,
 };
@@ -173,7 +173,7 @@ export default function AdminVoucherPage() {
             style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.65)", backdropFilter:"blur(4px)", zIndex:50, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}
             onClick={e => { if (e.target===e.currentTarget) closeModal(); }}>
             <motion.div initial={{ opacity:0, scale:.95, y:16 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95, y:16 }} transition={{ type:"spring", stiffness:300, damping:28 }}
-              style={{ width:"100%", maxWidth:480, maxHeight:"88vh", overflowY:"auto", background:"#111", border:`1px solid ${editId?"rgba(212,175,55,0.4)":"rgba(201,162,39,0.2)"}`, borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.6)" }}>
+              style={{ width:"100%", maxWidth:480, maxHeight:"88vh", overflowY:"auto", background:"#FFFDF4", border:`1px solid ${editId?"rgba(212,175,55,0.4)":"rgba(201,162,39,0.2)"}`, borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.6)" }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 22px 14px", borderBottom:"1px solid rgba(201,162,39,0.15)" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                   <div style={{ width:32, height:32, borderRadius:9, background:editId?"rgba(212,175,55,0.12)":"rgba(201,162,39,0.12)", display:"flex", alignItems:"center", justifyContent:"center" }}>

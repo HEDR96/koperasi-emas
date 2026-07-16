@@ -92,7 +92,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <Sidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
       <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
         <DashboardHeader title={title} onMenuClick={() => setMobileOpen(true)} />
-        <main style={{ flex:1, overflowY:"auto", padding:"24px", scrollbarWidth:"thin", color:"#2D1B00" }}>
+        <main style={{ flex:1, overflowY:"auto", padding:"24px", scrollbarWidth:"thin", color:"#2D1B00", minWidth:0 }}>
           {children}
         </main>
       </div>

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import {
   Coins, Landmark, CreditCard, RefreshCw, TrendingUp, ArrowRight,
-  Wallet, ArrowDownCircle, Send, History,
+  Wallet, ArrowDownCircle, Send, History, ShoppingBag,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -109,6 +109,7 @@ export default function MemberDashboardPage() {
   const simpananGram = hargaBuyback > 0 ? totalSimpanan / hargaBuyback : 0;
 
   const quickLinks = [
+    { label:"Produk",       href:"/dashboard/member/promo",    icon:ShoppingBag,     color:"#C9A227" },
     { label:"Buyback Emas", href:"/dashboard/member/buyback",  icon:ArrowDownCircle, color:"#065f46" },
     { label:"Simpanan",     href:"/dashboard/member/simpanan", icon:Landmark,        color:"#1d4ed8" },
     { label:"Cicilan",      href:"/dashboard/member/cicilan",  icon:CreditCard,      color:"#a78bfa" },
@@ -264,7 +265,7 @@ export default function MemberDashboardPage() {
                 </div>
                 <div style={{ textAlign:"right" }}>
                   <p style={{ color:"#8B6010", fontWeight:700, fontSize:".9rem", margin:0 }}>{fmt(tx.amount)}</p>
-                  <span style={{ color:STATUS_COLOR[tx.status]||"#fff", fontSize:".72rem" }}>{STATUS_LABEL[tx.status]||tx.status}</span>
+                  <span style={{ color:STATUS_COLOR[tx.status]||"rgba(101,67,14,0.5)", fontSize:".72rem" }}>{STATUS_LABEL[tx.status]||tx.status}</span>
                 </div>
               </div>
             ))}

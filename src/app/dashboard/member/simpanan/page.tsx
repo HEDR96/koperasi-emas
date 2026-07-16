@@ -260,7 +260,7 @@ export default function SimpananPage() {
               style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:1000 }} />
             <motion.div
               initial={{ opacity:0, scale:.92, y:20 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.92 }}
-              style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:1001, width:"min(440px,94vw)", background:"rgba(12,12,12,0.98)", border:"1px solid rgba(96,165,250,0.3)", borderRadius:20, padding:26 }}>
+              style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:1001, width:"min(440px,94vw)", background:"#FFFDF4", border:"1px solid rgba(201,162,39,0.25)", borderRadius:20, padding:26 }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
                 <h3 style={{ color:"#2D1B00", fontWeight:700, fontSize:"1.05rem", margin:0 }}>Ajukan Gadai Simpanan</h3>
                 <button onClick={() => setShowGadai(false)}

@@ -44,14 +44,14 @@ export default function FeaturesSection() {
           {FEATURES.map((f, i) => {
             const Icon = ICONS[f.icon];
             return (
-              <motion.div key={f.title}
+              <motion.div key={f.title} data-hover="1"
                 initial={{ opacity:0, y:28 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} transition={{ delay: i * .06 }}
                 whileHover={{ y:-6, transition:{ duration:.2 } }}
                 style={{
                   background:"rgba(255,255,255,0.72)",
                   border:"1px solid rgba(201,162,39,0.22)",
                   borderRadius:18, padding:"24px 20px",
-                  cursor:"pointer", backdropFilter:"blur(8px)",
+                  backdropFilter:"blur(8px)",
                   transition:"border-color .3s, box-shadow .3s",
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor="rgba(201,162,39,0.45)"; (e.currentTarget as HTMLElement).style.boxShadow="0 16px 40px rgba(201,162,39,0.15)"; }}

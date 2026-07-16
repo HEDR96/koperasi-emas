@@ -96,7 +96,7 @@ export default function MemberReferralPage() {
         {loading ? <p style={{ color:"rgba(101,67,14,0.35)" }}>Memuat...</p>
           : refs.length === 0 ? (
             <div style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.12)", borderRadius:14, padding:"36px", textAlign:"center" }}>
-              <Users style={{ width:32, height:32, color:"rgba(255,255,255,0.12)", margin:"0 auto 10px" }} />
+              <Users style={{ width:32, height:32, color:"rgba(201,162,39,0.35)", margin:"0 auto 10px" }} />
               <p style={{ color:"rgba(101,67,14,0.4)", margin:0 }}>Belum ada teman yang diajak.</p>
             </div>
           ) : (

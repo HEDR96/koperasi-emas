@@ -278,7 +278,7 @@ export default function AdminTransaksiPage() {
               style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:300 }} />
             <motion.div
               initial={{ opacity:0, scale:.95, y:20 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95 }}
-              style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:"min(420px,92vw)", background:"#111", border:"1px solid rgba(248,113,113,0.2)", borderRadius:20, padding:28, zIndex:301 }}>
+              style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:"min(420px,92vw)", background:"#FFFDF4", border:"1px solid rgba(248,113,113,0.2)", borderRadius:20, padding:28, zIndex:301 }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
                 <h2 style={{ color:"#2D1B00", fontWeight:700, fontSize:"1.05rem", margin:0 }}>Tolak Transaksi</h2>
                 <button onClick={()=>setRejectId(null)}

@@ -56,26 +56,11 @@ export default function HeroSection() {
 
       {/* Gold wave + bar decorations at bottom */}
       <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ zIndex:2 }}>
-        <svg viewBox="0 0 1440 280" xmlns="http://www.w3.org/2000/svg" style={{ display:"block", width:"100%" }} preserveAspectRatio="none">
-          <path fill="#C9A227" fillOpacity="0.85" d="M0,200 C180,240 360,140 540,160 C720,180 900,260 1080,220 C1260,180 1380,200 1440,210 L1440,280 L0,280 Z" />
-          <path fill="#D4AF37" fillOpacity="0.45" d="M0,220 C200,180 400,250 620,230 C840,210 1000,170 1200,210 C1340,235 1400,225 1440,220 L1440,280 L0,280 Z" />
-          <path fill="#B8960C" fillOpacity="0.3" d="M0,250 C300,220 600,270 900,245 C1100,228 1300,255 1440,250 L1440,280 L0,280 Z" />
+        <svg viewBox="0 0 1440 160" xmlns="http://www.w3.org/2000/svg" style={{ display:"block", width:"100%" }} preserveAspectRatio="none">
+          <path fill="#C9A227" fillOpacity="0.85" d="M0,80 C180,120 360,40 540,60 C720,80 900,140 1080,100 C1260,60 1380,80 1440,90 L1440,160 L0,160 Z" />
+          <path fill="#D4AF37" fillOpacity="0.45" d="M0,100 C200,60 400,130 620,110 C840,90 1000,50 1200,90 C1340,115 1400,105 1440,100 L1440,160 L0,160 Z" />
+          <path fill="#B8960C" fillOpacity="0.3" d="M0,130 C300,100 600,150 900,125 C1100,108 1300,135 1440,130 L1440,160 L0,160 Z" />
         </svg>
-        {/* Gold bars */}
-        <div style={{ position:"absolute", bottom:0, left:0, display:"flex", alignItems:"flex-end", gap:8, padding:"0 24px 0 12px" }}>
-          <div style={{ width:56, height:80, background:"linear-gradient(170deg,#F5D060 0%,#C9A227 40%,#8B6010 100%)", borderRadius:"4px 4px 2px 2px", boxShadow:"4px 4px 16px rgba(0,0,0,0.2)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2 }}>
-            <div style={{ width:36, height:36, background:"rgba(255,255,255,0.15)", borderRadius:4, display:"flex", alignItems:"center", justifyContent:"center", fontSize:".55rem", fontWeight:900, color:"#fff", textAlign:"center", lineHeight:1.1 }}>LM</div>
-            <div style={{ fontSize:".45rem", color:"rgba(255,255,255,0.8)", fontWeight:700, letterSpacing:".05em", textAlign:"center", lineHeight:1.2 }}>FINE<br/>GOLD<br/>999.9</div>
-          </div>
-          <div style={{ width:10, height:10, background:"linear-gradient(135deg,#F5D060,#8B6010)", borderRadius:"50%", marginBottom:30, boxShadow:"2px 2px 8px rgba(0,0,0,0.2)" }} />
-        </div>
-        <div style={{ position:"absolute", bottom:0, right:12, display:"flex", alignItems:"flex-end", gap:8 }}>
-          <div style={{ width:10, height:10, background:"linear-gradient(135deg,#F5D060,#8B6010)", borderRadius:"50%", marginBottom:30, boxShadow:"2px 2px 8px rgba(0,0,0,0.2)" }} />
-          <div style={{ width:56, height:80, background:"linear-gradient(170deg,#F5D060 0%,#C9A227 40%,#8B6010 100%)", borderRadius:"4px 4px 2px 2px", boxShadow:"-4px 4px 16px rgba(0,0,0,0.2)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2 }}>
-            <div style={{ width:36, height:36, background:"rgba(255,255,255,0.15)", borderRadius:4, display:"flex", alignItems:"center", justifyContent:"center", fontSize:".55rem", fontWeight:900, color:"#fff", textAlign:"center", lineHeight:1.1 }}>LM</div>
-            <div style={{ fontSize:".45rem", color:"rgba(255,255,255,0.8)", fontWeight:700, letterSpacing:".05em", textAlign:"center", lineHeight:1.2 }}>FINE<br/>GOLD<br/>999.9</div>
-          </div>
-        </div>
         {/* Gold ribbon curl top-right */}
         <svg viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg" style={{ position:"absolute", top:"-60px", right:0, width:90, height:140, opacity:.75 }}>
           <path d="M100,10 C80,30 110,60 85,80 C60,100 90,130 70,155" stroke="url(#ribbonGrad)" strokeWidth="8" fill="none" strokeLinecap="round" />
@@ -89,7 +74,7 @@ export default function HeroSection() {
         </svg>
       </div>
 
-      <motion.div style={{ y, opacity }} className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-24 pb-16">
+      <motion.div style={{ y, opacity }} className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-16 pb-8">
 
         {/* Trust badge */}
         <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay:.2 }}
@@ -135,11 +120,9 @@ export default function HeroSection() {
               {isDemoMode() ? "Coba Simulasi Investasi" : "Masuk & Mulai Investasi"}
             </button>
           </Link>
-          <Link href="#harga-emas">
-            <button className="btn-outline-gold" style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"14px 28px", borderRadius:14, fontSize:"1rem", cursor:"pointer" }}>
-              <TrendingUp style={{ width:18, height:18 }} />
-              Lihat Harga Emas
-            </button>
+          <Link href="#harga-emas" className="btn-outline-gold" style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"14px 28px", borderRadius:14, fontSize:"1rem", textDecoration:"none" }}>
+            <TrendingUp style={{ width:18, height:18 }} />
+            Lihat Harga Emas
           </Link>
         </motion.div>
 
@@ -147,7 +130,7 @@ export default function HeroSection() {
 
       {/* Scroll cue */}
       <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:1.6 }}
-        style={{ position:"absolute", bottom:28, left:"50%", transform:"translateX(-50%)", display:"flex", flexDirection:"column", alignItems:"center", gap:6, color:"rgba(101,67,14,0.35)", zIndex:3 }}
+        style={{ position:"absolute", bottom:28, left:"50%", transform:"translateX(-50%)", display:"flex", flexDirection:"column", alignItems:"center", gap:6, color:"rgba(101,67,14,0.6)", zIndex:3 }}
       >
         <span style={{ fontSize:".65rem", letterSpacing:".15em", textTransform:"uppercase" }}>Scroll</span>
         <motion.div animate={{ y:[0,8,0] }} transition={{ duration:1.5, repeat:Infinity }}>

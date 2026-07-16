@@ -54,7 +54,7 @@ export default function SimulationSection() {
   const [loadingCicilan, setLoadingCicilan] = useState(true);
 
   // Buyback state
-  const [buybackGram, setBuybackGram]       = useState(10);
+  const [buybackGram, setBuybackGram]       = useState(0.5);
   const [buybackPrice, setBuybackPrice]     = useState(0);
   const [loadingBuyback, setLoadingBuyback] = useState(true);
 
@@ -395,14 +395,14 @@ export default function SimulationSection() {
                     ))}
 
                     {/* Alur DP → Angsuran */}
-                    <div style={{ background:"rgba(96,165,250,0.06)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:12, padding:"12px 14px", display:"flex", flexDirection:"column", gap:8 }}>
+                    <div style={{ background:"rgba(201,162,39,0.08)", border:"1px solid rgba(201,162,39,0.2)", borderRadius:12, padding:"12px 14px", display:"flex", flexDirection:"column", gap:8 }}>
                       <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".68rem", margin:0, textTransform:"uppercase", letterSpacing:".05em" }}>Alur Pembayaran</p>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                          <span style={{ background:"#3b82f6", color:"#fff", borderRadius:"50%", width:18, height:18, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:".65rem", fontWeight:900, flexShrink:0 }}>1</span>
+                          <span style={{ background:"#C9A227", color:"#2D1B00", borderRadius:"50%", width:18, height:18, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:".65rem", fontWeight:900, flexShrink:0 }}>1</span>
                           <span style={{ color:"rgba(45,27,0,0.7)", fontSize:".82rem" }}>DP disetor dulu</span>
                         </div>
-                        <span style={{ color:"#1d4ed8", fontWeight:800 }}>{selectedPlan.dp > 0 ? formatCurrency(selectedPlan.dp) : "—"}</span>
+                        <span style={{ color:"#8B6010", fontWeight:800 }}>{selectedPlan.dp > 0 ? formatCurrency(selectedPlan.dp) : "—"}</span>
                       </div>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:6 }}>
@@ -454,15 +454,15 @@ export default function SimulationSection() {
                       <label className="text-sm" style={{ color:"rgba(45,27,0,0.8)" }}>Berat Emas yang Dijual</label>
                       <span className="text-sm font-bold" style={{ color:"#8B6010" }}>{buybackGram} gram</span>
                     </div>
-                    <input type="range" min={1} max={500} step={1} value={buybackGram}
+                    <input type="range" min={0.5} max={500} step={0.5} value={buybackGram}
                       onChange={e => setBuybackGram(+e.target.value)}
                       className="w-full accent-yellow-600 h-2 rounded-lg" />
-                    <div className="flex justify-between text-xs mt-1" style={{ color:"rgba(101,67,14,0.55)" }}><span>1g</span><span>500g</span></div>
+                    <div className="flex justify-between text-xs mt-1" style={{ color:"rgba(101,67,14,0.55)" }}><span>0.5g</span><span>500g</span></div>
                   </div>
                   <div>
                     <label className="text-sm block mb-2" style={{ color:"rgba(45,27,0,0.8)" }}>Atau masukkan langsung</label>
-                    <input type="number" min={1} max={10000} value={buybackGram}
-                      onChange={e => setBuybackGram(Math.max(1, Number(e.target.value)))}
+                    <input type="number" min={0.5} max={10000} step={0.5} value={buybackGram}
+                      onChange={e => setBuybackGram(Math.max(0.5, Number(e.target.value)))}
                       className="w-full input-gold rounded-xl px-4 py-2.5 text-sm" style={{ color:"#2D1B00" }} />
                   </div>
                 </div>

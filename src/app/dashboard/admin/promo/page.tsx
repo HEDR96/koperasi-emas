@@ -35,7 +35,7 @@ const field: React.CSSProperties = {
   outline:"none", boxSizing:"border-box",
 };
 const lbl: React.CSSProperties = {
-  color:"rgba(255,255,255,0.38)", fontSize:".7rem",
+  color:"rgba(101,67,14,0.55)", fontSize:".7rem",
   fontWeight:700, letterSpacing:".06em", textTransform:"uppercase",
   display:"block", marginBottom:5,
 };
@@ -765,7 +765,7 @@ export default function AdminProdukPage() {
             style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.65)", backdropFilter:"blur(4px)", zIndex:50, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}
             onClick={e => { if (e.target===e.currentTarget) closeModal(); }}>
             <motion.div initial={{ opacity:0, scale:.95, y:16 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95, y:16 }} transition={{ type:"spring", stiffness:300, damping:28 }}
-              style={{ width:"100%", maxWidth:540, maxHeight:"88vh", overflowY:"auto", background:"#111", border:`1px solid ${editId?"rgba(212,175,55,0.4)":"rgba(201,162,39,0.2)"}`, borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.6)" }}>
+              style={{ width:"100%", maxWidth:540, maxHeight:"88vh", overflowY:"auto", background:"#FFFDF4", border:`1px solid ${editId?"rgba(212,175,55,0.4)":"rgba(201,162,39,0.2)"}`, borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.6)" }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 22px 14px", borderBottom:"1px solid rgba(201,162,39,0.15)" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                   <div style={{ width:32, height:32, borderRadius:9, background:editId?"rgba(212,175,55,0.12)":"rgba(201,162,39,0.12)", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -860,7 +860,7 @@ export default function AdminProdukPage() {
             style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.65)", backdropFilter:"blur(4px)", zIndex:50, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}
             onClick={e => { if (e.target===e.currentTarget) closeManual(); }}>
             <motion.div initial={{ opacity:0, scale:.95, y:16 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95, y:16 }} transition={{ type:"spring", stiffness:300, damping:28 }}
-              style={{ width:"100%", maxWidth:480, maxHeight:"88vh", overflowY:"auto", background:"#111", border:"1px solid rgba(212,175,55,0.35)", borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.6)" }}>
+              style={{ width:"100%", maxWidth:480, maxHeight:"88vh", overflowY:"auto", background:"#FFFDF4", border:"1px solid rgba(212,175,55,0.35)", borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.6)" }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 22px 14px", borderBottom:"1px solid rgba(201,162,39,0.15)" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                   <div style={{ width:32, height:32, borderRadius:9, background:"rgba(212,175,55,0.12)", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -1008,7 +1008,7 @@ export default function AdminProdukPage() {
             style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", backdropFilter:"blur(4px)", zIndex:50, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}
             onClick={e => { if (e.target===e.currentTarget) closeApprove(); }}>
             <motion.div initial={{ opacity:0, scale:.95, y:16 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95, y:16 }} transition={{ type:"spring", stiffness:300, damping:28 }}
-              style={{ width:"100%", maxWidth:560, maxHeight:"90vh", overflowY:"auto", background:"#111", border:`1px solid ${approveStep==="review"?"rgba(251,191,36,0.35)":"rgba(52,211,153,0.35)"}`, borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.7)" }}>
+              style={{ width:"100%", maxWidth:560, maxHeight:"90vh", overflowY:"auto", background:"#FFFDF4", border:`1px solid ${approveStep==="review"?"rgba(251,191,36,0.35)":"rgba(52,211,153,0.35)"}`, borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.7)" }}>
               {/* header */}
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 22px 14px", borderBottom:"1px solid rgba(201,162,39,0.15)" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10 }}>
@@ -1158,7 +1158,7 @@ export default function AdminProdukPage() {
             style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", backdropFilter:"blur(4px)", zIndex:50, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}
             onClick={e => { if (e.target===e.currentTarget) setInvoiceModal(null); }}>
             <motion.div initial={{ opacity:0, scale:.95 }} animate={{ opacity:1, scale:1 }} exit={{ opacity:0, scale:.95 }}
-              style={{ background:"#111", border:"1px solid rgba(212,175,55,0.4)", borderRadius:20, padding:"24px", maxWidth:480, width:"100%", boxShadow:"0 24px 80px rgba(0,0,0,0.7)" }}>
+              style={{ background:"#FFFDF4", border:"1px solid rgba(212,175,55,0.4)", borderRadius:20, padding:"24px", maxWidth:480, width:"100%", boxShadow:"0 24px 80px rgba(0,0,0,0.7)" }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                   <FileText style={{ width:18, height:18, color:G }} />
@@ -1195,7 +1195,7 @@ export default function AdminProdukPage() {
             style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", backdropFilter:"blur(4px)", zIndex:50, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}
             onClick={e=>{ if(e.target===e.currentTarget) setDetailOrder(null); }}>
             <motion.div initial={{ opacity:0, scale:.95, y:12 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95 }} transition={{ type:"spring", stiffness:300, damping:28 }}
-              style={{ width:"100%", maxWidth:560, maxHeight:"88vh", overflowY:"auto", background:"#111", border:"1px solid rgba(96,165,250,0.3)", borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.7)" }}>
+              style={{ width:"100%", maxWidth:560, maxHeight:"88vh", overflowY:"auto", background:"#FFFDF4", border:"1px solid rgba(201,162,39,0.25)", borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.25)" }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 22px 14px", borderBottom:"1px solid rgba(201,162,39,0.15)" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                   <div style={{ width:32, height:32, borderRadius:9, background:"rgba(29,78,216,0.08)", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -1303,7 +1303,7 @@ export default function AdminProdukPage() {
             style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", backdropFilter:"blur(4px)", zIndex:50, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}
             onClick={e=>{ if(e.target===e.currentTarget) setDetailProd(null); }}>
             <motion.div initial={{ opacity:0, scale:.95, y:12 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95 }} transition={{ type:"spring", stiffness:300, damping:28 }}
-              style={{ width:"100%", maxWidth:640, maxHeight:"90vh", overflowY:"auto", background:"#111", border:"1px solid rgba(212,175,55,0.3)", borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.7)" }}>
+              style={{ width:"100%", maxWidth:640, maxHeight:"90vh", overflowY:"auto", background:"#FFFDF4", border:"1px solid rgba(201,162,39,0.25)", borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.2)" }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 22px 14px", borderBottom:"1px solid rgba(201,162,39,0.15)" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                   {detailProd.image_url && <img src={gdriveImage(detailProd.image_url)} alt="" style={{ width:36, height:36, borderRadius:8, objectFit:"cover" }} onError={e=>{(e.currentTarget as HTMLImageElement).style.display="none";}} />}

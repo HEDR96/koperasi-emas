@@ -15,7 +15,7 @@ const field: React.CSSProperties = {
   borderRadius:10, padding:"11px 14px", color:"#2D1B00", fontSize:".88rem", outline:"none", boxSizing:"border-box",
 };
 const lbl: React.CSSProperties = {
-  color:"rgba(255,255,255,0.38)", fontSize:".7rem", fontWeight:700, letterSpacing:".06em",
+  color:"rgba(101,67,14,0.55)", fontSize:".7rem", fontWeight:700, letterSpacing:".06em",
   textTransform:"uppercase", display:"block", marginBottom:5,
 };
 const EMPTY_TAMBAH = { title:"", description:"", image_url:"", gram_weight:"", price:"", stok:"" };
@@ -371,7 +371,7 @@ export default function MemberProdukPage() {
             style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", backdropFilter:"blur(4px)", zIndex:50, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}
             onClick={e => { if(e.target===e.currentTarget) setOrderModal(null); }}>
             <motion.div initial={{ opacity:0, scale:.95, y:16 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95 }} transition={{ type:"spring", stiffness:300, damping:28 }}
-              style={{ width:"100%", maxWidth:420, background:"#111", border:"1px solid rgba(212,175,55,0.35)", borderRadius:20, overflow:"hidden", boxShadow:"0 24px 80px rgba(0,0,0,0.7)" }}>
+              style={{ width:"100%", maxWidth:420, background:"#FFFDF4", border:"1px solid rgba(212,175,55,0.35)", borderRadius:20, overflow:"hidden", boxShadow:"0 24px 80px rgba(0,0,0,0.7)" }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 20px 14px", borderBottom:"1px solid rgba(201,162,39,0.15)" }}>
                 <span style={{ color:"#2D1B00", fontWeight:700, fontSize:".95rem" }}>Pesan Produk</span>
                 <button onClick={() => setOrderModal(null)} style={{ width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.2)", borderRadius:7, color:"rgba(101,67,14,0.45)", cursor:"pointer" }}>
@@ -386,7 +386,7 @@ export default function MemberProdukPage() {
                   {orderModal.produk.stok!=null && <p style={{ color:"#1d4ed8", fontSize:".76rem", margin:"4px 0 0" }}>Stok tersedia: {orderModal.produk.stok}</p>}
                 </div>
                 <div>
-                  <p style={{ color:"rgba(255,255,255,0.38)", fontSize:".7rem", fontWeight:700, letterSpacing:".06em", textTransform:"uppercase", margin:"0 0 8px" }}>Jumlah</p>
+                  <p style={{ color:"rgba(101,67,14,0.55)", fontSize:".7rem", fontWeight:700, letterSpacing:".06em", textTransform:"uppercase", margin:"0 0 8px" }}>Jumlah</p>
                   <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                     <button onClick={() => setOrderModal(p => p ? { ...p, qty: Math.max(1, p.qty-1) } : p)}
                       style={{ width:36, height:36, borderRadius:9, background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.2)", color:"#2D1B00", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -417,7 +417,7 @@ export default function MemberProdukPage() {
             style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.65)", backdropFilter:"blur(4px)", zIndex:50, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}
             onClick={e => { if (e.target===e.currentTarget) closeTambah(); }}>
             <motion.div initial={{ opacity:0, scale:.95, y:16 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.95, y:16 }} transition={{ type:"spring", stiffness:300, damping:28 }}
-              style={{ width:"100%", maxWidth:480, maxHeight:"88vh", overflowY:"auto", background:"#111", border:"1px solid rgba(212,175,55,0.35)", borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.6)" }}>
+              style={{ width:"100%", maxWidth:480, maxHeight:"88vh", overflowY:"auto", background:"#FFFDF4", border:"1px solid rgba(212,175,55,0.35)", borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.6)" }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 22px 14px", borderBottom:"1px solid rgba(201,162,39,0.15)" }}>
                 <div>
                   <span style={{ color:"#2D1B00", fontWeight:700, fontSize:".95rem" }}>Tambah Produk</span>
