@@ -101,9 +101,9 @@ export default function HargaViewer() {
                 <tbody>
                   {hargaEmas.map((r,i)=>(
                     <tr key={r.gram} style={{ borderBottom: i<hargaEmas.length-1?"1px solid rgba(201,162,39,0.08)":"none" }}>
-                      <td style={{ padding:"12px 18px", color:"#2D1B00", fontWeight:700 }}>{r.gram} gram</td>
-                      <td style={{ padding:"12px 18px", color:"#8B6010", fontWeight:900 }}>{fmt(r.harga)}</td>
-                      <td style={{ padding:"12px 18px", color:"rgba(101,67,14,0.4)", fontSize:".8rem" }}>
+                      <td style={{ padding:"7px 18px", color:"#2D1B00", fontWeight:700 }}>{r.gram} gram</td>
+                      <td style={{ padding:"7px 18px", color:"#8B6010", fontWeight:900 }}>{fmt(r.harga)}</td>
+                      <td style={{ padding:"7px 18px", color:"rgba(101,67,14,0.4)", fontSize:".8rem" }}>
                         {new Date(r.created_at).toLocaleString("id-ID", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" })}
                       </td>
                     </tr>
@@ -134,10 +134,10 @@ export default function HargaViewer() {
                   <tbody>
                     {cicilan.map((r,i)=>(
                       <tr key={r.gram} style={{ borderBottom: i<cicilan.length-1?"1px solid rgba(201,162,39,0.08)":"none" }}>
-                        <td style={{ padding:"11px 16px", color:"#2D1B00", fontWeight:700, whiteSpace:"nowrap" }}>{r.gram}g</td>
-                        <td style={{ padding:"11px 16px", color:"#6d28d9", fontWeight:700, whiteSpace:"nowrap" }}>{fmt(r.hargaAnggota)}</td>
+                        <td style={{ padding:"7px 16px", color:"#2D1B00", fontWeight:700, whiteSpace:"nowrap" }}>{r.gram}g</td>
+                        <td style={{ padding:"7px 16px", color:"#6d28d9", fontWeight:700, whiteSpace:"nowrap" }}>{fmt(r.hargaAnggota)}</td>
                         {r.tenors.map(t=>(
-                          <td key={t.tenor} style={{ padding:"11px 16px", whiteSpace:"nowrap" }}>
+                          <td key={t.tenor} style={{ padding:"7px 16px", whiteSpace:"nowrap" }}>
                             {t.dp > 0 && <div style={{ color:"#1d4ed8", fontSize:".68rem", fontWeight:600, marginBottom:2 }}>DP {fmt(t.dp)}</div>}
                             <span style={{ color:"#8B6010", fontWeight:900 }}>{fmt(t.angsuran)}</span>
                             <span style={{ color:"rgba(101,67,14,0.35)", fontWeight:500, fontSize:".7rem" }}>/bln</span>
@@ -168,9 +168,9 @@ export default function HargaViewer() {
                 <tbody>
                   {hargaBuyback.map((r,i)=>(
                     <tr key={r.gram} style={{ borderBottom: i<hargaBuyback.length-1?"1px solid rgba(201,162,39,0.08)":"none" }}>
-                      <td style={{ padding:"12px 18px", color:"#2D1B00", fontWeight:700 }}>{r.gram} gram</td>
-                      <td style={{ padding:"12px 18px", color:"#065f46", fontWeight:900 }}>{fmt(r.harga)}</td>
-                      <td style={{ padding:"12px 18px", color:"rgba(101,67,14,0.4)", fontSize:".8rem" }}>
+                      <td style={{ padding:"7px 18px", color:"#2D1B00", fontWeight:700 }}>{r.gram} gram</td>
+                      <td style={{ padding:"7px 18px", color:"#065f46", fontWeight:900 }}>{fmt(r.harga)}</td>
+                      <td style={{ padding:"7px 18px", color:"rgba(101,67,14,0.4)", fontSize:".8rem" }}>
                         {new Date(r.created_at).toLocaleString("id-ID", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" })}
                       </td>
                     </tr>
