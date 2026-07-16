@@ -336,7 +336,7 @@ export default function MemberProdukPage() {
             {produk.map((p,i) => (
               <motion.div key={p.id} initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay:i*.05 }}
                 style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(212,175,55,0.2)", borderRadius:16, overflow:"hidden" }}>
-                {p.image_url && <img src={gdriveImage(p.image_url)} alt={p.title} style={{ width:"100%", height:140, objectFit:"cover" }} onError={e=>{(e.currentTarget as HTMLImageElement).style.display="none";}} />}
+                {p.image_url && <img src={gdriveImage(p.image_url)} alt={p.title} style={{ width:"100%", height:140, objectFit:"contain", background:"#fff" }} onError={e=>{(e.currentTarget as HTMLImageElement).style.display="none";}} />}
                 <div style={{ padding:"14px 16px" }}>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8, marginBottom:8 }}>
                     <p style={{ color:"#2D1B00", fontWeight:700, fontSize:".95rem", margin:0, lineHeight:1.3 }}>{p.title}</p>
