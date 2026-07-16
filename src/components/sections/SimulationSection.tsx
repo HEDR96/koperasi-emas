@@ -55,6 +55,7 @@ export default function SimulationSection() {
 
   // Buyback state
   const [buybackGram, setBuybackGram]       = useState(0.5);
+  const [buybackInput, setBuybackInput]     = useState("0.5");
   const [buybackPrice, setBuybackPrice]     = useState(0);
   const [loadingBuyback, setLoadingBuyback] = useState(true);
 
@@ -455,14 +456,24 @@ export default function SimulationSection() {
                       <span className="text-sm font-bold" style={{ color:"#8B6010" }}>{buybackGram} gram</span>
                     </div>
                     <input type="range" min={0.5} max={500} step={0.5} value={buybackGram}
-                      onChange={e => setBuybackGram(+e.target.value)}
+                      onChange={e => { const v = +e.target.value; setBuybackGram(v); setBuybackInput(String(v)); }}
                       className="w-full accent-yellow-600 h-2 rounded-lg" />
                     <div className="flex justify-between text-xs mt-1" style={{ color:"rgba(101,67,14,0.55)" }}><span>0.5g</span><span>500g</span></div>
                   </div>
                   <div>
                     <label className="text-sm block mb-2" style={{ color:"rgba(45,27,0,0.8)" }}>Atau masukkan langsung</label>
-                    <input type="number" min={0.5} max={10000} step={0.5} value={buybackGram}
-                      onChange={e => setBuybackGram(Math.max(0.5, Number(e.target.value)))}
+                    <input type="number" min={0.5} max={10000} step={0.5} value={buybackInput}
+                      onChange={e => {
+                        setBuybackInput(e.target.value);
+                        const v = parseFloat(e.target.value);
+                        if (!isNaN(v) && v >= 0.5) setBuybackGram(v);
+                      }}
+                      onBlur={e => {
+                        const v = parseFloat(e.target.value);
+                        const clamped = isNaN(v) || v < 0.5 ? 0.5 : v;
+                        setBuybackGram(clamped);
+                        setBuybackInput(String(clamped));
+                      }}
                       className="w-full input-gold rounded-xl px-4 py-2.5 text-sm" style={{ color:"#2D1B00" }} />
                   </div>
                 </div>
