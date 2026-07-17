@@ -147,7 +147,10 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
   /* ── FOOTER ── */
   .inv-footer{margin-top:28px;border-top:1px solid #eee;padding-top:8px;text-align:center;font-size:.62rem;color:#bbb;letter-spacing:.06em;text-transform:uppercase}
 
-  @media print{body{padding:20px 24px}@page{margin:1cm}}
+  @media print{
+    body{padding:16px 20px}
+    @page{size:A4 portrait;margin:0.8cm}
+  }
 </style></head><body>
 <div class="watermark">${paid?"LUNAS":"BELUM LUNAS"}</div>
 
@@ -241,7 +244,18 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
 </div>
 
 
-<script>window.onload=()=>{window.print();}</script>
+<script>
+window.onload = () => {
+  // ukur tinggi konten vs A4 (297mm - 1.6cm margin = ~274mm ≈ 1036px @96dpi)
+  const A4_H = 1036;
+  const contentH = document.documentElement.scrollHeight;
+  if (contentH > A4_H) {
+    const scale = A4_H / contentH;
+    document.body.style.zoom = String(scale);
+  }
+  window.print();
+};
+</script>
 </body></html>`);
   w.document.close();
 }
