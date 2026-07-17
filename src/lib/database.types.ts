@@ -171,6 +171,7 @@ export interface Database {
           user_id: string | null;
           customer_name: string;
           customer_phone: string | null;
+          customer_address: string | null;
           items: Array<{ product_id: string; title: string; gram_weight: number | null; price: number; quantity: number; image_url: string | null }>;
           total_amount: number;
           status: "pending" | "approved" | "rejected" | "cancelled";

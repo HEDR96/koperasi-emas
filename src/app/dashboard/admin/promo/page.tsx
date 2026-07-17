@@ -56,45 +56,102 @@ async function uploadProof(file: File): Promise<string> {
 /* ── invoice printer — paid=true → LUNAS, paid=false → BELUM LUNAS ── */
 function printInvoice(order: any, payment: any | null, siteName: string, paid: boolean) {
   const items = Array.isArray(order.items) ? order.items : JSON.parse(order.items || "[]");
-  const kembalian = payment ? Math.max(0, payment.terbayar - payment.nominal) : 0;
+  const subtotalProduk = order.total_amount;
+  const voucher = payment?.discount_amount || 0;
+  const ongkir = payment?.ongkir || 0;
+  const subTotal = payment ? payment.nominal : subtotalProduk;
+  const invNo = order.id.slice(-8).toUpperCase();
+  const tgl = fmtDt(payment?.created_at || order.created_at);
   const w = window.open("", "_blank");
   if (!w) return;
   w.document.write(`<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8">
-<title>Invoice #${order.id.slice(-8).toUpperCase()}</title>
+<title>Invoice #${invNo}</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:Arial,sans-serif;font-size:12px;color:#111;padding:16px;max-width:640px;margin:0 auto;position:relative}
-  .logo{font-size:1.2rem;font-weight:900;color:#B8860B;text-align:center;margin-bottom:2px}
-  .sub{text-align:center;color:#555;font-size:.75rem;margin-bottom:3px}
-  .status-badge{display:inline-block;padding:3px 14px;border-radius:20px;font-size:.75rem;font-weight:800;letter-spacing:.05em;margin-bottom:10px;${paid?"background:#dcfce7;color:#16a34a;border:2px solid #16a34a":"background:#fef2f2;color:#dc2626;border:2px solid #dc2626"}}
-  .status-wrap{text-align:center}
-  .watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:8rem;font-weight:900;opacity:.18;color:${paid?"#16a34a":"#dc2626"};pointer-events:none;white-space:nowrap;z-index:0}
-  @media print{.watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg)}}
-  h2{font-size:.9rem;font-weight:700;margin-bottom:6px;border-bottom:2px solid #B8860B;padding-bottom:4px;margin-top:8px}
-  table{width:100%;border-collapse:collapse;margin-bottom:8px}
-  th{background:#B8860B;color:#fff;padding:5px 8px;text-align:left;font-size:.75rem}
-  td{padding:5px 8px;border-bottom:1px solid #eee;font-size:.78rem}
-  .right{text-align:right}
-  .total-row td{font-weight:700;border-top:2px solid #B8860B;border-bottom:none}
-  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px}
-  .info-item label{color:#777;font-size:.7rem;display:block;margin-bottom:1px}
-  .info-item span{font-weight:600;font-size:.8rem}
-  .footer{text-align:center;color:#888;font-size:.72rem;margin-top:12px;border-top:1px solid #eee;padding-top:8px}
+  body{font-family:'Courier New',Courier,monospace;font-size:12px;color:#111;padding:20px;max-width:680px;margin:0 auto;background:#fff;position:relative}
+  .watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:7rem;font-weight:900;opacity:.12;color:${paid?"#16a34a":"#dc2626"};pointer-events:none;white-space:nowrap;z-index:0}
+  @media print{.watermark{position:fixed}}
+  /* ── top bar ── */
+  .top-bar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+  .top-bar-right{text-align:right;font-size:.75rem}
+  .top-bar-right .field{display:flex;justify-content:flex-end;gap:6px;margin-bottom:2px}
+  .top-bar-right .field label{color:#666}
+  .top-bar-right .field .line{border-bottom:1px solid #999;min-width:80px;display:inline-block}
+  /* ── company name ── */
+  .company{font-size:1rem;font-weight:900;letter-spacing:.04em;text-transform:uppercase;color:#111;border-bottom:2px solid #111;padding-bottom:4px;margin-bottom:10px}
+  /* ── invoice box ── */
+  .inv-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:16px}
+  .ship-to{flex:1}
+  .ship-to h3{font-size:.75rem;font-weight:700;text-transform:uppercase;margin-bottom:6px;letter-spacing:.05em}
+  .ship-to .field-line{display:flex;gap:6px;align-items:flex-end;margin-bottom:5px;font-size:.82rem}
+  .ship-to .field-line label{color:#555;white-space:nowrap;min-width:60px}
+  .ship-to .field-line .val{border-bottom:1px solid #aaa;flex:1;padding-bottom:1px;font-weight:600;min-width:100px}
+  .inv-box{border:2px solid #111;padding:8px 14px;min-width:170px}
+  .inv-box .inv-title{font-weight:900;font-size:.95rem;text-align:center;letter-spacing:.1em;border-bottom:1px solid #111;padding-bottom:4px;margin-bottom:6px}
+  .inv-box .row{display:flex;justify-content:space-between;gap:8px;font-size:.78rem;margin-bottom:3px}
+  .inv-box .row label{color:#555}
+  .inv-box .row .val{border-bottom:1px solid #aaa;min-width:80px;text-align:right;font-weight:600}
+  /* ── detail table ── */
+  .section-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:10px 0 4px;border-bottom:1px solid #111;padding-bottom:2px}
+  table{width:100%;border-collapse:collapse;margin-bottom:10px}
+  th{font-size:.73rem;font-weight:700;text-align:left;padding:4px 6px;border-top:1px solid #111;border-bottom:1px solid #111;text-transform:uppercase}
+  th.right,td.right{text-align:right}
+  td{font-size:.8rem;padding:4px 6px;border-bottom:1px dotted #ccc}
+  /* ── payment section ── */
+  .pay-section{display:flex;gap:16px;margin-top:6px}
+  .pay-left{border:1px solid #333;padding:8px 12px;font-size:.78rem;flex:1.2}
+  .pay-left h4{font-size:.72rem;font-weight:700;text-transform:uppercase;margin-bottom:6px;letter-spacing:.03em}
+  .pay-left .row{display:flex;gap:6px;margin-bottom:4px;align-items:flex-end}
+  .pay-left .row label{color:#555;white-space:nowrap;min-width:36px}
+  .pay-left .row .val{border-bottom:1px solid #aaa;flex:1;font-weight:600;padding-bottom:1px}
+  .pay-right{border:1px solid #333;padding:8px 12px;font-size:.78rem;flex:1}
+  .pay-right .prow{display:flex;justify-content:space-between;margin-bottom:4px;align-items:flex-end}
+  .pay-right .prow label{color:#555;white-space:nowrap}
+  .pay-right .prow .val{border-bottom:1px solid #aaa;min-width:80px;text-align:right;font-weight:600;padding-bottom:1px}
+  .pay-right .prow.total label{font-weight:700;color:#111}
+  .pay-right .prow.total .val{font-weight:900;border-bottom:2px solid #111}
+  /* ── notes & signature ── */
+  .notes-section{margin-top:12px;font-size:.78rem}
+  .notes-section label{font-weight:700;text-transform:uppercase;font-size:.72rem;letter-spacing:.05em}
+  .notes-section .notes-line{border-bottom:1px solid #aaa;margin-top:4px;min-height:16px;padding-bottom:2px}
+  .sig-section{display:flex;justify-content:flex-end;margin-top:16px;gap:40px}
+  .sig-block{text-align:center;font-size:.75rem}
+  .sig-block .sig-name{border-top:1px solid #555;margin-top:28px;padding-top:3px;font-weight:600;min-width:120px}
+  .sig-block .sig-label{color:#666;font-size:.7rem}
   @media print{body{padding:8px}}
 </style></head><body>
 <div class="watermark">${paid?"LUNAS":"BELUM LUNAS"}</div>
-<div class="logo">${siteName}</div>
-<div class="sub">INVOICE PEMBELIAN PRODUK</div>
-<div class="status-wrap"><span class="status-badge">${paid?"✓ LUNAS":"✗ BELUM LUNAS"}</span></div>
-<div class="info-grid">
-  <div class="info-item"><label>No. Invoice</label><span>#${order.id.slice(-8).toUpperCase()}</span></div>
-  <div class="info-item"><label>Tanggal</label><span>${fmtDt(payment?.created_at || order.created_at)}</span></div>
-  <div class="info-item"><label>Pelanggan</label><span>${order.customer_name}</span></div>
-  <div class="info-item"><label>Telepon</label><span>${order.customer_phone || "-"}</span></div>
+
+<div class="top-bar">
+  <div></div>
+  <div class="top-bar-right">
+    <div class="field"><label>NO</label><span class="line">&nbsp;</span></div>
+    <div class="field"><label>Date</label><span class="line">&nbsp;</span></div>
+  </div>
 </div>
-<h2>Detail Pesanan</h2>
+
+<div class="company">${siteName}</div>
+
+<div class="inv-header">
+  <div class="ship-to">
+    <h3>Ship To :</h3>
+    <div class="field-line"><label>Nama</label><span class="val">${order.customer_name}</span></div>
+    <div class="field-line"><label>Alamat</label><span class="val">${order.customer_address || "-"}</span></div>
+    <div class="field-line"><label>No Telp</label><span class="val">${order.customer_phone || "-"}</span></div>
+  </div>
+  <div class="inv-box">
+    <div class="inv-title">INVOICE</div>
+    <div class="row"><label>NO :</label><span class="val">#${invNo}</span></div>
+    <div class="row"><label>Tgl :</label><span class="val">${tgl}</span></div>
+    <div class="row"><label>Due Date :</label><span class="val">&nbsp;</span></div>
+  </div>
+</div>
+
+<div class="section-title">Detail Pesanan</div>
 <table>
-  <thead><tr><th>Produk</th><th>Qty</th><th class="right">Harga Satuan</th><th class="right">Subtotal</th></tr></thead>
+  <thead>
+    <tr><th>Produk</th><th>Qty</th><th class="right">Harga</th><th class="right">Jumlah</th></tr>
+  </thead>
   <tbody>
     ${items.map((it: any) => `
     <tr>
@@ -103,26 +160,40 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
       <td class="right">${fmt(it.price)}</td>
       <td class="right">${fmt(it.price * it.quantity)}</td>
     </tr>`).join("")}
-    <tr class="total-row"><td colspan="3">Subtotal Produk</td><td class="right">${fmt(order.total_amount)}</td></tr>
   </tbody>
 </table>
-${payment ? `<h2>Ringkasan Pembayaran</h2>
-<table>
-  <tbody>
-    ${payment.voucher_code ? `<tr><td>Diskon Voucher (${payment.voucher_code})</td><td class="right">−${fmt(payment.discount_amount||0)}</td></tr>` : ""}
-    ${payment.ongkir ? `<tr><td>Ongkir</td><td class="right">${fmt(payment.ongkir)}</td></tr>` : ""}
-    <tr class="total-row"><td>Total Tagihan</td><td class="right">${fmt(payment.nominal)}</td></tr>
-    <tr><td>Metode Pembayaran</td><td class="right">${payment.payment_method}</td></tr>
-    <tr><td>Terbayar</td><td class="right">${fmt(payment.terbayar)}</td></tr>
-    <tr><td>Kembalian</td><td class="right">${fmt(kembalian)}</td></tr>
-  </tbody>
-</table>` : `<p style="color:#999;font-size:.8rem;margin-bottom:16px">Pembayaran belum diproses.</p>`}
-${(order.notes || payment?.notes) ? `<h2>Catatan</h2>
-<div style="margin-bottom:16px">
-  ${order.notes ? `<p style="margin-bottom:6px"><b>Pesanan:</b> ${order.notes}</p>` : ""}
-  ${payment?.notes ? `<p>${payment.notes}</p>` : ""}
-</div>` : ""}
-<div class="footer">Terima kasih atas kepercayaan Anda • ${siteName}</div>
+
+<div class="pay-section">
+  <div class="pay-left">
+    <h4>Mohon Pembayaran di Transfer :</h4>
+    <div class="row"><label>Bank :</label><span class="val">BSI</span></div>
+    <div class="row"><label>A/N :</label><span class="val">${siteName}</span></div>
+    <div class="row"><label>A/C :</label><span class="val">7339222996</span></div>
+  </div>
+  <div class="pay-right">
+    <div class="prow total"><label>Total :</label><span class="val">${fmt(subtotalProduk)}</span></div>
+    <div class="prow"><label>VOUCHER :</label><span class="val">${voucher ? fmt(voucher) : "&nbsp;"}</span></div>
+    <div class="prow"><label>ONGKIR :</label><span class="val">${ongkir ? fmt(ongkir) : "&nbsp;"}</span></div>
+    <div class="prow total"><label>SUB TOTAL :</label><span class="val">${fmt(subTotal)}</span></div>
+  </div>
+</div>
+
+<div class="notes-section">
+  <label>Catatan :</label>
+  <div class="notes-line">${order.notes || payment?.notes || "&nbsp;"}</div>
+</div>
+
+<div class="sig-section">
+  <div class="sig-block">
+    <div class="sig-label">${siteName}</div>
+    <div class="sig-name">&nbsp;</div>
+  </div>
+  <div class="sig-block">
+    <div class="sig-label">Pelanggan</div>
+    <div class="sig-name">${order.customer_name}</div>
+  </div>
+</div>
+
 <script>window.onload=()=>{window.print();}</script>
 </body></html>`);
   w.document.close();
@@ -183,7 +254,7 @@ export default function AdminProdukPage() {
   /* ── input pesanan manual (walk-in / bukan dari member) ── */
   const [manualModal, setManualModal] = useState(false);
   const EMPTY_MANUAL_ITEM = { product_id:"", quantity:"1" };
-  const [manualForm, setManualForm] = useState({ user_id:"", customer_name:"", customer_phone:"", agen_id:"", items:[{ ...EMPTY_MANUAL_ITEM }], notes:"" });
+  const [manualForm, setManualForm] = useState({ user_id:"", customer_name:"", customer_phone:"", customer_address:"", agen_id:"", items:[{ ...EMPTY_MANUAL_ITEM }], notes:"" });
   const [manualBuyerType, setManualBuyerType] = useState<"member"|"umum">("member");
   const [savingManual, setSavingManual] = useState(false);
   const [manualErr, setManualErr] = useState("");
@@ -353,7 +424,7 @@ export default function AdminProdukPage() {
   function onOngkirChange(ongkir: string) { recomputeNominal(payForm.voucher_id, ongkir); }
 
   /* ── input pesanan manual — beli langsung di toko, dicatat lalu masuk alur approve seperti biasa ── */
-  function openManual() { setManualForm({ user_id:"", customer_name:"", customer_phone:"", agen_id:"", items:[{ ...EMPTY_MANUAL_ITEM }], notes:"" }); setManualBuyerType("member"); setManualErr(""); setManualModal(true); }
+  function openManual() { setManualForm({ user_id:"", customer_name:"", customer_phone:"", customer_address:"", agen_id:"", items:[{ ...EMPTY_MANUAL_ITEM }], notes:"" }); setManualBuyerType("member"); setManualErr(""); setManualModal(true); }
   function closeManual() { setManualModal(false); setManualErr(""); }
 
   function addManualItem() { setManualForm(p => ({ ...p, items:[...p.items, { ...EMPTY_MANUAL_ITEM }] })); }
@@ -388,6 +459,7 @@ export default function AdminProdukPage() {
       user_id: manualForm.user_id || null,
       customer_name: manualForm.customer_name.trim(),
       customer_phone: manualForm.customer_phone || null,
+      customer_address: manualForm.customer_address || null,
       agen_id: manualForm.agen_id || null,
       items,
       total_amount: manualTotal,
@@ -911,6 +983,11 @@ export default function AdminProdukPage() {
                 <div>
                   <label style={lbl}>Nomor HP</label>
                   <input value={manualForm.customer_phone} onChange={e=>setManualForm(p=>({...p,customer_phone:e.target.value}))} style={field} placeholder="08xxxxxxxxxx" />
+                </div>
+
+                <div>
+                  <label style={lbl}>Alamat</label>
+                  <input value={manualForm.customer_address} onChange={e=>setManualForm(p=>({...p,customer_address:e.target.value}))} style={field} placeholder="Alamat pengiriman (opsional)" />
                 </div>
 
                 <div>

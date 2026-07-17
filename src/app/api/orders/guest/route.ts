@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
-  const { customer_name, customer_phone, items, total_amount } = await req.json();
+  const { customer_name, customer_phone, customer_address, items, total_amount } = await req.json();
 
   if (!customer_name?.trim()) {
     return NextResponse.json({ error: "Nama wajib diisi." }, { status: 400 });
@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
     user_id: null,
     customer_name: customer_name.trim(),
     customer_phone: customer_phone?.trim() || null,
+    customer_address: customer_address?.trim() || null,
     items,
     total_amount,
     status: "pending",

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, ShoppingCart, MessageCircle, Plus, Minus, X, ArrowRight, Package, RefreshCw, User, Phone } from "lucide-react";
+import { ShoppingBag, ShoppingCart, MessageCircle, Plus, Minus, X, ArrowRight, Package, RefreshCw, User, Phone, MapPin } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useSiteSettings } from "@/store/useSettingsStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -91,6 +91,7 @@ export default function PromoSection() {
   const [stockWarn, setStockWarn] = useState<string|null>(null);
   const [custName, setCustName] = useState("");
   const [custPhone, setCustPhone] = useState("");
+  const [custAddress, setCustAddress] = useState("");
   const [nameErr, setNameErr] = useState(false);
 
   useEffect(() => {
@@ -150,6 +151,7 @@ export default function PromoSection() {
     cart.forEach((it,i)=>lines.push(`${i+1}. ${it.title}${it.gram_weight?` (${it.gram_weight}gr)`:""} ×${it.quantity} — ${fmtRp(it.price*it.quantity)}`));
     lines.push("","Total: "+fmtRp(cartTotal));
     if (custPhone) lines.push("No. WA: "+custPhone);
+    if (custAddress) lines.push("Alamat: "+custAddress);
     lines.push("","Mohon dikonfirmasi. Terima kasih.");
     return encodeURIComponent(lines.join("\n"));
   }
@@ -167,7 +169,7 @@ export default function PromoSection() {
       await fetch("/api/orders/guest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customer_name: custName.trim(), customer_phone: custPhone.trim() || null, items, total_amount: cartTotal }),
+        body: JSON.stringify({ customer_name: custName.trim(), customer_phone: custPhone.trim() || null, customer_address: custAddress.trim() || null, items, total_amount: cartTotal }),
       });
     } catch {}
     setCart([]);
@@ -318,6 +320,11 @@ export default function PromoSection() {
                       <Phone style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", width:14, height:14, color:"rgba(101,67,14,0.35)", pointerEvents:"none" }} />
                       <input value={custPhone} onChange={e=>setCustPhone(e.target.value)}
                         placeholder="Nomor WhatsApp (opsional)" style={inp} type="tel" />
+                    </div>
+                    <div style={{ position:"relative" }}>
+                      <MapPin style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", width:14, height:14, color:"rgba(101,67,14,0.35)", pointerEvents:"none" }} />
+                      <input value={custAddress} onChange={e=>setCustAddress(e.target.value)}
+                        placeholder="Alamat pengiriman (opsional)" style={inp} />
                     </div>
                   </div>
                 )}
