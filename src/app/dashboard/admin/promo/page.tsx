@@ -68,125 +68,134 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
 <title>Invoice #${invNo}</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:'Courier New',Courier,monospace;font-size:12px;color:#111;padding:20px;max-width:680px;margin:0 auto;background:#fff;position:relative}
-  .watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:7rem;font-weight:900;opacity:.12;color:${paid?"#16a34a":"#dc2626"};pointer-events:none;white-space:nowrap;z-index:0}
+  body{font-family:'Georgia',serif;font-size:12px;color:#1a1a1a;padding:32px 36px;max-width:720px;margin:0 auto;background:#fff;position:relative}
+  /* watermark */
+  .watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:6.5rem;font-weight:900;opacity:.08;color:${paid?"#16a34a":"#dc2626"};pointer-events:none;white-space:nowrap;z-index:0;font-family:Arial,sans-serif;letter-spacing:.1em}
   @media print{.watermark{position:fixed}}
-  /* ── top bar ── */
-  .top-bar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
-  .top-bar-right{text-align:right;font-size:.75rem}
-  .top-bar-right .field{display:flex;justify-content:flex-end;gap:6px;margin-bottom:2px}
-  .top-bar-right .field label{color:#666}
-  .top-bar-right .field .line{border-bottom:1px solid #999;min-width:80px;display:inline-block}
-  /* ── company name ── */
-  .company{font-size:1rem;font-weight:900;letter-spacing:.04em;text-transform:uppercase;color:#111;border-bottom:2px solid #111;padding-bottom:4px;margin-bottom:10px}
-  /* ── invoice box ── */
-  .inv-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:16px}
-  .ship-to{flex:1}
-  .ship-to h3{font-size:.75rem;font-weight:700;text-transform:uppercase;margin-bottom:6px;letter-spacing:.05em}
-  .ship-to .field-line{display:flex;gap:6px;align-items:flex-end;margin-bottom:5px;font-size:.82rem}
-  .ship-to .field-line label{color:#555;white-space:nowrap;min-width:60px}
-  .ship-to .field-line .val{border-bottom:1px solid #aaa;flex:1;padding-bottom:1px;font-weight:600;min-width:100px}
-  .inv-box{border:2px solid #111;padding:8px 14px;min-width:170px}
-  .inv-box .inv-title{font-weight:900;font-size:.95rem;text-align:center;letter-spacing:.1em;border-bottom:1px solid #111;padding-bottom:4px;margin-bottom:6px}
-  .inv-box .row{display:flex;justify-content:space-between;gap:8px;font-size:.78rem;margin-bottom:3px}
-  .inv-box .row label{color:#555}
-  .inv-box .row .val{border-bottom:1px solid #aaa;min-width:80px;text-align:right;font-weight:600}
-  /* ── detail table ── */
-  .section-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:10px 0 4px;border-bottom:1px solid #111;padding-bottom:2px}
-  table{width:100%;border-collapse:collapse;margin-bottom:10px}
-  th{font-size:.73rem;font-weight:700;text-align:left;padding:4px 6px;border-top:1px solid #111;border-bottom:1px solid #111;text-transform:uppercase}
-  th.right,td.right{text-align:right}
-  td{font-size:.8rem;padding:4px 6px;border-bottom:1px dotted #ccc}
-  /* ── payment section ── */
-  .pay-section{display:flex;gap:16px;margin-top:6px}
-  .pay-left{border:1px solid #333;padding:8px 12px;font-size:.78rem;flex:1.2}
-  .pay-left h4{font-size:.72rem;font-weight:700;text-transform:uppercase;margin-bottom:6px;letter-spacing:.03em}
-  .pay-left .row{display:flex;gap:6px;margin-bottom:4px;align-items:flex-end}
-  .pay-left .row label{color:#555;white-space:nowrap;min-width:36px}
-  .pay-left .row .val{border-bottom:1px solid #aaa;flex:1;font-weight:600;padding-bottom:1px}
-  .pay-right{border:1px solid #333;padding:8px 12px;font-size:.78rem;flex:1}
-  .pay-right .prow{display:flex;justify-content:space-between;margin-bottom:4px;align-items:flex-end}
-  .pay-right .prow label{color:#555;white-space:nowrap}
-  .pay-right .prow .val{border-bottom:1px solid #aaa;min-width:80px;text-align:right;font-weight:600;padding-bottom:1px}
-  .pay-right .prow.total label{font-weight:700;color:#111}
-  .pay-right .prow.total .val{font-weight:900;border-bottom:2px solid #111}
-  /* ── notes & signature ── */
-  .notes-section{margin-top:12px;font-size:.78rem}
-  .notes-section label{font-weight:700;text-transform:uppercase;font-size:.72rem;letter-spacing:.05em}
-  .notes-section .notes-line{border-bottom:1px solid #aaa;margin-top:4px;min-height:16px;padding-bottom:2px}
-  .sig-section{display:flex;justify-content:flex-end;margin-top:16px;gap:40px}
-  .sig-block{text-align:center;font-size:.75rem}
-  .sig-block .sig-name{border-top:1px solid #555;margin-top:28px;padding-top:3px;font-weight:600;min-width:120px}
-  .sig-block .sig-label{color:#666;font-size:.7rem}
-  @media print{body{padding:8px}}
+  /* top meta */
+  .top-meta{display:flex;justify-content:flex-end;margin-bottom:18px;font-size:.72rem;color:#555;font-family:Arial,sans-serif}
+  .top-meta table{border-collapse:collapse}
+  .top-meta td{padding:2px 4px}
+  .top-meta td:first-child{color:#888;padding-right:6px}
+  .top-meta .underline{border-bottom:1px solid #999;min-width:90px;display:inline-block;vertical-align:bottom}
+  /* company header */
+  .company-block{margin-bottom:14px}
+  .company-name{font-size:1.15rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#111;font-family:Arial,sans-serif}
+  .company-divider{border:none;border-top:2.5px solid #111;margin:6px 0 14px}
+  /* ship-to + invoice box */
+  .inv-header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:20px}
+  .ship-to{flex:1;font-family:Arial,sans-serif}
+  .ship-to-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:8px}
+  .ship-field{display:flex;align-items:baseline;gap:0;margin-bottom:7px}
+  .ship-field .sf-label{font-size:.75rem;color:#666;width:68px;flex-shrink:0}
+  .ship-field .sf-val{font-size:.82rem;font-weight:700;color:#111;border-bottom:1px solid #ccc;flex:1;padding-bottom:2px;min-height:16px}
+  .inv-box{border:2px solid #1a1a1a;padding:12px 16px;min-width:190px;font-family:Arial,sans-serif}
+  .inv-box-title{font-size:1rem;font-weight:900;text-align:center;letter-spacing:.15em;text-transform:uppercase;padding-bottom:8px;margin-bottom:10px;border-bottom:1.5px solid #1a1a1a}
+  .inv-row{display:flex;align-items:baseline;margin-bottom:6px;font-size:.78rem}
+  .inv-row .ir-label{color:#666;width:72px;flex-shrink:0}
+  .inv-row .ir-val{font-weight:700;flex:1;border-bottom:1px solid #ccc;padding-bottom:2px;min-height:15px}
+  /* detail table */
+  .section-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#555;margin:0 0 6px;font-family:Arial,sans-serif}
+  .detail-table{width:100%;border-collapse:collapse;margin-bottom:18px}
+  .detail-table thead tr{border-top:1.5px solid #1a1a1a;border-bottom:1.5px solid #1a1a1a}
+  .detail-table th{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;text-align:left;color:#333;font-family:Arial,sans-serif}
+  .detail-table th.r,.detail-table td.r{text-align:right}
+  .detail-table tbody tr{border-bottom:1px solid #e8e8e8}
+  .detail-table tbody tr:last-child{border-bottom:1.5px solid #1a1a1a}
+  .detail-table td{padding:7px 8px;font-size:.82rem;color:#222;font-family:Arial,sans-serif}
+  /* payment section */
+  .pay-section{display:flex;gap:0;border:1.5px solid #1a1a1a;margin-bottom:18px}
+  .pay-left{flex:1.3;padding:12px 14px;border-right:1.5px solid #1a1a1a;font-family:Arial,sans-serif}
+  .pay-left-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#444;margin-bottom:10px}
+  .pay-row{display:flex;align-items:baseline;margin-bottom:7px;font-size:.78rem}
+  .pay-row .pr-label{color:#666;width:38px;flex-shrink:0}
+  .pay-row .pr-val{font-weight:700;flex:1;color:#111}
+  .pay-right{flex:1;padding:12px 14px;font-family:Arial,sans-serif}
+  .sum-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px;font-size:.8rem}
+  .sum-row .sr-label{color:#555;font-weight:600}
+  .sum-row .sr-val{font-weight:700;color:#111;text-align:right;min-width:90px}
+  .sum-row.subtotal{border-top:1.5px solid #1a1a1a;padding-top:7px;margin-top:4px}
+  .sum-row.subtotal .sr-label,.sum-row.subtotal .sr-val{font-size:.85rem;font-weight:900;color:#1a1a1a}
+  /* notes */
+  .notes-block{margin-bottom:28px;font-family:Arial,sans-serif}
+  .notes-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:6px}
+  .notes-val{font-size:.82rem;color:#333;min-height:18px;border-bottom:1px solid #ccc;padding-bottom:3px}
+  /* signature */
+  .sig-section{display:flex;justify-content:flex-end;gap:60px;font-family:Arial,sans-serif}
+  .sig-block{text-align:center;min-width:140px}
+  .sig-label{font-size:.72rem;color:#555;margin-bottom:56px}
+  .sig-name{border-top:1.5px solid #555;padding-top:5px;font-size:.82rem;font-weight:700;color:#111}
+  @media print{body{padding:20px 24px}@page{margin:1cm}}
 </style></head><body>
 <div class="watermark">${paid?"LUNAS":"BELUM LUNAS"}</div>
 
-<div class="top-bar">
-  <div></div>
-  <div class="top-bar-right">
-    <div class="field"><label>NO</label><span class="line">&nbsp;</span></div>
-    <div class="field"><label>Date</label><span class="line">&nbsp;</span></div>
-  </div>
+<div class="top-meta">
+  <table><tbody>
+    <tr><td>NO</td><td><span class="underline">&nbsp;</span></td></tr>
+    <tr><td>Date</td><td><span class="underline">&nbsp;</span></td></tr>
+  </tbody></table>
 </div>
 
-<div class="company">KOPERASI EMAS BERKAH MELIMPAH INDONESIA</div>
+<div class="company-block">
+  <div class="company-name">KOPERASI EMAS BERKAH MELIMPAH INDONESIA</div>
+  <hr class="company-divider">
+</div>
 
 <div class="inv-header">
   <div class="ship-to">
-    <h3>Ship To :</h3>
-    <div class="field-line"><label>Nama</label><span class="val">${order.customer_name}</span></div>
-    <div class="field-line"><label>Alamat</label><span class="val">${order.customer_address || "-"}</span></div>
-    <div class="field-line"><label>No Telp</label><span class="val">${order.customer_phone || "-"}</span></div>
+    <div class="ship-to-title">Ship To :</div>
+    <div class="ship-field"><span class="sf-label">Nama</span><span class="sf-val">${order.customer_name}</span></div>
+    <div class="ship-field"><span class="sf-label">Alamat</span><span class="sf-val">${order.customer_address || ""}</span></div>
+    <div class="ship-field"><span class="sf-label">No Telp</span><span class="sf-val">${order.customer_phone || ""}</span></div>
   </div>
   <div class="inv-box">
-    <div class="inv-title">INVOICE</div>
-    <div class="row"><label>NO :</label><span class="val">#${invNo}</span></div>
-    <div class="row"><label>Tgl :</label><span class="val">${tgl}</span></div>
-    <div class="row"><label>Due Date :</label><span class="val">&nbsp;</span></div>
+    <div class="inv-box-title">INVOICE</div>
+    <div class="inv-row"><span class="ir-label">NO :</span><span class="ir-val">#${invNo}</span></div>
+    <div class="inv-row"><span class="ir-label">Tgl :</span><span class="ir-val">${tgl}</span></div>
+    <div class="inv-row"><span class="ir-label">Due Date :</span><span class="ir-val">&nbsp;</span></div>
   </div>
 </div>
 
 <div class="section-title">Detail Pesanan</div>
-<table>
+<table class="detail-table">
   <thead>
-    <tr><th>Produk</th><th>Qty</th><th class="right">Harga</th><th class="right">Jumlah</th></tr>
+    <tr><th>Produk</th><th>Qty</th><th class="r">Harga</th><th class="r">Jumlah</th></tr>
   </thead>
   <tbody>
     ${items.map((it: any) => `
     <tr>
       <td>${it.title}${it.gram_weight ? ` (${it.gram_weight}gr)` : ""}</td>
       <td>${it.quantity}</td>
-      <td class="right">${fmt(it.price)}</td>
-      <td class="right">${fmt(it.price * it.quantity)}</td>
+      <td class="r">${fmt(it.price)}</td>
+      <td class="r">${fmt(it.price * it.quantity)}</td>
     </tr>`).join("")}
   </tbody>
 </table>
 
 <div class="pay-section">
   <div class="pay-left">
-    <h4>Mohon Pembayaran di Transfer :</h4>
-    <div class="row"><label>Bank :</label><span class="val">BSI</span></div>
-    <div class="row"><label>A/N :</label><span class="val">KOPERASI EMAS BERKAH MELIMPAH INDONESIA</span></div>
-    <div class="row"><label>A/C :</label><span class="val">7339222996</span></div>
+    <div class="pay-left-title">Mohon Pembayaran di Transfer :</div>
+    <div class="pay-row"><span class="pr-label">Bank</span><span class="pr-val">: BSI</span></div>
+    <div class="pay-row"><span class="pr-label">A/N</span><span class="pr-val">: KOPERASI EMAS KIMBERLI</span></div>
+    <div class="pay-row"><span class="pr-label">A/C</span><span class="pr-val">: 7339222996</span></div>
   </div>
   <div class="pay-right">
-    <div class="prow total"><label>Total :</label><span class="val">${fmt(subtotalProduk)}</span></div>
-    <div class="prow"><label>VOUCHER :</label><span class="val">${voucher ? fmt(voucher) : "&nbsp;"}</span></div>
-    <div class="prow"><label>ONGKIR :</label><span class="val">${ongkir ? fmt(ongkir) : "&nbsp;"}</span></div>
-    <div class="prow total"><label>SUB TOTAL :</label><span class="val">${fmt(subTotal)}</span></div>
+    <div class="sum-row"><span class="sr-label">Total :</span><span class="sr-val">${fmt(subtotalProduk)}</span></div>
+    <div class="sum-row"><span class="sr-label">Voucher :</span><span class="sr-val">${voucher ? "− "+fmt(voucher) : "—"}</span></div>
+    <div class="sum-row"><span class="sr-label">Ongkir :</span><span class="sr-val">${ongkir ? fmt(ongkir) : "—"}</span></div>
+    <div class="sum-row subtotal"><span class="sr-label">Sub Total :</span><span class="sr-val">${fmt(subTotal)}</span></div>
   </div>
 </div>
 
-<div class="notes-section">
-  <label>Catatan :</label>
-  <div class="notes-line">${order.notes || payment?.notes || "&nbsp;"}</div>
+<div class="notes-block">
+  <div class="notes-label">Catatan :</div>
+  <div class="notes-val">${order.notes || payment?.notes || ""}</div>
 </div>
 
 <div class="sig-section">
   <div class="sig-block">
-    <div class="sig-label">KOPERASI EMAS BERKAH MELIMPAH INDONESIA</div>
-    <div class="sig-name">&nbsp;</div>
+    <div class="sig-label">KOPERASI EMAS KIMBERLI</div>
+    <div class="sig-name">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
   </div>
   <div class="sig-block">
     <div class="sig-label">Pelanggan</div>
