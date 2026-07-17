@@ -68,79 +68,122 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
 <title>Invoice #${invNo}</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:'Georgia',serif;font-size:12px;color:#1a1a1a;padding:32px 36px;max-width:720px;margin:0 auto;background:#fff;position:relative}
-  /* watermark */
-  .watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:6.5rem;font-weight:900;opacity:.08;color:${paid?"#16a34a":"#dc2626"};pointer-events:none;white-space:nowrap;z-index:0;font-family:Arial,sans-serif;letter-spacing:.1em}
+  body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#1a1a1a;padding:36px 40px;max-width:740px;margin:0 auto;background:#fff;position:relative}
+
+  /* ── watermark ── */
+  .watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-size:7rem;font-weight:900;opacity:.07;color:${paid?"#16a34a":"#dc2626"};pointer-events:none;white-space:nowrap;z-index:0;letter-spacing:.1em}
   @media print{.watermark{position:fixed}}
-  /* top meta */
-  .top-meta{display:flex;justify-content:flex-end;margin-bottom:18px;font-size:.72rem;color:#555;font-family:Arial,sans-serif}
-  .top-meta table{border-collapse:collapse}
-  .top-meta td{padding:2px 4px}
-  .top-meta td:first-child{color:#888;padding-right:6px}
-  .top-meta .underline{border-bottom:1px solid #999;min-width:90px;display:inline-block;vertical-align:bottom}
-  /* company header */
-  .company-block{margin-bottom:14px}
-  .company-name{font-size:1.15rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#111;font-family:Arial,sans-serif}
-  .company-divider{border:none;border-top:2.5px solid #111;margin:6px 0 14px}
-  /* ship-to + invoice box */
+
+  /* ── HEADER LETTERHEAD ── */
+  .lh-wrap{position:relative;margin-bottom:0}
+  .lh-top-stripe{height:5px;background:linear-gradient(90deg,#C9A227 0%,#E8D070 50%,#C9A227 100%);margin-bottom:0}
+  .lh-mid-stripe{height:2px;background:#1a1a1a;margin-bottom:0}
+  .lh-body{display:flex;align-items:center;justify-content:space-between;padding:14px 0 12px;border-bottom:2px solid #1a1a1a}
+  .lh-left{display:flex;align-items:center;gap:16px}
+  .lh-emblem{width:52px;height:52px;position:relative;flex-shrink:0}
+  .lh-emblem svg{width:52px;height:52px}
+  .lh-text{}
+  .lh-kop{font-size:.68rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#C9A227;margin-bottom:1px}
+  .lh-name-line1{font-size:1.05rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#1a1a1a;line-height:1.1}
+  .lh-name-line2{font-size:.82rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#555;line-height:1.2}
+  .lh-tagline{font-size:.62rem;letter-spacing:.12em;color:#C9A227;text-transform:uppercase;margin-top:4px;font-weight:600}
+  .lh-right{text-align:right}
+  .lh-meta-row{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-bottom:4px;font-size:.72rem;color:#777}
+  .lh-meta-row .lh-uline{border-bottom:1px solid #bbb;min-width:88px;display:inline-block;height:13px}
+  .lh-bottom-stripe{height:3px;background:linear-gradient(90deg,#C9A227 0%,#E8D070 50%,#C9A227 100%);margin-bottom:20px}
+
+  /* ── SHIP TO + INVOICE BOX ── */
   .inv-header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:20px}
-  .ship-to{flex:1;font-family:Arial,sans-serif}
-  .ship-to-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:8px}
-  .ship-field{display:flex;align-items:baseline;gap:0;margin-bottom:7px}
-  .ship-field .sf-label{font-size:.75rem;color:#666;width:68px;flex-shrink:0}
-  .ship-field .sf-val{font-size:.82rem;font-weight:700;color:#111;border-bottom:1px solid #ccc;flex:1;padding-bottom:2px;min-height:16px}
-  .inv-box{border:2px solid #1a1a1a;padding:12px 16px;min-width:190px;font-family:Arial,sans-serif}
-  .inv-box-title{font-size:1rem;font-weight:900;text-align:center;letter-spacing:.15em;text-transform:uppercase;padding-bottom:8px;margin-bottom:10px;border-bottom:1.5px solid #1a1a1a}
-  .inv-row{display:flex;align-items:baseline;margin-bottom:6px;font-size:.78rem}
-  .inv-row .ir-label{color:#666;width:72px;flex-shrink:0}
-  .inv-row .ir-val{font-weight:700;flex:1;border-bottom:1px solid #ccc;padding-bottom:2px;min-height:15px}
-  /* detail table */
-  .section-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#555;margin:0 0 6px;font-family:Arial,sans-serif}
-  .detail-table{width:100%;border-collapse:collapse;margin-bottom:18px}
-  .detail-table thead tr{border-top:1.5px solid #1a1a1a;border-bottom:1.5px solid #1a1a1a}
-  .detail-table th{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;text-align:left;color:#333;font-family:Arial,sans-serif}
-  .detail-table th.r,.detail-table td.r{text-align:right}
-  .detail-table tbody tr{border-bottom:1px solid #e8e8e8}
-  .detail-table tbody tr:last-child{border-bottom:1.5px solid #1a1a1a}
-  .detail-table td{padding:7px 8px;font-size:.82rem;color:#222;font-family:Arial,sans-serif}
-  /* payment section */
-  .pay-section{display:flex;gap:0;border:1.5px solid #1a1a1a;margin-bottom:18px}
-  .pay-left{flex:1.3;padding:12px 14px;border-right:1.5px solid #1a1a1a;font-family:Arial,sans-serif}
-  .pay-left-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#444;margin-bottom:10px}
-  .pay-row{display:flex;align-items:baseline;margin-bottom:7px;font-size:.78rem}
-  .pay-row .pr-label{color:#666;width:38px;flex-shrink:0}
-  .pay-row .pr-val{font-weight:700;flex:1;color:#111}
-  .pay-right{flex:1;padding:12px 14px;font-family:Arial,sans-serif}
-  .sum-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px;font-size:.8rem}
-  .sum-row .sr-label{color:#555;font-weight:600}
-  .sum-row .sr-val{font-weight:700;color:#111;text-align:right;min-width:90px}
-  .sum-row.subtotal{border-top:1.5px solid #1a1a1a;padding-top:7px;margin-top:4px}
-  .sum-row.subtotal .sr-label,.sum-row.subtotal .sr-val{font-size:.85rem;font-weight:900;color:#1a1a1a}
-  /* notes */
-  .notes-block{margin-bottom:28px;font-family:Arial,sans-serif}
-  .notes-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:6px}
-  .notes-val{font-size:.82rem;color:#333;min-height:18px;border-bottom:1px solid #ccc;padding-bottom:3px}
-  /* signature */
-  .sig-section{display:flex;justify-content:flex-end;gap:60px;font-family:Arial,sans-serif}
-  .sig-block{text-align:center;min-width:140px}
-  .sig-label{font-size:.72rem;color:#555;margin-bottom:56px}
-  .sig-name{border-top:1.5px solid #555;padding-top:5px;font-size:.82rem;font-weight:700;color:#111}
+  .ship-to{flex:1}
+  .ship-to-title{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#C9A227;margin-bottom:9px}
+  .ship-field{display:flex;align-items:baseline;margin-bottom:7px}
+  .sf-label{font-size:.74rem;color:#777;width:68px;flex-shrink:0}
+  .sf-val{font-size:.84rem;font-weight:700;color:#1a1a1a;border-bottom:1px solid #ddd;flex:1;padding-bottom:2px;min-height:16px}
+  .inv-box{border:2px solid #1a1a1a;min-width:198px;overflow:hidden}
+  .inv-box-title{background:#1a1a1a;color:#C9A227;font-size:.95rem;font-weight:900;text-align:center;letter-spacing:.2em;padding:8px 16px}
+  .inv-row{display:flex;align-items:baseline;padding:6px 14px;border-bottom:1px solid #eee;font-size:.78rem}
+  .inv-row:last-child{border-bottom:none}
+  .ir-label{color:#888;width:72px;flex-shrink:0}
+  .ir-val{font-weight:700;flex:1;color:#1a1a1a}
+
+  /* ── DETAIL TABLE ── */
+  .sec-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#C9A227;margin:0 0 6px}
+  .dtable{width:100%;border-collapse:collapse;margin-bottom:18px;font-variant-numeric:tabular-nums}
+  .dtable thead tr{background:#1a1a1a}
+  .dtable th{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:7px 10px;text-align:left;color:#C9A227}
+  .dtable th.r,.dtable td.r{text-align:right}
+  .dtable tbody tr{border-bottom:1px solid #ebebeb}
+  .dtable tbody tr:last-child{border-bottom:2px solid #1a1a1a}
+  .dtable td{padding:8px 10px;font-size:.82rem;color:#222}
+
+  /* ── PAYMENT SECTION ── */
+  .pay-wrap{display:flex;gap:0;border:1.5px solid #1a1a1a;margin-bottom:20px}
+  .pay-left{flex:1.25;padding:13px 15px;border-right:1.5px solid #1a1a1a;background:#fafaf8}
+  .pay-left-title{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#C9A227;margin-bottom:10px}
+  .pay-row{display:flex;align-items:baseline;margin-bottom:7px;font-size:.8rem}
+  .pr-label{color:#777;width:36px;flex-shrink:0}
+  .pr-colon{color:#999;margin-right:6px}
+  .pr-val{font-weight:700;color:#1a1a1a}
+  .pay-right{flex:1;padding:13px 15px}
+  .sum-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px;font-size:.8rem;font-variant-numeric:tabular-nums}
+  .sr-label{color:#666;font-weight:600}
+  .sr-val{font-weight:700;color:#1a1a1a;text-align:right}
+  .sum-divider{border:none;border-top:1.5px solid #ddd;margin:8px 0}
+  .sum-total{display:flex;align-items:baseline;justify-content:space-between;font-variant-numeric:tabular-nums}
+  .sum-total .st-label{font-size:.85rem;font-weight:900;color:#1a1a1a;letter-spacing:.02em}
+  .sum-total .st-val{font-size:.95rem;font-weight:900;color:#C9A227}
+
+  /* ── NOTES ── */
+  .notes-wrap{margin-bottom:32px}
+  .notes-sec-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#C9A227;margin-bottom:6px}
+  .notes-val{font-size:.82rem;color:#444;border-bottom:1px solid #ddd;padding-bottom:4px;min-height:18px}
+
+  /* ── SIGNATURE ── */
+  .sig-wrap{display:flex;justify-content:flex-end;gap:64px}
+  .sig-block{text-align:center;min-width:150px}
+  .sig-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#777;margin-bottom:64px}
+  .sig-line{border-top:1.5px solid #555;padding-top:6px}
+  .sig-name{font-size:.84rem;font-weight:700;color:#1a1a1a}
+  .sig-sub{font-size:.65rem;color:#aaa;margin-top:2px;letter-spacing:.04em}
+
+  /* ── FOOTER ── */
+  .inv-footer{margin-top:28px;border-top:1px solid #eee;padding-top:8px;text-align:center;font-size:.62rem;color:#bbb;letter-spacing:.06em;text-transform:uppercase}
+
   @media print{body{padding:20px 24px}@page{margin:1cm}}
 </style></head><body>
 <div class="watermark">${paid?"LUNAS":"BELUM LUNAS"}</div>
 
-<div class="top-meta">
-  <table><tbody>
-    <tr><td>NO</td><td><span class="underline">&nbsp;</span></td></tr>
-    <tr><td>Date</td><td><span class="underline">&nbsp;</span></td></tr>
-  </tbody></table>
+<!-- ── LETTERHEAD HEADER ── -->
+<div class="lh-wrap">
+  <div class="lh-top-stripe"></div>
+  <div class="lh-mid-stripe"></div>
+  <div class="lh-body">
+    <div class="lh-left">
+      <div class="lh-emblem">
+        <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="26,2 32,18 49,18 36,30 41,47 26,37 11,47 16,30 3,18 20,18" fill="#C9A227" opacity=".15"/>
+          <polygon points="26,2 32,18 49,18 36,30 41,47 26,37 11,47 16,30 3,18 20,18" fill="none" stroke="#C9A227" stroke-width="1.5"/>
+          <circle cx="26" cy="26" r="9" fill="#C9A227" opacity=".18"/>
+          <circle cx="26" cy="26" r="9" fill="none" stroke="#C9A227" stroke-width="1.5"/>
+          <text x="26" y="30.5" text-anchor="middle" font-size="9" font-weight="900" fill="#C9A227" font-family="Arial,sans-serif">KE</text>
+        </svg>
+      </div>
+      <div class="lh-text">
+        <div class="lh-kop">Koperasi</div>
+        <div class="lh-name-line1">EMAS BERKAH MELIMPAH</div>
+        <div class="lh-name-line2">INDONESIA</div>
+        <div class="lh-tagline">✦ Investasi Emas Terpercaya ✦</div>
+      </div>
+    </div>
+    <div class="lh-right">
+      <div class="lh-meta-row"><span style="color:#aaa;font-size:.68rem;letter-spacing:.06em">NO</span><span class="lh-uline"></span></div>
+      <div class="lh-meta-row"><span style="color:#aaa;font-size:.68rem;letter-spacing:.06em">Date</span><span class="lh-uline"></span></div>
+    </div>
+  </div>
+  <div class="lh-bottom-stripe"></div>
 </div>
 
-<div class="company-block">
-  <div class="company-name">KOPERASI EMAS BERKAH MELIMPAH INDONESIA</div>
-  <hr class="company-divider">
-</div>
-
+<!-- ── SHIP TO + INVOICE BOX ── -->
 <div class="inv-header">
   <div class="ship-to">
     <div class="ship-to-title">Ship To :</div>
@@ -156,8 +199,9 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
   </div>
 </div>
 
-<div class="section-title">Detail Pesanan</div>
-<table class="detail-table">
+<!-- ── DETAIL PESANAN ── -->
+<div class="sec-label">Detail Pesanan</div>
+<table class="dtable">
   <thead>
     <tr><th>Produk</th><th>Qty</th><th class="r">Harga</th><th class="r">Jumlah</th></tr>
   </thead>
@@ -172,36 +216,48 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
   </tbody>
 </table>
 
-<div class="pay-section">
+<!-- ── PEMBAYARAN ── -->
+<div class="pay-wrap">
   <div class="pay-left">
     <div class="pay-left-title">Mohon Pembayaran di Transfer :</div>
-    <div class="pay-row"><span class="pr-label">Bank</span><span class="pr-val">: BSI</span></div>
-    <div class="pay-row"><span class="pr-label">A/N</span><span class="pr-val">: KOPERASI EMAS KIMBERLI</span></div>
-    <div class="pay-row"><span class="pr-label">A/C</span><span class="pr-val">: 7339222996</span></div>
+    <div class="pay-row"><span class="pr-label">Bank</span><span class="pr-colon">:</span><span class="pr-val">BSI</span></div>
+    <div class="pay-row"><span class="pr-label">A/N</span><span class="pr-colon">:</span><span class="pr-val">KOPERASI EMAS KIMBERLI</span></div>
+    <div class="pay-row"><span class="pr-label">A/C</span><span class="pr-colon">:</span><span class="pr-val">7339222996</span></div>
   </div>
   <div class="pay-right">
-    <div class="sum-row"><span class="sr-label">Total :</span><span class="sr-val">${fmt(subtotalProduk)}</span></div>
-    <div class="sum-row"><span class="sr-label">Voucher :</span><span class="sr-val">${voucher ? "− "+fmt(voucher) : "—"}</span></div>
-    <div class="sum-row"><span class="sr-label">Ongkir :</span><span class="sr-val">${ongkir ? fmt(ongkir) : "—"}</span></div>
-    <div class="sum-row subtotal"><span class="sr-label">Sub Total :</span><span class="sr-val">${fmt(subTotal)}</span></div>
+    <div class="sum-row"><span class="sr-label">Total</span><span class="sr-val">${fmt(subtotalProduk)}</span></div>
+    <div class="sum-row"><span class="sr-label">Voucher</span><span class="sr-val">${voucher ? "− "+fmt(voucher) : "—"}</span></div>
+    <div class="sum-row"><span class="sr-label">Ongkir</span><span class="sr-val">${ongkir ? fmt(ongkir) : "—"}</span></div>
+    <hr class="sum-divider">
+    <div class="sum-total"><span class="st-label">Sub Total</span><span class="st-val">${fmt(subTotal)}</span></div>
   </div>
 </div>
 
-<div class="notes-block">
-  <div class="notes-label">Catatan :</div>
+<!-- ── CATATAN ── -->
+<div class="notes-wrap">
+  <div class="notes-sec-label">Catatan :</div>
   <div class="notes-val">${order.notes || payment?.notes || ""}</div>
 </div>
 
-<div class="sig-section">
+<!-- ── TANDA TANGAN ── -->
+<div class="sig-wrap">
   <div class="sig-block">
-    <div class="sig-label">KOPERASI EMAS KIMBERLI</div>
-    <div class="sig-name">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+    <div class="sig-title">Koperasi Emas Kimberli</div>
+    <div class="sig-line">
+      <div class="sig-name">&nbsp;</div>
+      <div class="sig-sub">Authorized Signature</div>
+    </div>
   </div>
   <div class="sig-block">
-    <div class="sig-label">Pelanggan</div>
-    <div class="sig-name">${order.customer_name}</div>
+    <div class="sig-title">Pelanggan</div>
+    <div class="sig-line">
+      <div class="sig-name">${order.customer_name}</div>
+      <div class="sig-sub">Customer</div>
+    </div>
   </div>
 </div>
+
+<div class="inv-footer">Koperasi Emas Berkah Melimpah Indonesia &nbsp;·&nbsp; Investasi Emas Terpercaya</div>
 
 <script>window.onload=()=>{window.print();}</script>
 </body></html>`);
