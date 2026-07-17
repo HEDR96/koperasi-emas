@@ -160,12 +160,7 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
       <img src="${logoUrl}" alt="Logo" class="lh-logo" />
       <div class="lh-text">
         <div class="lh-name">KOPERASI EMAS BERKAH MELIMPAH INDONESIA</div>
-        <div class="lh-tagline">✦ Investasi Emas Terpercaya ✦</div>
       </div>
-    </div>
-    <div class="lh-right">
-      <div class="lh-meta-row"><span style="color:#aaa;font-size:.68rem;letter-spacing:.06em">NO</span><span class="lh-uline"></span></div>
-      <div class="lh-meta-row"><span style="color:#aaa;font-size:.68rem;letter-spacing:.06em">Date</span><span class="lh-uline"></span></div>
     </div>
   </div>
   <div class="lh-bottom-stripe"></div>
