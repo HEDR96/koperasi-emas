@@ -79,8 +79,8 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
   .lh-wrap{position:relative;margin-bottom:0}
   .lh-top-stripe{height:5px;background:linear-gradient(90deg,#C9A227 0%,#E8D070 50%,#C9A227 100%);margin-bottom:0}
   .lh-mid-stripe{height:2px;background:#1a1a1a;margin-bottom:0}
-  .lh-body{display:flex;align-items:center;justify-content:space-between;padding:14px 0 12px;border-bottom:2px solid #1a1a1a}
-  .lh-left{display:flex;align-items:center;gap:16px}
+  .lh-body{display:flex;align-items:center;justify-content:center;padding:14px 0 12px;border-bottom:2px solid #1a1a1a}
+  .lh-left{display:flex;align-items:center;justify-content:center;gap:16px}
   .lh-logo{height:56px;width:auto;flex-shrink:0;display:block}
   .lh-text{}
   .lh-name{font-size:1.05rem;font-weight:900;letter-spacing:.07em;text-transform:uppercase;color:#1a1a1a;line-height:1.2}
