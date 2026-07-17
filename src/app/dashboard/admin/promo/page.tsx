@@ -147,7 +147,38 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
   /* ── FOOTER ── */
   .inv-footer{margin-top:28px;border-top:1px solid #eee;padding-top:8px;text-align:center;font-size:.62rem;color:#bbb;letter-spacing:.06em;text-transform:uppercase}
 
-  @media print{body{padding:20px 24px}@page{margin:1cm}}
+  @media print{
+    body{padding:8px 10px;max-width:100%}
+    @page{margin:4mm;size:80mm auto}
+    /* stripe gradient tidak dicetak thermal — ganti solid hitam */
+    .lh-top-stripe{background:#000;height:4px}
+    .lh-bottom-stripe{background:#000;height:2px}
+    /* semua warna emas → hitam agar terbaca di thermal */
+    .ship-to-title,.sec-label,.pay-left-title,.notes-sec-label{color:#000}
+    .inv-box-title{background:#000;color:#fff}
+    .dtable thead tr{background:#000}
+    .dtable th{color:#fff}
+    .sum-total .st-val{color:#000}
+    .lh-name{font-size:.85rem;letter-spacing:.04em}
+    /* logo lebih kecil di thermal */
+    .lh-logo{height:40px}
+    /* payment section: susun vertikal biar muat lebar kertas sempit */
+    .pay-wrap{flex-direction:column;border:1px solid #000}
+    .pay-left{border-right:none;border-bottom:1px solid #000;padding:8px 10px;background:#fff}
+    .pay-right{padding:8px 10px}
+    /* tanda tangan lebih rapat */
+    .sig-wrap{gap:32px}
+    .sig-block{min-width:100px}
+    .sig-title{margin-bottom:40px;font-size:.65rem}
+    /* ukuran font lebih kecil supaya muat */
+    .dtable th,.dtable td{padding:4px 6px;font-size:.72rem}
+    .inv-row{padding:4px 10px;font-size:.72rem}
+    .pay-row,.sum-row{font-size:.72rem;margin-bottom:4px}
+    .sf-val,.sf-label{font-size:.72rem}
+    .notes-val{font-size:.72rem}
+    /* sembunyikan watermark di thermal (terlalu berat) */
+    .watermark{display:none}
+  }
 </style></head><body>
 <div class="watermark">${paid?"LUNAS":"BELUM LUNAS"}</div>
 
