@@ -228,7 +228,7 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
     <div class="sig-title">Koperasi Emas Kimberli</div>
     <div class="sig-line">
       <div class="sig-name">&nbsp;</div>
-      <div class="sig-sub">Authorized Signature</div>
+      <div class="sig-sub">Sri Wahyuni</div>
     </div>
   </div>
   <div class="sig-block">
