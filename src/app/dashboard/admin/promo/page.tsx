@@ -62,7 +62,7 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
   const subTotal = payment ? payment.nominal : subtotalProduk;
   const invNo = order.id.slice(-8).toUpperCase();
   const tgl = fmtDt(payment?.created_at || order.created_at);
-  const logoUrl = window.location.origin + "/logo.svg";
+  const logoUrl = window.location.origin + "/logo.jpg";
   const w = window.open("", "_blank");
   if (!w) return;
   w.document.write(`<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8">
@@ -269,7 +269,7 @@ function printInvoiceThermal(order: any, payment: any | null, paid: boolean) {
   const subTotal = payment ? payment.nominal : subtotalProduk;
   const invNo = order.id.slice(-8).toUpperCase();
   const tgl = fmtDt(payment?.created_at || order.created_at);
-  const logoUrl = window.location.origin + "/logo.svg";
+  const logoUrl = window.location.origin + "/logo.jpg";
   const w = window.open("", "_blank");
   if (!w) return;
   w.document.write(`<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8">
