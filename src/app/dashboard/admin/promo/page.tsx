@@ -986,7 +986,7 @@ export default function AdminProdukPage() {
                     <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:10 }}>
                       {items.slice(0,3).map((it: any, j: number) => (
                         <span key={j} style={{ fontSize:".76rem", background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.18)", borderRadius:6, padding:"3px 9px", color:"rgba(101,67,14,0.7)" }}>
-                          {it.title}{it.gram_weight?` ${it.gram_weight}gr`:""} ×{it.quantity}
+                          {it.title} ×{it.quantity}
                         </span>
                       ))}
                       {items.length>3 && <span style={{ fontSize:".76rem", color:"rgba(101,67,14,0.35)", padding:"3px 0" }}>+{items.length-3} lainnya</span>}
