@@ -147,38 +147,7 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
   /* ── FOOTER ── */
   .inv-footer{margin-top:28px;border-top:1px solid #eee;padding-top:8px;text-align:center;font-size:.62rem;color:#bbb;letter-spacing:.06em;text-transform:uppercase}
 
-  @media print{
-    body{padding:8px 10px;max-width:100%}
-    @page{margin:4mm;size:80mm auto}
-    /* stripe gradient tidak dicetak thermal — ganti solid hitam */
-    .lh-top-stripe{background:#000;height:4px}
-    .lh-bottom-stripe{background:#000;height:2px}
-    /* semua warna emas → hitam agar terbaca di thermal */
-    .ship-to-title,.sec-label,.pay-left-title,.notes-sec-label{color:#000}
-    .inv-box-title{background:#000;color:#fff}
-    .dtable thead tr{background:#000}
-    .dtable th{color:#fff}
-    .sum-total .st-val{color:#000}
-    .lh-name{font-size:.85rem;letter-spacing:.04em}
-    /* logo lebih kecil di thermal */
-    .lh-logo{height:40px}
-    /* payment section: susun vertikal biar muat lebar kertas sempit */
-    .pay-wrap{flex-direction:column;border:1px solid #000}
-    .pay-left{border-right:none;border-bottom:1px solid #000;padding:8px 10px;background:#fff}
-    .pay-right{padding:8px 10px}
-    /* tanda tangan lebih rapat */
-    .sig-wrap{gap:32px}
-    .sig-block{min-width:100px}
-    .sig-title{margin-bottom:40px;font-size:.65rem}
-    /* ukuran font lebih kecil supaya muat */
-    .dtable th,.dtable td{padding:4px 6px;font-size:.72rem}
-    .inv-row{padding:4px 10px;font-size:.72rem}
-    .pay-row,.sum-row{font-size:.72rem;margin-bottom:4px}
-    .sf-val,.sf-label{font-size:.72rem}
-    .notes-val{font-size:.72rem}
-    /* sembunyikan watermark di thermal (terlalu berat) */
-    .watermark{display:none}
-  }
+  @media print{body{padding:20px 24px}@page{margin:1cm}}
 </style></head><body>
 <div class="watermark">${paid?"LUNAS":"BELUM LUNAS"}</div>
 
@@ -271,6 +240,135 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
   </div>
 </div>
 
+
+<script>window.onload=()=>{window.print();}</script>
+</body></html>`);
+  w.document.close();
+}
+
+/* ── thermal invoice printer (80mm, hitam putih) ── */
+function printInvoiceThermal(order: any, payment: any | null, paid: boolean) {
+  const items = Array.isArray(order.items) ? order.items : JSON.parse(order.items || "[]");
+  const subtotalProduk = order.total_amount;
+  const voucher = payment?.discount_amount || 0;
+  const ongkir = payment?.ongkir || 0;
+  const subTotal = payment ? payment.nominal : subtotalProduk;
+  const invNo = order.id.slice(-8).toUpperCase();
+  const tgl = fmtDt(payment?.created_at || order.created_at);
+  const logoUrl = window.location.origin + "/logo.jpg";
+  const w = window.open("", "_blank");
+  if (!w) return;
+  w.document.write(`<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8">
+<title>Invoice Thermal #${invNo}</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Courier New',Courier,monospace;font-size:11px;color:#000;background:#fff;width:72mm;margin:0 auto;padding:4mm 2mm}
+  @page{size:80mm auto;margin:3mm}
+  /* header */
+  .th-header{text-align:center;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:8px}
+  .th-logo{height:36px;width:auto;margin-bottom:4px}
+  .th-name{font-size:10px;font-weight:900;letter-spacing:.04em;line-height:1.3}
+  .th-inv-label{display:inline-block;border:2px solid #000;padding:2px 10px;font-weight:900;letter-spacing:.15em;font-size:11px;margin:6px 0 4px}
+  .th-inv-no{font-size:10px;font-weight:700}
+  .th-tgl{font-size:9px;color:#333;margin-top:1px}
+  .th-status{display:inline-block;border:1.5px solid #000;padding:2px 8px;font-size:9px;font-weight:900;letter-spacing:.08em;margin-top:4px}
+  /* ship to */
+  .th-shipto{border-bottom:1px dashed #000;padding-bottom:6px;margin-bottom:6px}
+  .th-section-label{font-size:8px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+  .th-field{display:flex;gap:4px;font-size:9px;margin-bottom:2px}
+  .th-field-label{width:44px;flex-shrink:0;color:#555}
+  .th-field-val{font-weight:700;flex:1}
+  /* table */
+  .th-table{width:100%;border-collapse:collapse;margin-bottom:6px}
+  .th-table thead tr{border-top:1.5px solid #000;border-bottom:1.5px solid #000}
+  .th-table th{font-size:8px;font-weight:900;text-transform:uppercase;padding:3px 2px;text-align:left}
+  .th-table th.r,.th-table td.r{text-align:right}
+  .th-table td{font-size:9px;padding:3px 2px;border-bottom:1px dotted #bbb;vertical-align:top}
+  .th-table tbody tr:last-child td{border-bottom:1.5px solid #000}
+  /* payment */
+  .th-pay{border:1px solid #000;padding:5px 6px;margin-bottom:6px;font-size:9px}
+  .th-pay-title{font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;border-bottom:1px solid #000;padding-bottom:3px}
+  .th-pay-row{display:flex;gap:4px;margin-bottom:2px}
+  .th-pay-label{width:28px;flex-shrink:0;color:#555}
+  .th-pay-val{font-weight:700;flex:1}
+  .th-sum{font-size:9px;margin-top:4px;border-top:1px dashed #000;padding-top:4px}
+  .th-sum-row{display:flex;justify-content:space-between;margin-bottom:2px}
+  .th-sum-total{display:flex;justify-content:space-between;font-size:11px;font-weight:900;border-top:1.5px solid #000;margin-top:3px;padding-top:3px}
+  /* notes */
+  .th-notes{font-size:9px;border-bottom:1px dashed #000;padding-bottom:5px;margin-bottom:8px}
+  /* signature */
+  .th-sig{display:flex;justify-content:space-between;margin-top:4px}
+  .th-sig-block{text-align:center;width:46%}
+  .th-sig-title{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:36px}
+  .th-sig-line{border-top:1px solid #000;padding-top:3px;font-size:9px;font-weight:700}
+  .th-sig-sub{font-size:7.5px;color:#555;margin-top:1px}
+  /* footer */
+  .th-footer{text-align:center;font-size:8px;color:#555;margin-top:8px;border-top:1px dashed #000;padding-top:5px}
+</style></head><body>
+
+<div class="th-header">
+  <img src="${logoUrl}" alt="Logo" class="th-logo"><br>
+  <div class="th-name">KOPERASI EMAS BERKAH<br>MELIMPAH INDONESIA</div>
+  <div class="th-inv-label">INVOICE</div><br>
+  <div class="th-inv-no">#${invNo}</div>
+  <div class="th-tgl">${tgl}</div>
+  <div><span class="th-status">${paid ? "✓ LUNAS" : "✗ BELUM LUNAS"}</span></div>
+</div>
+
+<div class="th-shipto">
+  <div class="th-section-label">Ship To :</div>
+  <div class="th-field"><span class="th-field-label">Nama</span><span class="th-field-val">${order.customer_name}</span></div>
+  <div class="th-field"><span class="th-field-label">Alamat</span><span class="th-field-val">${order.customer_address || "-"}</span></div>
+  <div class="th-field"><span class="th-field-label">No Telp</span><span class="th-field-val">${order.customer_phone || "-"}</span></div>
+</div>
+
+<div class="th-section-label" style="margin-bottom:4px">Detail Pesanan</div>
+<table class="th-table">
+  <thead><tr><th>Produk</th><th>Qty</th><th class="r">Harga</th><th class="r">Jml</th></tr></thead>
+  <tbody>
+    ${items.map((it: any) => `
+    <tr>
+      <td>${it.title}${it.gram_weight ? ` (${it.gram_weight}gr)` : ""}</td>
+      <td>${it.quantity}</td>
+      <td class="r">${fmt(it.price)}</td>
+      <td class="r">${fmt(it.price * it.quantity)}</td>
+    </tr>`).join("")}
+  </tbody>
+</table>
+
+<div class="th-pay">
+  <div class="th-pay-title">Mohon Transfer ke :</div>
+  <div class="th-pay-row"><span class="th-pay-label">Bank</span><span class="th-pay-val">: BSI</span></div>
+  <div class="th-pay-row"><span class="th-pay-label">A/N</span><span class="th-pay-val">: KOPERASI EMAS KIMBERLI</span></div>
+  <div class="th-pay-row"><span class="th-pay-label">A/C</span><span class="th-pay-val">: 7339222996</span></div>
+  <div class="th-sum">
+    <div class="th-sum-row"><span>Total</span><span>${fmt(subtotalProduk)}</span></div>
+    ${voucher ? `<div class="th-sum-row"><span>Voucher</span><span>- ${fmt(voucher)}</span></div>` : ""}
+    ${ongkir ? `<div class="th-sum-row"><span>Ongkir</span><span>${fmt(ongkir)}</span></div>` : ""}
+    <div class="th-sum-total"><span>Sub Total</span><span>${fmt(subTotal)}</span></div>
+  </div>
+</div>
+
+${(order.notes || payment?.notes) ? `
+<div class="th-notes">
+  <div class="th-section-label" style="margin-bottom:3px">Catatan :</div>
+  <div style="font-size:9px">${order.notes || payment?.notes}</div>
+</div>` : ""}
+
+<div class="th-sig">
+  <div class="th-sig-block">
+    <div class="th-sig-title">Koperasi Emas Kimberli</div>
+    <div class="th-sig-line">&nbsp;</div>
+    <div class="th-sig-sub">Sri Wahyuni</div>
+  </div>
+  <div class="th-sig-block">
+    <div class="th-sig-title">Pelanggan</div>
+    <div class="th-sig-line">${order.customer_name}</div>
+    <div class="th-sig-sub">Customer</div>
+  </div>
+</div>
+
+<div class="th-footer">Terima kasih atas kepercayaan Anda</div>
 
 <script>window.onload=()=>{window.print();}</script>
 </body></html>`);
@@ -1331,10 +1429,14 @@ export default function AdminProdukPage() {
                 <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".8rem", margin:0 }}>#{invoiceModal.order.id.slice(-8).toUpperCase()} · {fmt(invoiceModal.order.total_amount)}</p>
                 {invoiceModal.payment && <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".8rem", margin:"4px 0 0" }}>{invoiceModal.payment.payment_method} · Terbayar {fmt(invoiceModal.payment.terbayar)}</p>}
               </div>
-              <div style={{ display:"flex", gap:8 }}>
+              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                 <button onClick={() => printInvoice(invoiceModal.order, invoiceModal.payment, settings.siteName || "Koperasi Emas", invoiceModal.order.status === "approved")}
-                  style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:12, borderRadius:11, background:`linear-gradient(135deg,${G},${G2})`, border:"none", color:"#0a0a0a", fontWeight:800, cursor:"pointer" }}>
-                  <Printer style={{ width:15, height:15 }} /> Print Invoice
+                  style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:12, borderRadius:11, background:`linear-gradient(135deg,${G},${G2})`, border:"none", color:"#0a0a0a", fontWeight:800, cursor:"pointer", fontSize:".85rem" }}>
+                  <Printer style={{ width:15, height:15 }} /> PDF
+                </button>
+                <button onClick={() => printInvoiceThermal(invoiceModal.order, invoiceModal.payment, invoiceModal.order.status === "approved")}
+                  style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:12, borderRadius:11, background:"rgba(30,30,30,0.9)", border:"none", color:"#fff", fontWeight:800, cursor:"pointer", fontSize:".85rem" }}>
+                  <Printer style={{ width:15, height:15 }} /> Thermal
                 </button>
                 <button onClick={()=>setInvoiceModal(null)} style={{ padding:"12px 18px", borderRadius:11, background:"rgba(255,255,255,0.72)", border:"1px solid rgba(255,255,255,0.09)", color:"rgba(101,67,14,0.4)", cursor:"pointer", fontSize:".85rem" }}>Tutup</button>
               </div>
