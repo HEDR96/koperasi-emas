@@ -240,7 +240,6 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
   </div>
 </div>
 
-<div class="inv-footer">Koperasi Emas Berkah Melimpah Indonesia &nbsp;·&nbsp; Investasi Emas Terpercaya</div>
 
 <script>window.onload=()=>{window.print();}</script>
 </body></html>`);
