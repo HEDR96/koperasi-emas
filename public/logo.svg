@@ -17,9 +17,6 @@
     <!-- Figure warm brown -->
   </defs>
 
-  <!-- ── Cream/white background circle ── -->
-  <circle cx="110" cy="115" r="96" fill="#FFF7EC"/>
-
   <!-- ── Golden ring ── -->
   <circle cx="110" cy="115" r="96" fill="none" stroke="url(#ring)" stroke-width="13"/>
 
