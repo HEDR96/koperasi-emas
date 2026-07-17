@@ -130,7 +130,7 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
   </div>
 </div>
 
-<div class="company">${siteName}</div>
+<div class="company">KOPERASI EMAS BERKAH MELIMPAH INDONESIA</div>
 
 <div class="inv-header">
   <div class="ship-to">
@@ -167,7 +167,7 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
   <div class="pay-left">
     <h4>Mohon Pembayaran di Transfer :</h4>
     <div class="row"><label>Bank :</label><span class="val">BSI</span></div>
-    <div class="row"><label>A/N :</label><span class="val">${siteName}</span></div>
+    <div class="row"><label>A/N :</label><span class="val">KOPERASI EMAS BERKAH MELIMPAH INDONESIA</span></div>
     <div class="row"><label>A/C :</label><span class="val">7339222996</span></div>
   </div>
   <div class="pay-right">
@@ -185,7 +185,7 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
 
 <div class="sig-section">
   <div class="sig-block">
-    <div class="sig-label">${siteName}</div>
+    <div class="sig-label">KOPERASI EMAS BERKAH MELIMPAH INDONESIA</div>
     <div class="sig-name">&nbsp;</div>
   </div>
   <div class="sig-block">

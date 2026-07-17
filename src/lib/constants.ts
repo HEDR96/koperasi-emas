@@ -1,6 +1,6 @@
 ﻿export const SITE_CONFIG = {
-  name: "KOPERASI EMAS BERKAH MELIMPAH INDONESIA",
-  shortName: "KOPERASI EMAS BERKAH MELIMPAH INDONESIA",
+  name: "Koperasi Emas",
+  shortName: "KOPERASI EMAS",
   tagline: "Investasi Emas Aman & Terpercaya",
   description:
     "Platform koperasi emas terpercaya untuk Simpanan, cicilan, buyback, dan investasi emas online bersama jutaan anggota Indonesia.",
