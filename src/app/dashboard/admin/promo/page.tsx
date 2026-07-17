@@ -62,6 +62,7 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
   const subTotal = payment ? payment.nominal : subtotalProduk;
   const invNo = order.id.slice(-8).toUpperCase();
   const tgl = fmtDt(payment?.created_at || order.created_at);
+  const logoUrl = window.location.origin + "/logo.jpg";
   const w = window.open("", "_blank");
   if (!w) return;
   w.document.write(`<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8">
@@ -80,13 +81,10 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
   .lh-mid-stripe{height:2px;background:#1a1a1a;margin-bottom:0}
   .lh-body{display:flex;align-items:center;justify-content:space-between;padding:14px 0 12px;border-bottom:2px solid #1a1a1a}
   .lh-left{display:flex;align-items:center;gap:16px}
-  .lh-emblem{width:52px;height:52px;position:relative;flex-shrink:0}
-  .lh-emblem svg{width:52px;height:52px}
+  .lh-logo{height:56px;width:auto;flex-shrink:0;display:block}
   .lh-text{}
-  .lh-kop{font-size:.68rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#C9A227;margin-bottom:1px}
-  .lh-name-line1{font-size:1.05rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#1a1a1a;line-height:1.1}
-  .lh-name-line2{font-size:.82rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#555;line-height:1.2}
-  .lh-tagline{font-size:.62rem;letter-spacing:.12em;color:#C9A227;text-transform:uppercase;margin-top:4px;font-weight:600}
+  .lh-name{font-size:1.05rem;font-weight:900;letter-spacing:.07em;text-transform:uppercase;color:#1a1a1a;line-height:1.2}
+  .lh-tagline{font-size:.62rem;letter-spacing:.14em;color:#C9A227;text-transform:uppercase;margin-top:5px;font-weight:600}
   .lh-right{text-align:right}
   .lh-meta-row{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-bottom:4px;font-size:.72rem;color:#777}
   .lh-meta-row .lh-uline{border-bottom:1px solid #bbb;min-width:88px;display:inline-block;height:13px}
@@ -159,19 +157,9 @@ function printInvoice(order: any, payment: any | null, siteName: string, paid: b
   <div class="lh-mid-stripe"></div>
   <div class="lh-body">
     <div class="lh-left">
-      <div class="lh-emblem">
-        <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="26,2 32,18 49,18 36,30 41,47 26,37 11,47 16,30 3,18 20,18" fill="#C9A227" opacity=".15"/>
-          <polygon points="26,2 32,18 49,18 36,30 41,47 26,37 11,47 16,30 3,18 20,18" fill="none" stroke="#C9A227" stroke-width="1.5"/>
-          <circle cx="26" cy="26" r="9" fill="#C9A227" opacity=".18"/>
-          <circle cx="26" cy="26" r="9" fill="none" stroke="#C9A227" stroke-width="1.5"/>
-          <text x="26" y="30.5" text-anchor="middle" font-size="9" font-weight="900" fill="#C9A227" font-family="Arial,sans-serif">KE</text>
-        </svg>
-      </div>
+      <img src="${logoUrl}" alt="Logo" class="lh-logo" />
       <div class="lh-text">
-        <div class="lh-kop">Koperasi</div>
-        <div class="lh-name-line1">EMAS BERKAH MELIMPAH</div>
-        <div class="lh-name-line2">INDONESIA</div>
+        <div class="lh-name">KOPERASI EMAS BERKAH MELIMPAH INDONESIA</div>
         <div class="lh-tagline">✦ Investasi Emas Terpercaya ✦</div>
       </div>
     </div>
