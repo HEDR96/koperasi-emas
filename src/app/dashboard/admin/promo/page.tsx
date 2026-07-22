@@ -427,6 +427,13 @@ export default function AdminProdukPage() {
   const [detailOrder, setDetailOrder] = useState<any|null>(null);
   const [payNotesEdit, setPayNotesEdit] = useState<{ id: string; value: string } | null>(null);
   const [savingPayNotes, setSavingPayNotes] = useState(false);
+  const [imgLightbox, setImgLightbox] = useState<string>("");
+
+  async function deleteOrder(o: any) {
+    if (!confirm(`Hapus pesanan #${String(o.id).slice(0,8).toUpperCase()} dari ${o.customer_name}? Tindakan ini tidak bisa dibatalkan.`)) return;
+    await (supabase.from("product_orders") as any).delete().eq("id", o.id);
+    loadOrders();
+  }
 
   async function savePayNotes() {
     if (!payNotesEdit) return;
@@ -1010,6 +1017,11 @@ export default function AdminProdukPage() {
                         <Printer style={{ width:13, height:13 }} />
                         {o.status==="approved" ? "Invoice (Lunas)" : "Invoice (Belum Bayar)"}
                       </button>
+                      {o.status === "rejected" && (
+                        <button onClick={() => deleteOrder(o)} style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:8, background:"rgba(248,113,113,0.07)", border:"1px solid rgba(248,113,113,0.2)", color:"#991b1b", cursor:"pointer", fontSize:".8rem", fontWeight:700 }}>
+                          <Trash2 style={{ width:13, height:13 }} /> Hapus
+                        </button>
+                      )}
                       {o.notes && <span style={{ color:"rgba(101,67,14,0.35)", fontSize:".78rem", padding:"7px 0", display:"flex", alignItems:"center", gap:4 }}><AlertCircle style={{ width:12, height:12 }} />{o.notes}</span>}
                     </div>
                   </motion.div>
@@ -1554,7 +1566,8 @@ export default function AdminProdukPage() {
                         </div>
                         {pay.proof_url && <div style={{ gridColumn:"1/-1" }}>
                           <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".7rem", fontWeight:700, margin:"0 0 6px" }}>BUKTI BAYAR</p>
-                          <img src={gdriveImage(pay.proof_url)} alt="Bukti" style={{ maxWidth:"100%", maxHeight:140, borderRadius:8, objectFit:"cover" }} />
+                          <img src={gdriveImage(pay.proof_url)} alt="Bukti" onClick={()=>setImgLightbox(gdriveImage(pay.proof_url))}
+                            style={{ maxWidth:"100%", maxHeight:140, borderRadius:8, objectFit:"cover", cursor:"zoom-in" }} />
                         </div>}
                       </div>
                     ))}
@@ -1674,6 +1687,21 @@ export default function AdminProdukPage() {
                 </div>
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {imgLightbox && (
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+            onClick={() => setImgLightbox("")}
+            style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:24, cursor:"zoom-out" }}>
+            <button onClick={() => setImgLightbox("")}
+              style={{ position:"fixed", top:20, right:20, width:38, height:38, borderRadius:"50%", background:"rgba(255,255,255,0.12)", border:"1px solid rgba(255,255,255,0.2)", color:"#fff", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <X style={{ width:18, height:18 }} />
+            </button>
+            <img src={imgLightbox} alt="Bukti Bayar" onClick={e => e.stopPropagation()}
+              style={{ maxWidth:"92vw", maxHeight:"90vh", objectFit:"contain", borderRadius:8, boxShadow:"0 20px 60px rgba(0,0,0,0.5)" }} />
           </motion.div>
         )}
       </AnimatePresence>
