@@ -53,21 +53,23 @@ const TITLES: Record<string, string> = {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [checked, setChecked] = useState(false);
   const { isAuthenticated, user, syncUser } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    // Sync Supabase session on mount
-    syncUser();
+    // Sync Supabase session on mount — tunggu selesai sebelum menentukan status login,
+    // supaya tidak redirect ke login saat isAuthenticated masih default (belum ke-hydrate).
+    syncUser().finally(() => setChecked(true));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (checked && !isAuthenticated) {
       router.replace("/auth/login");
     }
-  }, [isAuthenticated, router]);
+  }, [checked, isAuthenticated, router]);
 
   // Role guard: member hanya boleh di area /dashboard/member & /dashboard/profil
   useEffect(() => {

@@ -1382,8 +1382,8 @@ export default function AdminProdukPage() {
                       <label style={lbl}>Upload Bukti Bayar (opsional)</label>
                       <input ref={proofRef} type="file" accept="image/*" style={{ display:"none" }} onChange={handleProofPick} />
                       {proofPreview ? (
-                        <div style={{ position:"relative", borderRadius:10, overflow:"hidden", border:"1px solid rgba(201,162,39,0.18)", maxHeight:120 }}>
-                          <img src={proofPreview} alt="Bukti" style={{ width:"100%", height:120, objectFit:"cover", display:"block" }} />
+                        <div style={{ position:"relative", borderRadius:10, overflow:"hidden", border:"1px solid rgba(201,162,39,0.18)", maxHeight:320, background:"rgba(0,0,0,0.04)" }}>
+                          <img src={proofPreview} alt="Bukti" style={{ width:"100%", maxHeight:320, objectFit:"contain", display:"block" }} />
                           <button onClick={() => { setProofFile(null); setProofPreview(""); if(proofRef.current) proofRef.current.value=""; }}
                             style={{ position:"absolute", top:6, right:6, width:26, height:26, borderRadius:"50%", background:"rgba(0,0,0,0.7)", border:"none", color:"#2D1B00", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
                             <X style={{ width:12, height:12 }} />
