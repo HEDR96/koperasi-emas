@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Save, RefreshCw, Lock, User, Star } from "lucide-react";
+import { Save, RefreshCw, Lock, User, Star, Mail } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -23,6 +23,11 @@ export default function ProfilPage() {
   const [savingPass, setSavingPass]   = useState(false);
   const [savedPass, setSavedPass]     = useState(false);
   const [passErr, setPassErr]         = useState("");
+
+  const [emailForm, setEmailForm] = useState({ current:"", newEmail:"" });
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [savedEmail, setSavedEmail]   = useState(false);
+  const [emailErr, setEmailErr]       = useState("");
 
   const [poin, setPoin] = useState<number | null>(null);
   useEffect(() => {
@@ -72,6 +77,30 @@ export default function ProfilPage() {
       }
     } catch { setPassErr("Terjadi kesalahan."); }
     setSavingPass(false);
+  }
+
+  async function handleChangeEmail() {
+    const newEmail = emailForm.newEmail.trim().toLowerCase();
+    if (!newEmail || newEmail === user?.email) {
+      setEmailErr("Masukkan email baru yang berbeda."); return;
+    }
+    setSavingEmail(true); setEmailErr("");
+    try {
+      // Verify current password first
+      const { error: loginErr } = await supabase.auth.signInWithPassword({
+        email: user?.email || "", password: emailForm.current,
+      });
+      if (loginErr) { setEmailErr("Password salah."); setSavingEmail(false); return; }
+
+      const { error } = await supabase.auth.updateUser({ email: newEmail });
+      if (error) { setEmailErr(error.message); }
+      else {
+        setSavedEmail(true);
+        setEmailForm({ current:"", newEmail:"" });
+        setTimeout(() => setSavedEmail(false), 6000);
+      }
+    } catch { setEmailErr("Terjadi kesalahan."); }
+    setSavingEmail(false);
   }
 
   return (
@@ -131,11 +160,6 @@ export default function ProfilPage() {
               <label style={{ color:"rgba(101,67,14,0.5)", fontSize:".78rem", display:"block", marginBottom:7 }}>No. Telepon / WhatsApp</label>
               <input value={dataForm.phone} onChange={e => setDataForm(p => ({...p, phone: e.target.value}))} style={inp} placeholder="08xx-xxxx-xxxx" />
             </div>
-            <div>
-              <label style={{ color:"rgba(101,67,14,0.5)", fontSize:".78rem", display:"block", marginBottom:7 }}>Email</label>
-              <input value={user?.email || ""} disabled style={{ ...inp, opacity:.4, cursor:"not-allowed" }} />
-              <p style={{ color:"rgba(101,67,14,0.3)", fontSize:".72rem", marginTop:5 }}>Email tidak dapat diubah.</p>
-            </div>
             <button onClick={handleSaveData} disabled={savingData || !dataForm.name.trim()}
               style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"11px", borderRadius:11, background: savedData ? "rgba(6,95,70,0.12)" : "linear-gradient(135deg,#D4AF37,#F5D060)", border: savedData ? "1px solid #065f46" : "none", color: savedData ? "#065f46" : "#2D1B00", fontWeight:700, fontSize:".9rem", cursor:"pointer", transition:"all .3s" }}>
               {savingData ? <><RefreshCw style={{ width:15, height:15, animation:"spin 1s linear infinite" }} /> Menyimpan...</> : savedData ? "✓ Data Diperbarui" : <><Save style={{ width:15, height:15 }} /> Simpan Perubahan</>}
@@ -170,6 +194,39 @@ export default function ProfilPage() {
             <button onClick={handleResetPassword} disabled={savingPass || !passForm.current || !passForm.newPass}
               style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"11px", borderRadius:11, background: savedPass ? "rgba(6,95,70,0.12)" : "rgba(109,40,217,0.1)", border: savedPass ? "1px solid #065f46" : "1px solid rgba(109,40,217,0.3)", color: savedPass ? "#065f46" : "#6d28d9", fontWeight:700, fontSize:".9rem", cursor:"pointer", transition:"all .3s" }}>
               {savingPass ? <><RefreshCw style={{ width:15, height:15, animation:"spin 1s linear infinite" }} /> Mengubah...</> : savedPass ? "✓ Password Diubah" : <><Lock style={{ width:15, height:15 }} /> Ganti Password</>}
+            </button>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Ganti Email */}
+      <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:.1 }}
+        style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.2)", borderRadius:16, overflow:"hidden" }}>
+        <div style={{ padding:"14px 20px", borderBottom:"1px solid rgba(201,162,39,0.15)", display:"flex", alignItems:"center", gap:8 }}>
+          <Mail style={{ width:16, height:16, color:"#0369a1" }} />
+          <p style={{ color:"#0369a1", fontWeight:700, fontSize:".88rem", margin:0 }}>Ganti Email</p>
+        </div>
+        <div style={{ padding:"20px" }}>
+          {emailErr && <div style={{ background:"rgba(153,27,27,0.08)", border:"1px solid rgba(153,27,27,0.2)", borderRadius:10, padding:"10px 14px", color:"#991b1b", fontSize:".82rem", marginBottom:14 }}>{emailErr}</div>}
+          {savedEmail && <div style={{ background:"rgba(6,95,70,0.08)", border:"1px solid rgba(6,95,70,0.2)", borderRadius:10, padding:"10px 14px", color:"#065f46", fontSize:".82rem", marginBottom:14 }}>Link konfirmasi telah dikirim ke email lama & email baru. Email akan berganti setelah kamu mengklik link konfirmasi di kedua email tersebut.</div>}
+          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+            <div>
+              <label style={{ color:"rgba(101,67,14,0.5)", fontSize:".78rem", display:"block", marginBottom:7 }}>Email Saat Ini</label>
+              <input value={user?.email || ""} disabled style={{ ...inp, opacity:.4, cursor:"not-allowed" }} />
+            </div>
+            <div>
+              <label style={{ color:"rgba(101,67,14,0.5)", fontSize:".78rem", display:"block", marginBottom:7 }}>Email Baru</label>
+              <input type="email" value={emailForm.newEmail} onChange={e => setEmailForm(p => ({...p, newEmail: e.target.value}))}
+                style={inp} placeholder="email-baru@example.com" />
+            </div>
+            <div>
+              <label style={{ color:"rgba(101,67,14,0.5)", fontSize:".78rem", display:"block", marginBottom:7 }}>Password (untuk verifikasi)</label>
+              <input type="password" value={emailForm.current} onChange={e => setEmailForm(p => ({...p, current: e.target.value}))}
+                style={inp} placeholder="••••••••" />
+            </div>
+            <button onClick={handleChangeEmail} disabled={savingEmail || !emailForm.current || !emailForm.newEmail}
+              style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"11px", borderRadius:11, background: savedEmail ? "rgba(6,95,70,0.12)" : "rgba(3,105,161,0.1)", border: savedEmail ? "1px solid #065f46" : "1px solid rgba(3,105,161,0.3)", color: savedEmail ? "#065f46" : "#0369a1", fontWeight:700, fontSize:".9rem", cursor:"pointer", transition:"all .3s" }}>
+              {savingEmail ? <><RefreshCw style={{ width:15, height:15, animation:"spin 1s linear infinite" }} /> Mengirim...</> : savedEmail ? "✓ Konfirmasi Terkirim" : <><Mail style={{ width:15, height:15 }} /> Ganti Email</>}
             </button>
           </div>
         </div>

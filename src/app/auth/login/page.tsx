@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Lock, ArrowRight, Shield } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -91,7 +92,7 @@ export default function LoginPage() {
           <label style={{ display: "flex", alignItems: "center", gap: 8, color: "rgba(101,67,14,0.45)", fontSize: ".82rem", cursor: "pointer" }}>
             <input type="checkbox" /> Ingat saya
           </label>
-          <a href="#" style={{ color: "#8B6010", fontSize: ".82rem", textDecoration: "none" }}>Lupa password?</a>
+          <Link href="/auth/forgot-password" style={{ color: "#8B6010", fontSize: ".82rem", textDecoration: "none" }}>Lupa password?</Link>
         </div>
 
         <button type="submit" disabled={isLoading} className="btn-gold"
