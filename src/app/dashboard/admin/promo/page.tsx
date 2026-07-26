@@ -506,11 +506,13 @@ export default function AdminProdukPage() {
     setSavingStock(true);
     const qty = Number(addStockQty);
     const newStok = (detailProd.stok ?? 0) + qty;
-    await (supabase.from("promos") as any).update({ stok: newStok }).eq("id", detailProd.id);
-    await (supabase.from("product_stock_logs") as any).insert({
+    const { error: stokErr } = await (supabase.from("promos") as any).update({ stok: newStok }).eq("id", detailProd.id).select("id");
+    if (stokErr) { alert(`Gagal update stok: ${stokErr.message}`); setSavingStock(false); return; }
+    const { error: logErr } = await (supabase.from("product_stock_logs") as any).insert({
       product_id: detailProd.id, type:"add", quantity: qty,
       notes: addStockNote || null, created_by: user?.id,
     });
+    if (logErr) { alert(`Stok sudah bertambah tapi gagal mencatat log: ${logErr.message}`); }
     setDetailProd((p: any) => ({ ...p, stok: newStok }));
     setProduk(prev => prev.map(p => p.id===detailProd.id ? {...p, stok:newStok} : p));
     const { data: logs } = await (supabase.from("product_stock_logs") as any).select("*").eq("product_id",detailProd.id).order("created_at",{ascending:false});
@@ -703,13 +705,19 @@ export default function AdminProdukPage() {
       ...voucherFields,
     });
     if (pe) { setPayErr(pe.message); setSavingPay(false); return; }
-    // update order status
-    await (supabase.from("product_orders") as any).update({ status:"approved", updated_at:new Date().toISOString() }).eq("id", approveOrder.id);
-    // beri poin ke agen jika ada
+    // update order status — kalau ini gagal, batalkan proses (jangan lanjut potong stok/kredit emas untuk order yang belum benar-benar approved)
+    const { error: oe } = await (supabase.from("product_orders") as any)
+      .update({ status:"approved", updated_at:new Date().toISOString() }).eq("id", approveOrder.id).select("id");
+    if (oe) { setPayErr(`Pembayaran tercatat tapi gagal update status order: ${oe.message}. Hubungi developer.`); setSavingPay(false); return; }
+
+    const followUpErrors: string[] = [];
+
+    // beri poin ke agen jika ada (best-effort — gagal di sini tidak membatalkan approval order)
     if (approveOrder.agen_id) {
       const { data: agenProfile } = await (supabase.from("profiles") as any).select("poin").eq("id", approveOrder.agen_id).single();
       const currentPoin = Number(agenProfile?.poin) || 0;
-      await (supabase.from("profiles") as any).update({ poin: currentPoin + 1 }).eq("id", approveOrder.agen_id);
+      const { error: poinErr } = await (supabase.from("profiles") as any).update({ poin: currentPoin + 1 }).eq("id", approveOrder.agen_id);
+      if (poinErr) followUpErrors.push(`Gagal beri poin ke agen: ${poinErr.message}`);
     }
     // deduct stok
     const items = Array.isArray(approveOrder.items) ? approveOrder.items : JSON.parse(approveOrder.items || "[]");
@@ -718,7 +726,8 @@ export default function AdminProdukPage() {
       const { data: prod } = await (supabase.from("promos") as any).select("stok").eq("id", it.product_id).single();
       if (prod?.stok != null) {
         const newStok = Math.max(0, prod.stok - it.quantity);
-        await (supabase.from("promos") as any).update({ stok: newStok }).eq("id", it.product_id);
+        const { error: stokErr } = await (supabase.from("promos") as any).update({ stok: newStok }).eq("id", it.product_id);
+        if (stokErr) followUpErrors.push(`Gagal potong stok "${it.title}": ${stokErr.message}`);
       }
     }
     // pembeli member (bukan tamu) & item emas (punya gram_weight) → tambah saldo emas member
@@ -726,7 +735,7 @@ export default function AdminProdukPage() {
       for (const it of items) {
         if (!it.gram_weight) continue;
         const gram = Number(it.gram_weight) * Number(it.quantity);
-        await (supabase.from("transactions") as any).insert({
+        const { error: gramErr } = await (supabase.from("transactions") as any).insert({
           user_id: approveOrder.user_id,
           type: "buy",
           status: "completed",
@@ -738,7 +747,11 @@ export default function AdminProdukPage() {
           recorded_by: user?.id || null,
           transaction_date: new Date().toISOString(),
         });
+        if (gramErr) followUpErrors.push(`Gagal kredit emas "${it.title}" (${gram} gr): ${gramErr.message}`);
       }
+    }
+    if (followUpErrors.length) {
+      alert(`Order disetujui, tapi ada yang gagal dan perlu dicek manual:\n\n${followUpErrors.join("\n")}`);
     }
     const payment = { order_id:approveOrder.id, customer_name:payForm.customer_name, nominal:Number(payForm.nominal), terbayar:Number(payForm.terbayar), payment_method:payForm.payment_method, proof_url:proofUrl||null, notes:payForm.notes||null, ongkir:Number(payForm.ongkir)||0, created_at:new Date().toISOString(), ...voucherFields };
     const orderCopy = { ...approveOrder, status:"approved" };

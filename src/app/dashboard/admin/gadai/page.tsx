@@ -104,13 +104,19 @@ export default function AdminGadaiPage() {
     const ke = paid + 1;
     const newSisa = Math.max(0, g.sisa_tagihan - g.angsuran_per_bulan);
     const done = newSisa <= 0;
-    await (supabase.from("gadai_pembayaran") as any).insert({
+    const { error: payErr } = await (supabase.from("gadai_pembayaran") as any).insert({
       gadai_id: g.id, user_id: g.user_id, angsuran_ke: ke, amount: g.angsuran_per_bulan, recorded_by: user?.id,
     });
-    await (supabase.from("gadai") as any).update({
+    if (payErr) { alert(`Gagal mencatat pembayaran: ${payErr.message}`); setActing(null); return; }
+    const { error: gadaiErr } = await (supabase.from("gadai") as any).update({
       sisa_tagihan: newSisa, status: done ? "lunas" : "aktif",
       ...(done ? { tanggal_lunas: new Date().toISOString() } : {}),
-    }).eq("id", g.id);
+    }).eq("id", g.id).select("id");
+    if (gadaiErr) {
+      // riwayat pembayaran sudah tersimpan tapi update gadai gagal — hapus riwayat lagi supaya tidak nyangkut
+      await (supabase.from("gadai_pembayaran") as any).delete().eq("gadai_id", g.id).eq("angsuran_ke", ke);
+      alert(`Gagal update status gadai: ${gadaiErr.message}`); setActing(null); return;
+    }
     await notify(g.user_id, done ? "Gadai Lunas 🎉" : "Pembayaran Gadai", done ? `Gadai ${fmt(g.dana_cair)} telah LUNAS.` : `Angsuran ke-${ke} ${fmt(g.angsuran_per_bulan)} tercatat.`);
     const updated = { ...g, sisa_tagihan: newSisa, status: done ? "lunas" : "aktif" };
     setDetail(updated); await openDetail(updated); await load(); setActing(null);
