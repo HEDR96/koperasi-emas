@@ -565,8 +565,9 @@ export default function AdminProdukPage() {
   async function toggle(p: any) { await (supabase.from("promos") as any).update({ is_active:!p.is_active }).eq("id", p.id); loadProduk(); }
   async function remove(id: string) { if (!confirm("Hapus produk ini?")) return; await (supabase.from("promos") as any).delete().eq("id", id); loadProduk(); }
 
-  /* ── approve/tolak produk yang diajukan member ── */
+  /* ── approve/tolak produk yang diajukan member — hanya master ── */
   async function approveProduk(p: any) {
+    if (!isMaster) { alert("Hanya master yang bisa menyetujui produk."); return; }
     setActingProdId(p.id);
     await (supabase.from("promos") as any).update({
       approval_status: "approved", is_active: true, approved_by: user?.id, approved_at: new Date().toISOString(),
@@ -581,6 +582,7 @@ export default function AdminProdukPage() {
     setActingProdId(null); loadProduk();
   }
   async function rejectProduk(p: any) {
+    if (!isMaster) { alert("Hanya master yang bisa menolak produk."); return; }
     if (!confirm(`Tolak produk "${p.title}"?`)) return;
     setActingProdId(p.id);
     await (supabase.from("promos") as any).update({
@@ -675,6 +677,7 @@ export default function AdminProdukPage() {
 
   async function doApprove() {
     if (!approveOrder) return;
+    if (!isMaster) { setPayErr("Hanya master yang bisa menyetujui pesanan."); return; }
     if (!payForm.nominal || !payForm.terbayar) { setPayErr("Nominal dan terbayar wajib diisi."); return; }
     setSavingPay(true); setPayErr("");
     let proofUrl = payForm.proof_url;
@@ -746,6 +749,7 @@ export default function AdminProdukPage() {
   }
 
   async function doReject(o: any) {
+    if (!isMaster) { alert("Hanya master yang bisa menolak pesanan."); return; }
     if (!confirm("Tolak pesanan ini?")) return;
     await (supabase.from("product_orders") as any).update({ status:"rejected", updated_at:new Date().toISOString() }).eq("id", o.id);
     loadOrders();
@@ -896,16 +900,20 @@ export default function AdminProdukPage() {
                   </div>
                   <div style={{ display:"flex", gap:6, flexShrink:0 }}>
                     {p.approval_status === "pending" && (
-                      <>
-                        <button onClick={() => approveProduk(p)} disabled={actingProdId===p.id}
-                          style={{ display:"flex", alignItems:"center", gap:5, padding:"0 12px", height:32, background:"rgba(6,95,70,0.08)", border:"1px solid rgba(52,211,153,0.3)", borderRadius:8, color:"#065f46", cursor:actingProdId===p.id?"not-allowed":"pointer", fontSize:".78rem", fontWeight:700 }}>
-                          <CheckCheck style={{ width:13, height:13 }} /> Setujui
-                        </button>
-                        <button onClick={() => rejectProduk(p)} disabled={actingProdId===p.id}
-                          style={{ display:"flex", alignItems:"center", gap:5, padding:"0 12px", height:32, background:"rgba(248,113,113,0.07)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:8, color:"#991b1b", cursor:actingProdId===p.id?"not-allowed":"pointer", fontSize:".78rem", fontWeight:700 }}>
-                          <XCircle style={{ width:13, height:13 }} /> Tolak
-                        </button>
-                      </>
+                      isMaster ? (
+                        <>
+                          <button onClick={() => approveProduk(p)} disabled={actingProdId===p.id}
+                            style={{ display:"flex", alignItems:"center", gap:5, padding:"0 12px", height:32, background:"rgba(6,95,70,0.08)", border:"1px solid rgba(52,211,153,0.3)", borderRadius:8, color:"#065f46", cursor:actingProdId===p.id?"not-allowed":"pointer", fontSize:".78rem", fontWeight:700 }}>
+                            <CheckCheck style={{ width:13, height:13 }} /> Setujui
+                          </button>
+                          <button onClick={() => rejectProduk(p)} disabled={actingProdId===p.id}
+                            style={{ display:"flex", alignItems:"center", gap:5, padding:"0 12px", height:32, background:"rgba(248,113,113,0.07)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:8, color:"#991b1b", cursor:actingProdId===p.id?"not-allowed":"pointer", fontSize:".78rem", fontWeight:700 }}>
+                            <XCircle style={{ width:13, height:13 }} /> Tolak
+                          </button>
+                        </>
+                      ) : (
+                        <span style={{ color:"rgba(101,67,14,0.4)", fontSize:".76rem", fontStyle:"italic" }}>Menunggu approval master</span>
+                      )
                     )}
                     <button onClick={() => openDetailProd(p)} style={{ width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(96,165,250,0.07)", border:"1px solid rgba(96,165,250,0.2)", borderRadius:8, color:"#1d4ed8", cursor:"pointer" }} title="Detail">
                       <FileText style={{ width:13, height:13 }} />
@@ -1001,6 +1009,7 @@ export default function AdminProdukPage() {
                     {/* actions */}
                     <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                       {o.status === "pending" && (
+                        isMaster ? (
                         <>
                           <button onClick={() => openApprove(o)} style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:8, background:"rgba(6,95,70,0.08)", border:"1px solid rgba(52,211,153,0.3)", color:"#065f46", cursor:"pointer", fontSize:".8rem", fontWeight:700 }}>
                             <CheckCheck style={{ width:13, height:13 }} /> Setujui
@@ -1009,6 +1018,9 @@ export default function AdminProdukPage() {
                             <XCircle style={{ width:13, height:13 }} /> Tolak
                           </button>
                         </>
+                        ) : (
+                          <span style={{ color:"rgba(101,67,14,0.4)", fontSize:".76rem", fontStyle:"italic", padding:"7px 0" }}>Menunggu approval master</span>
+                        )
                       )}
                       <button onClick={() => setDetailOrder(o)} style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:8, background:"rgba(96,165,250,0.08)", border:"1px solid rgba(96,165,250,0.2)", color:"#1d4ed8", cursor:"pointer", fontSize:".8rem", fontWeight:700 }}>
                         <FileText style={{ width:13, height:13 }} /> Detail
