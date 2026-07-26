@@ -98,7 +98,9 @@ export default function MemberProdukPage() {
     setImgUploading(true); setTambahErr("");
     try {
       const fd = new FormData(); fd.append("file", f);
-      const res = await fetch("/api/upload/gdrive", { method:"POST", body:fd });
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: Record<string,string> = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
+      const res = await fetch("/api/upload/gdrive", { method:"POST", body:fd, headers });
       const json = await res.json();
       if (!res.ok || json.error) throw new Error(json.error || "Upload gagal");
       setTambahForm(p => ({ ...p, image_url: json.url }));

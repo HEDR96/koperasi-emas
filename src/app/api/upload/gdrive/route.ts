@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { google } from "googleapis";
 import { Readable } from "stream";
+import { supabaseAdmin } from "@/lib/supabase";
 
 function getAuth() {
   const clientId     = process.env.GDRIVE_CLIENT_ID;
@@ -20,6 +21,11 @@ function getAuth() {
 }
 
 export async function POST(req: NextRequest) {
+  const token = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  if (!token) return NextResponse.json({ error: "Tidak terautentikasi." }, { status: 401 });
+  const { data: { user }, error: authErr } = await supabaseAdmin().auth.getUser(token);
+  if (authErr || !user) return NextResponse.json({ error: "Sesi tidak valid, silakan login ulang." }, { status: 401 });
+
   const folderId = process.env.GDRIVE_FOLDER_ID?.trim();
   if (!folderId) {
     return NextResponse.json({

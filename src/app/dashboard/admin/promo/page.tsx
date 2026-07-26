@@ -44,10 +44,14 @@ const EMPTY_PROD = { title:"", description:"", image_url:"", gram_weight:"", pri
 const PAY_METHODS = ["BSI", "Cash", "Kartu Kredit", "Kartu Debit"];
 
 /* ── upload bukti bayar ke Google Drive ── */
+async function authHeaders(): Promise<Record<string,string>> {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
+}
 async function uploadProof(file: File): Promise<string> {
   const fd = new FormData();
   fd.append("file", file);
-  const res = await fetch("/api/upload/gdrive", { method: "POST", body: fd });
+  const res = await fetch("/api/upload/gdrive", { method: "POST", body: fd, headers: await authHeaders() });
   const json = await res.json();
   if (!res.ok || json.error) throw new Error(json.error || "Upload ke Google Drive gagal");
   return json.url as string;
@@ -537,7 +541,7 @@ export default function AdminProdukPage() {
     setImgUploading(true); setErr("");
     try {
       const fd = new FormData(); fd.append("file", f);
-      const res = await fetch("/api/upload/gdrive", { method:"POST", body:fd });
+      const res = await fetch("/api/upload/gdrive", { method:"POST", body:fd, headers: await authHeaders() });
       const json = await res.json();
       if (!res.ok || json.error) throw new Error(json.error || "Upload gagal");
       setForm(p => ({ ...p, image_url: json.url }));
