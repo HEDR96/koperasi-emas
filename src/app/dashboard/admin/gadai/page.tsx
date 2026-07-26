@@ -61,6 +61,10 @@ export default function AdminGadaiPage() {
   }
 
   async function setStatus(row: any, status: string) {
+    if ((status === "aktif" || status === "ditolak") && !isMaster) {
+      alert("Hanya master yang bisa menyetujui/menolak pengajuan gadai.");
+      return;
+    }
     setActing(row.id);
     const patch: any = { status, verified_by: user?.id };
     if (status === "aktif")  patch.tanggal_cair = new Date().toISOString();
@@ -171,16 +175,20 @@ export default function AdminGadaiPage() {
                   <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                     <span style={{ background:`${s.color}18`, border:`1px solid ${s.color}40`, color:s.color, borderRadius:20, padding:"3px 12px", fontSize:".74rem", fontWeight:600 }}>{s.label}</span>
                     {g.status === "pengajuan" && (
-                      <>
-                        <button onClick={()=>setStatus(g,"aktif")} disabled={acting===g.id}
-                          style={{ display:"flex", alignItems:"center", gap:4, background:"rgba(6,95,70,0.09)", border:"1px solid rgba(52,211,153,0.3)", borderRadius:8, padding:"6px 12px", color:"#065f46", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===g.id?.6:1 }}>
-                          <Check style={{ width:12, height:12 }} /> Setujui & Cairkan
-                        </button>
-                        <button onClick={()=>setStatus(g,"ditolak")} disabled={acting===g.id}
-                          style={{ display:"flex", alignItems:"center", gap:4, background:"rgba(153,27,27,0.06)", border:"1px solid rgba(248,113,113,0.25)", borderRadius:8, padding:"6px 12px", color:"#991b1b", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===g.id?.6:1 }}>
-                          <X style={{ width:12, height:12 }} /> Tolak
-                        </button>
-                      </>
+                      isMaster ? (
+                        <>
+                          <button onClick={()=>setStatus(g,"aktif")} disabled={acting===g.id}
+                            style={{ display:"flex", alignItems:"center", gap:4, background:"rgba(6,95,70,0.09)", border:"1px solid rgba(52,211,153,0.3)", borderRadius:8, padding:"6px 12px", color:"#065f46", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===g.id?.6:1 }}>
+                            <Check style={{ width:12, height:12 }} /> Setujui & Cairkan
+                          </button>
+                          <button onClick={()=>setStatus(g,"ditolak")} disabled={acting===g.id}
+                            style={{ display:"flex", alignItems:"center", gap:4, background:"rgba(153,27,27,0.06)", border:"1px solid rgba(248,113,113,0.25)", borderRadius:8, padding:"6px 12px", color:"#991b1b", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===g.id?.6:1 }}>
+                            <X style={{ width:12, height:12 }} /> Tolak
+                          </button>
+                        </>
+                      ) : (
+                        <span style={{ color:"rgba(101,67,14,0.4)", fontSize:".76rem", fontStyle:"italic" }}>Menunggu approval master</span>
+                      )
                     )}
                     <button onClick={()=>openDetail(g)}
                       style={{ display:"flex", alignItems:"center", gap:4, background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.22)", borderRadius:8, padding:"6px 12px", color:"rgba(101,67,14,0.75)", cursor:"pointer", fontSize:".78rem", fontWeight:600 }}>
@@ -235,16 +243,22 @@ export default function AdminGadaiPage() {
                 </div>
 
                 {detail.status === "pengajuan" ? (
-                  <div style={{ display:"flex", gap:8, marginBottom:18 }}>
-                    <button onClick={()=>setStatus(detail,"aktif")} disabled={acting===detail.id}
-                      style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px", borderRadius:11, background:"linear-gradient(135deg,#34d399,#6ee7b7)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".92rem", cursor:acting===detail.id?"not-allowed":"pointer", opacity:acting===detail.id?.7:1 }}>
-                      <Check style={{ width:16, height:16 }} /> Setujui & Cairkan
-                    </button>
-                    <button onClick={()=>setStatus(detail,"ditolak")} disabled={acting===detail.id}
-                      style={{ padding:"12px 18px", borderRadius:11, background:"rgba(153,27,27,0.06)", border:"1px solid rgba(248,113,113,0.25)", color:"#991b1b", fontWeight:700, fontSize:".92rem", cursor:acting===detail.id?"not-allowed":"pointer" }}>
-                      <X style={{ width:16, height:16 }} />
-                    </button>
-                  </div>
+                  isMaster ? (
+                    <div style={{ display:"flex", gap:8, marginBottom:18 }}>
+                      <button onClick={()=>setStatus(detail,"aktif")} disabled={acting===detail.id}
+                        style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px", borderRadius:11, background:"linear-gradient(135deg,#34d399,#6ee7b7)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".92rem", cursor:acting===detail.id?"not-allowed":"pointer", opacity:acting===detail.id?.7:1 }}>
+                        <Check style={{ width:16, height:16 }} /> Setujui & Cairkan
+                      </button>
+                      <button onClick={()=>setStatus(detail,"ditolak")} disabled={acting===detail.id}
+                        style={{ padding:"12px 18px", borderRadius:11, background:"rgba(153,27,27,0.06)", border:"1px solid rgba(248,113,113,0.25)", color:"#991b1b", fontWeight:700, fontSize:".92rem", cursor:acting===detail.id?"not-allowed":"pointer" }}>
+                        <X style={{ width:16, height:16 }} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px", borderRadius:11, background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.3)", color:"#8B6010", fontWeight:600, fontSize:".85rem", marginBottom:18 }}>
+                      <Clock style={{ width:16, height:16 }} /> Menunggu persetujuan Master
+                    </div>
+                  )
                 ) : detail.sisa_tagihan > 0 ? (
                   <button onClick={()=>recordGadaiPayment(detail)} disabled={acting===detail.id}
                     style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px", borderRadius:11, background:"linear-gradient(135deg,#34d399,#6ee7b7)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".92rem", cursor:acting===detail.id?"not-allowed":"pointer", opacity:acting===detail.id?.7:1, marginBottom:18 }}>

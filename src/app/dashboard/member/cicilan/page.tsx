@@ -135,7 +135,7 @@ export default function CicilanPage() {
                 <div key={m.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, background:"rgba(255,255,255,0.72)", borderRadius:10, padding:"10px 14px", flexWrap:"wrap" }}>
                   <div>
                     <p style={{ color:"#2D1B00", fontWeight:600, fontSize:".86rem", margin:0 }}>{m.product_name}</p>
-                    <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".74rem", margin:"2px 0 0" }}>{m.paid_installments}/{m.tenor} angsuran · {fmt(m.monthly_amount)}/bln · sisa {fmt(Math.max(0,(m.tenor-m.paid_installments)*m.monthly_amount))}</p>
+                    <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".74rem", margin:"2px 0 0" }}>{m.paid_installments}/{m.tenor} angsuran · {fmt(m.monthly_amount)}/bln · sisa {fmt(Math.max(0, m.total_amount - m.paid_installments*m.monthly_amount))}</p>
                   </div>
                   <span style={{ display:"flex", alignItems:"center", gap:4, background:`${s.color}18`, border:`1px solid ${s.color}40`, color:s.color, borderRadius:20, padding:"3px 12px", fontSize:".74rem", fontWeight:600 }}>
                     {m.status==="pending" && <Clock style={{width:11,height:11}}/>}{s.label}

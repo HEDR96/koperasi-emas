@@ -29,8 +29,11 @@ const STATUS_LABEL: Record<string,string> = {
   pending:"Menunggu", processing:"Diproses", completed:"Selesai", rejected:"Ditolak",
 };
 
-// Tipe yang menambah emas tersimpan saat completed
-const GRAM_IN = new Set(["buy", "cicilan", "tabungan"]);
+// Tipe transaksi (tabel transactions) yang menambah emas tersimpan saat completed.
+// Cicilan TIDAK tercatat di transactions — dihitung terpisah dari tabel installments
+// (lihat penjumlahan total_gram di bawah), karena emas sudah jadi milik anggota begitu
+// cicilan disetujui/aktif, tidak perlu menunggu lunas.
+const GRAM_IN = new Set(["buy", "tabungan"]);
 
 export default function MemberDashboardPage() {
   const { user } = useAuthStore();
@@ -63,18 +66,20 @@ export default function MemberDashboardPage() {
           .select("*").eq("user_id", user.id).in("status",["pengajuan","disetujui","aktif"])
           .order("created_at",{ascending:false}).limit(1),
         (supabase.from("installments") as any)
-          .select("*").eq("user_id", user.id).eq("status","active").order("created_at",{ascending:false}),
+          .select("*").eq("user_id", user.id).in("status",["active","completed","overdue"]).order("created_at",{ascending:false}),
       ]);
 
       const txs: TxRow[] = txRes.data || [];
-      // Emas tersimpan = Σ gram (buy/cicilan/Simpanan completed) − Σ gram (buyback completed)
+      // Emas tersimpan = Σ gram (buy/Simpanan completed) − Σ gram (buyback completed) + Σ gram cicilan aktif/lunas/terlambat.
+      // Cicilan dihitung sejak disetujui (bukan menunggu lunas) karena emasnya sudah jadi milik anggota.
       const net = txs.reduce((acc, t) => {
         if (t.status !== "completed" || !t.gram) return acc;
         if (GRAM_IN.has(t.type)) return acc + Number(t.gram);
         if (t.type === "buyback")  return acc - Number(t.gram);
         return acc;
       }, 0);
-      setEmasGram(Math.max(0, net));
+      const cicilanGram = (cicRes.data || []).reduce((s: number, c: any) => s + Number(c.total_gram || 0), 0);
+      setEmasGram(Math.max(0, net + cicilanGram));
       setRecent(txs.slice(0, 6));
 
       // Total Simpanan = tabel simpanan + sisa transaksi lama type='tabungan' (sebelum migrasi ke tabel simpanan)
@@ -98,7 +103,8 @@ export default function MemberDashboardPage() {
       setHargaBuyback(hb || 0);
 
       setGadaiAktif(gadaiRes.data?.[0] || null);
-      setCicilanAktif(cicRes.data || []);
+      // Kartu pengingat cuma untuk cicilan yang masih berjalan (belum lunas), bukan yang sudah completed.
+      setCicilanAktif((cicRes.data || []).filter((c: any) => c.status !== "completed"));
     } catch {}
     setLoading(false);
   }

@@ -43,6 +43,7 @@ type Tab = "pending" | "history";
 
 export default function AdminTransaksiPage() {
   const { user }            = useAuthStore();
+  const isMaster = user?.role === "master";
   const [tab, setTab]       = useState<Tab>("pending");
   const [pending, setPending] = useState<TxRow[]>([]);
   const [history, setHistory] = useState<TxRow[]>([]);
@@ -75,6 +76,7 @@ export default function AdminTransaksiPage() {
   useEffect(() => { load(); }, []);
 
   async function approve(tx: TxRow) {
+    if (!isMaster) { alert("Hanya master yang bisa menyetujui transaksi."); return; }
     setActing(tx.id);
     await (supabase.from("transactions") as any)
       .update({ status:"completed", updated_at: new Date().toISOString(), notes: tx.notes })
@@ -96,6 +98,7 @@ export default function AdminTransaksiPage() {
 
   async function rejectConfirm() {
     if (!rejectId) return;
+    if (!isMaster) { alert("Hanya master yang bisa menolak transaksi."); return; }
     setActing(rejectId);
     await (supabase.from("transactions") as any)
       .update({ status:"rejected", updated_at: new Date().toISOString(), notes: (() => { const orig = [...pending,...history].find(t=>t.id===rejectId)?.notes || ""; return orig ? `${orig} | [Ditolak: ${rejectNote||"-"}]` : (rejectNote||null); })() })
@@ -189,16 +192,20 @@ export default function AdminTransaksiPage() {
                       {fmtDate(tx.transaction_date || tx.created_at)}
                     </td>
                     <td style={{ padding:"13px 18px" }}>
-                      <div style={{ display:"flex", gap:6 }}>
-                        <button onClick={()=>approve(tx)} disabled={acting===tx.id}
-                          style={{ background:"rgba(6,95,70,0.08)", border:"1px solid rgba(52,211,153,0.25)", borderRadius:8, padding:"5px 12px", color:"#065f46", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===tx.id?.6:1 }}>
-                          Setujui
-                        </button>
-                        <button onClick={()=>{ setRejectId(tx.id); setRejectNote(""); }} disabled={acting===tx.id}
-                          style={{ background:"rgba(153,27,27,0.06)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:8, padding:"5px 12px", color:"#991b1b", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===tx.id?.6:1 }}>
-                          Tolak
-                        </button>
-                      </div>
+                      {isMaster ? (
+                        <div style={{ display:"flex", gap:6 }}>
+                          <button onClick={()=>approve(tx)} disabled={acting===tx.id}
+                            style={{ background:"rgba(6,95,70,0.08)", border:"1px solid rgba(52,211,153,0.25)", borderRadius:8, padding:"5px 12px", color:"#065f46", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===tx.id?.6:1 }}>
+                            Setujui
+                          </button>
+                          <button onClick={()=>{ setRejectId(tx.id); setRejectNote(""); }} disabled={acting===tx.id}
+                            style={{ background:"rgba(153,27,27,0.06)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:8, padding:"5px 12px", color:"#991b1b", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===tx.id?.6:1 }}>
+                            Tolak
+                          </button>
+                        </div>
+                      ) : (
+                        <span style={{ color:"rgba(101,67,14,0.4)", fontSize:".76rem", fontStyle:"italic" }}>Menunggu approval master</span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -215,7 +222,7 @@ export default function AdminTransaksiPage() {
           <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
             {["all","completed","rejected","processing"].map(s => (
               <button key={s} onClick={()=>setFilterStatus(s)}
-                style={{ padding:"6px 14px", borderRadius:8, border:`1px solid ${filterStatus===s?"rgba(212,175,55,0.35)":"rgba(201,162,39,0.15)"}`, background:filterStatus===s?"rgba(212,175,55,0.1)":"transparent", color:filterStatus===s?"#D4AF37":"rgba(255,255,255,0.45)", cursor:"pointer", fontSize:".8rem", fontWeight:filterStatus===s?700:400, textTransform:"capitalize" }}>
+                style={{ padding:"6px 14px", borderRadius:8, border:`1px solid ${filterStatus===s?"rgba(212,175,55,0.35)":"rgba(201,162,39,0.15)"}`, background:filterStatus===s?"rgba(212,175,55,0.1)":"transparent", color:filterStatus===s?"#D4AF37":"rgba(101,67,14,0.5)", cursor:"pointer", fontSize:".8rem", fontWeight:filterStatus===s?700:400, textTransform:"capitalize" }}>
                 {s==="all"?"Semua":s}
               </button>
             ))}

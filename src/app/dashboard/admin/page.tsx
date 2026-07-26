@@ -31,6 +31,7 @@ function fmtDate(s: string) {
 
 export default function AdminDashboardPage() {
   const { user } = useAuthStore();
+  const isMaster = user?.role === "master";
   const [pendingCount, setPendingCount] = useState(0);
   const [todayCount,   setTodayCount]   = useState(0);
   const [memberCount,  setMemberCount]  = useState(0);
@@ -63,6 +64,7 @@ export default function AdminDashboardPage() {
   useEffect(() => { load(); }, []);
 
   async function approve(id: string) {
+    if (!isMaster) { alert("Hanya master yang bisa menyetujui transaksi."); return; }
     setActing(id);
     await (supabase.from("transactions") as any)
       .update({ status:"completed", updated_at: new Date().toISOString() })
@@ -72,6 +74,7 @@ export default function AdminDashboardPage() {
   }
 
   async function reject(id: string) {
+    if (!isMaster) { alert("Hanya master yang bisa menolak transaksi."); return; }
     setActing(id);
     await (supabase.from("transactions") as any)
       .update({ status:"rejected", updated_at: new Date().toISOString() })
@@ -172,16 +175,20 @@ export default function AdminDashboardPage() {
                       {fmtDate(tx.transaction_date || tx.created_at)}
                     </td>
                     <td style={{ padding:"13px 18px" }}>
-                      <div style={{ display:"flex", gap:6 }}>
-                        <button onClick={() => approve(tx.id)} disabled={acting===tx.id}
-                          style={{ background:"rgba(6,95,70,0.08)", border:"1px solid rgba(6,95,70,0.2)", borderRadius:8, padding:"5px 12px", color:"#065f46", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===tx.id?.6:1 }}>
-                          Setujui
-                        </button>
-                        <button onClick={() => reject(tx.id)} disabled={acting===tx.id}
-                          style={{ background:"rgba(153,27,27,0.06)", border:"1px solid rgba(153,27,27,0.18)", borderRadius:8, padding:"5px 12px", color:"#991b1b", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===tx.id?.6:1 }}>
-                          Tolak
-                        </button>
-                      </div>
+                      {isMaster ? (
+                        <div style={{ display:"flex", gap:6 }}>
+                          <button onClick={() => approve(tx.id)} disabled={acting===tx.id}
+                            style={{ background:"rgba(6,95,70,0.08)", border:"1px solid rgba(6,95,70,0.2)", borderRadius:8, padding:"5px 12px", color:"#065f46", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===tx.id?.6:1 }}>
+                            Setujui
+                          </button>
+                          <button onClick={() => reject(tx.id)} disabled={acting===tx.id}
+                            style={{ background:"rgba(153,27,27,0.06)", border:"1px solid rgba(153,27,27,0.18)", borderRadius:8, padding:"5px 12px", color:"#991b1b", cursor:"pointer", fontSize:".78rem", fontWeight:600, opacity:acting===tx.id?.6:1 }}>
+                            Tolak
+                          </button>
+                        </div>
+                      ) : (
+                        <span style={{ color:"rgba(101,67,14,0.4)", fontSize:".76rem", fontStyle:"italic" }}>Menunggu approval master</span>
+                      )}
                     </td>
                   </tr>
                 ))}

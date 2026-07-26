@@ -82,8 +82,16 @@ export interface Database {
           tenor: number;
           down_payment: number;
           paid_installments: number;
-          status: "active" | "completed" | "overdue";
+          status: "pending" | "active" | "completed" | "overdue" | "ditolak";
           next_due_date: string | null;
+          notes: string | null;
+          transaction_date: string | null;
+          approved_by: string | null;
+          approved_at: string | null;
+          dp_paid_at: string | null;
+          voucher_id: string | null;
+          voucher_code: string | null;
+          discount_amount: number;
           created_at: string;
         };
         Insert: Omit<Database["public"]["Tables"]["installments"]["Row"], "id" | "created_at"> & {

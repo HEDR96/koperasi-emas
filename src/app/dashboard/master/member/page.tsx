@@ -107,11 +107,17 @@ export default function MemberManagementPage() {
   async function load() {
     setLoading(true);
     try {
-      const { data } = await (supabase.from("profiles") as any)
-        .select("id,name,nik,phone,status,gold_grams,rupiah_balance,created_at,role,product_quota")
-        .or("role.eq.member,is_member.eq.true")
-        .order("created_at",{ ascending:false });
-      const list = data ?? [];
+      const [{ data }, { data: goldRes }] = await Promise.all([
+        (supabase.from("profiles") as any)
+          .select("id,name,nik,phone,status,gold_grams,rupiah_balance,created_at,role,product_quota")
+          .or("role.eq.member,is_member.eq.true")
+          .order("created_at",{ ascending:false }),
+        ((supabase as any).rpc("all_members_gold") as any),
+      ]);
+      // gold_grams kolom tersimpan tidak pernah ter-update — timpa dengan hitungan live
+      // dari transaksi beli/buyback completed + cicilan aktif/lunas/terlambat.
+      const goldMap = new Map((goldRes||[]).map((r:any)=>[r.user_id, Number(r.total_gram)||0]));
+      const list = (data ?? []).map((m:any) => ({ ...m, gold_grams: goldMap.get(m.id) ?? m.gold_grams }));
       setMembers(list);
       setFiltered(list);
     } catch {}
@@ -153,13 +159,14 @@ export default function MemberManagementPage() {
     setQuotaInput(String(m.product_quota ?? 3));
     setDetailLoading(true);
     try {
-      const [txRes, savRes, insRes, simRes, legacyRes, gadaiRes] = await Promise.all([
+      const [txRes, savRes, insRes, simRes, legacyRes, gadaiRes, goldRes] = await Promise.all([
         (supabase.from("transactions") as any).select("*").eq("user_id",m.id).order("created_at",{ascending:false}).limit(5),
         (supabase.from("savings") as any).select("*").eq("user_id",m.id),
         (supabase.from("installments") as any).select("*").eq("user_id",m.id).order("created_at",{ascending:false}),
         (supabase.from("simpanan") as any).select("id, type, amount, status, transaction_date, created_at, description").eq("user_id",m.id).order("transaction_date",{ascending:false}),
         (supabase.from("transactions") as any).select("id, amount, status, transaction_date, created_at, notes").eq("user_id",m.id).eq("type","tabungan").eq("status","completed").order("transaction_date",{ascending:false}),
         (supabase.from("gadai") as any).select("id, dana_cair, sisa_tagihan, status, tenor, angsuran_per_bulan, created_at").eq("user_id",m.id).order("created_at",{ascending:false}),
+        ((supabase as any).rpc("member_total_gold", { p_user_id: m.id }) as any),
       ]);
       // Gabungkan tabel simpanan + sisa transaksi lama type='tabungan' (sebelum migrasi ke tabel simpanan)
       const legacySim = (legacyRes.data||[]).map((t:any) => ({
@@ -168,7 +175,9 @@ export default function MemberManagementPage() {
       }));
       const mergedSim = [...(simRes.data||[]), ...legacySim]
         .sort((a:any,b:any)=>new Date(b.transaction_date||b.created_at).getTime()-new Date(a.transaction_date||a.created_at).getTime());
-      setDetail(d => d ? ({ ...d, transactions:txRes.data||[], savings:savRes.data||[], installments:insRes.data||[], simpanan:mergedSim, gadai:gadaiRes.data||[] }) : d);
+      // gold_grams kolom tersimpan tidak pernah ter-update — timpa dengan hitungan live.
+      const liveGold = typeof goldRes.data === "number" ? goldRes.data : m.gold_grams;
+      setDetail(d => d ? ({ ...d, gold_grams: liveGold, transactions:txRes.data||[], savings:savRes.data||[], installments:insRes.data||[], simpanan:mergedSim, gadai:gadaiRes.data||[] }) : d);
     } catch {}
     setDetailLoading(false);
   }
@@ -676,7 +685,7 @@ export default function MemberManagementPage() {
                     <div key={ins.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(255,255,255,0.72)", borderRadius:9, padding:"9px 14px" }}>
                       <span style={{ color:"rgba(101,67,14,0.75)", fontSize:".83rem" }}>{ins.product_name}</span>
                       <span style={{ color:"rgba(101,67,14,0.55)", fontSize:".83rem" }}>
-                        {ins.paid_installments}/{ins.tenor} angsuran · sisa {fmt(Math.max(0,(ins.tenor-ins.paid_installments)*ins.monthly_amount))}
+                        {ins.paid_installments}/{ins.tenor} angsuran · sisa {fmt(Math.max(0, ins.total_amount - ins.paid_installments*ins.monthly_amount))}
                       </span>
                       <span style={{ color:STATUS_COLOR[ins.status]||"#fff", fontSize:".75rem" }}>{ins.status}</span>
                     </div>

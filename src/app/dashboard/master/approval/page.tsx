@@ -80,8 +80,9 @@ export default function ApprovalPage() {
     } catch {}
   }
 
-  // Transaksi (buyback, tabungan, dll -- bukan buy)
+  // Transaksi (buyback, tabungan, dll -- bukan buy) — hanya master yang boleh approve/tolak
   async function actTx(row: any, approve: boolean) {
+    if (!isMaster) { alert("Hanya master yang bisa menyetujui/menolak transaksi."); return; }
     if (approve && row.type === "buy") {
       setOngkir(""); setDiskon("");
       setOngkirModal({ row });
@@ -104,6 +105,7 @@ export default function ApprovalPage() {
   // Konfirmasi approve beli emas dengan ongkir & diskon
   async function confirmBuyApproval() {
     if (!ongkirModal) return;
+    if (!isMaster) { alert("Hanya master yang bisa menyetujui transaksi."); return; }
     const row = ongkirModal.row;
     const ongkirVal = Number(ongkir) || 0;
     const diskonVal = Number(diskon) || 0;
@@ -125,8 +127,9 @@ export default function ApprovalPage() {
     await load();
   }
 
-  // Gadai
+  // Gadai — hanya master yang boleh approve/tolak pengajuan
   async function actGadai(row: any, approve: boolean) {
+    if (!isMaster) { alert("Hanya master yang bisa menyetujui/menolak pengajuan gadai."); return; }
     setActing(row.id);
     await (supabase.from("gadai") as any)
       .update({
@@ -233,7 +236,7 @@ export default function ApprovalPage() {
     </div>
     <div style={{ display:"flex", alignItems:"center", gap:16 }}>
       <span style={{ color, fontWeight:800, fontSize:"1rem" }}>{fmt(row.amount)}</span>
-      <ActionBtns id={row.id} onApprove={()=>actTx(row,true)} onReject={()=>actTx(row,false)} />
+      <ActionBtns id={row.id} locked={!isMaster} onApprove={()=>actTx(row,true)} onReject={()=>actTx(row,false)} />
     </div>
   </>, row.id);
 
@@ -265,7 +268,7 @@ export default function ApprovalPage() {
     </div>
     <div style={{ display:"flex", alignItems:"center", gap:16 }}>
       <span style={{ color:"#1d4ed8", fontWeight:800, fontSize:"1rem" }}>{fmt(row.dana_cair)}</span>
-      <ActionBtns id={row.id} onApprove={()=>actGadai(row,true)} onReject={()=>actGadai(row,false)} />
+      <ActionBtns id={row.id} locked={!isMaster} onApprove={()=>actGadai(row,true)} onReject={()=>actGadai(row,false)} />
     </div>
   </>, row.id);
 
