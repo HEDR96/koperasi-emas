@@ -254,14 +254,15 @@ export default function MemberManagementPage() {
       if (error) { setCForm(f=>({...f,saving:false,err:error.message})); return; }
       try { await (supabase.from("notifications") as any).insert({ user_id:m.id, title:"Pembelian Emas", body:`Pembelian ${produk} ${fmt(c.total)} tercatat.`, type:"transaksi", is_read:false, link:"/dashboard/member/histori" }); } catch {}
     } else {
-      const due = new Date(); due.setMonth(due.getMonth()+1);
+      // Selalu "pending" — tetap harus di-approve master (isi DP + tanggal setor)
+      // sebelum aktif, sama seperti pengajuan dari member sendiri.
       const { error } = await (supabase.from("installments") as any).insert({
         user_id: m.id, product_name: produk, total_gram: c.gram, total_amount: c.total,
         monthly_amount: c.monthly, tenor: c.tenor, down_payment: c.dp,
-        paid_installments: 0, status: "active", next_due_date: due.toISOString().slice(0,10),
+        paid_installments: 0, status: "pending",
       });
       if (error) { setCForm(f=>({...f,saving:false,err:error.message})); return; }
-      try { await (supabase.from("notifications") as any).insert({ user_id:m.id, title:"Cicilan Baru", body:`Cicilan ${produk} ${fmt(c.total)} (${c.tenor}x ${fmt(c.monthly)}, DP ${fmt(c.dp)}) dibuat.`, type:"cicilan", is_read:false, link:"/dashboard/member/cicilan" }); } catch {}
+      try { await (supabase.from("notifications") as any).insert({ user_id:m.id, title:"Pengajuan Cicilan Dibuat", body:`Cicilan ${produk} ${fmt(c.total)} (${c.tenor}x ${fmt(c.monthly)}) dibuat, menunggu persetujuan master.`, type:"cicilan", is_read:false, link:"/dashboard/member/cicilan" }); } catch {}
     }
     setCForm(C_EMPTY);
     await openDetail(m); load();

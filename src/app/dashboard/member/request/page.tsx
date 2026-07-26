@@ -325,7 +325,7 @@ export default function MemberRequestPage() {
       {/* My Requests */}
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-          <h2 style={{ color: "rgba(255,255,255,0.7)", fontSize: ".9rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", margin: 0 }}>
+          <h2 style={{ color: "rgba(101,67,14,0.7)", fontSize: ".9rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", margin: 0 }}>
             Riwayat Permintaan
             {pendingCount > 0 && (
               <span style={{ marginLeft: 8, background: "rgba(146,64,14,0.1)", color: "#fbbf24", borderRadius: 20, padding: "2px 8px", fontSize: ".72rem" }}>

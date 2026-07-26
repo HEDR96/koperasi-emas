@@ -30,7 +30,7 @@ const FILTERS = ["semua","pending","berjalan","lunas"] as const;
 interface Item {
   id: string; kind: "cicilan" | "gadai"; user_id: string; name: string; memberName: string;
   total: number; monthly: number; downPayment: number; tenor: number; paid: number; sisa: number; status: string; created_at: string;
-  notes: string | null;
+  notes: string | null; approvedByName: string | null; approvedAt: string | null; dpPaidAt: string | null;
 }
 
 export default function AdminCicilanPage() {
@@ -48,6 +48,10 @@ export default function AdminCicilanPage() {
 
   const [notesEdit, setNotesEdit] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
+
+  // Field DP saat approve pengajuan cicilan (master bisa koreksi sesuai setoran asli)
+  const [dpEdit, setDpEdit] = useState("");
+  const [dpDateEdit, setDpDateEdit] = useState("");
 
   // Data harga emas + parameter cicilan (untuk auto-fill)
   const [goldRows, setGoldRows] = useState<{ gram:number; harga:number }[]>([]);
@@ -79,16 +83,18 @@ export default function AdminCicilanPage() {
       id:r.id, kind:"cicilan", user_id:r.user_id, name:r.product_name || "Cicilan Emas",
       memberName:r.profiles?.name || "—", total:r.total_amount, monthly:r.monthly_amount,
       downPayment: r.down_payment || 0,
-      tenor:r.tenor, paid:r.paid_installments, sisa:Math.max(0,(r.tenor-r.paid_installments)*r.monthly_amount),
+      tenor:r.tenor, paid:r.paid_installments,
+      sisa:Math.max(0, r.total_amount - r.paid_installments*r.monthly_amount),
       status: r.status === "completed" ? "lunas" : (r.status === "overdue" ? "terlambat" : r.status === "pending" ? "pending" : "berjalan"),
       created_at:r.created_at, notes: r.notes || null,
+      approvedByName: r.approver?.name || null, approvedAt: r.approved_at || null, dpPaidAt: r.dp_paid_at || null,
     };
   }
 
   async function load() {
     setLoading(true);
     const { data } = await (supabase.from("installments") as any)
-      .select("id, user_id, product_name, total_amount, monthly_amount, down_payment, tenor, paid_installments, status, created_at, notes, profiles:profiles!user_id(name)")
+      .select("id, user_id, product_name, total_amount, monthly_amount, down_payment, tenor, paid_installments, status, created_at, notes, approved_at, dp_paid_at, profiles:profiles!user_id(name), approver:profiles!approved_by(name)")
       .order("created_at",{ascending:false}).limit(300);
     setRows((data||[]).map(normCicilan));
     setLoading(false);
@@ -102,11 +108,13 @@ export default function AdminCicilanPage() {
   const calcDp      = selectedRow ? cicilanDpTenor(selectedRow.harga, tenor, cicilanParams.adminAnggota, cicilanParams.persenBulanAnggota, cicilanParams.persenDpAnggota) : 0;
   const calcAngsuran = selectedRow ? cicilanAngsuranTenor(selectedRow.harga, tenor, cicilanParams.adminAnggota, cicilanParams.persenBulanAnggota, cicilanParams.persenDpAnggota) : 0;
 
+  // Cicilan yang dibuat di sini SELALU masuk sebagai "pending" — tetap harus
+  // di-approve master (isi DP + tanggal setor) sebelum aktif, sama seperti
+  // pengajuan yang datang dari member sendiri. Satu pintu approval, konsisten.
   async function createCicilan() {
     if (!form.user_id || !form.gram) { setFormErr("Pilih anggota dan berat emas."); return; }
     if (!selectedRow) { setFormErr("Harga emas untuk berat ini tidak ditemukan."); return; }
     setSaving(true); setFormErr("");
-    const due = new Date(); due.setMonth(due.getMonth() + 1);
     const productName = `Emas ${selectedRow.gram} gram`;
     const { error } = await (supabase.from("installments") as any).insert({
       user_id: form.user_id,
@@ -117,16 +125,15 @@ export default function AdminCicilanPage() {
       down_payment: calcDp,
       tenor,
       paid_installments: 0,
-      status: "active",
-      next_due_date: due.toISOString().slice(0,10),
+      status: "pending",
       notes: form.notes || null,
     });
     if (error) { setFormErr(error.message); }
     else {
       try {
         await (supabase.from("notifications") as any).insert({
-          user_id: form.user_id, title:"Cicilan Baru",
-          body: `Cicilan ${productName} (${tenor} bln). DP: ${fmt(calcDp)}, angsuran: ${fmt(calcAngsuran)}/bln.`,
+          user_id: form.user_id, title:"Pengajuan Cicilan Dibuat",
+          body: `Cicilan ${productName} (${tenor} bln) dibuat, menunggu persetujuan master.`,
           type:"cicilan", is_read:false, link:"/dashboard/member/cicilan",
         });
       } catch {}
@@ -148,6 +155,8 @@ export default function AdminCicilanPage() {
 
   async function openDetail(it: Item) {
     setDetail(it); setDetailLoading(true); setPayments([]); setNotesEdit(it.notes || "");
+    setDpEdit(it.downPayment ? String(it.downPayment) : "");
+    setDpDateEdit(it.dpPaidAt || new Date().toISOString().slice(0,10));
     if (it.kind === "cicilan") {
       const { data } = await (supabase.from("cicilan_pembayaran") as any)
         .select("id, angsuran_ke, amount, paid_at").eq("installment_id", it.id).order("angsuran_ke",{ascending:true});
@@ -161,14 +170,20 @@ export default function AdminCicilanPage() {
     setActing(it.id);
     const ke = it.paid + 1;
     const done = ke >= it.tenor;
-    await (supabase.from("cicilan_pembayaran") as any).insert({
+    const { error: payErr } = await (supabase.from("cicilan_pembayaran") as any).insert({
       installment_id: it.id, user_id: it.user_id, angsuran_ke: ke, amount: it.monthly, recorded_by: user?.id,
     });
+    if (payErr) { alert(`Gagal mencatat pembayaran: ${payErr.message}`); setActing(null); return; }
     const due = new Date(); due.setMonth(due.getMonth() + 1);
-    await (supabase.from("installments") as any).update({
+    const { error: instErr } = await (supabase.from("installments") as any).update({
       paid_installments: ke, status: done ? "completed" : "active",
       next_due_date: done ? null : due.toISOString().slice(0,10),
-    }).eq("id", it.id);
+    }).eq("id", it.id).select("id");
+    if (instErr) {
+      // riwayat pembayaran sudah tersimpan tapi counter gagal update — hapus riwayat lagi supaya tidak nyangkut
+      await (supabase.from("cicilan_pembayaran") as any).delete().eq("installment_id", it.id).eq("angsuran_ke", ke);
+      alert(`Gagal update status cicilan: ${instErr.message}`); setActing(null); return;
+    }
     try {
       await (supabase.from("notifications") as any).insert({
         user_id: it.user_id, title: done ? `${it.name} Lunas 🎉` : "Pembayaran Diterima",
@@ -183,21 +198,36 @@ export default function AdminCicilanPage() {
     setActing(null);
   }
 
-  // Setujui pengajuan cicilan member (pending -> active)
+  // Setujui pengajuan cicilan member (pending -> active) — hanya master.
+  // DP bisa dikoreksi sesuai setoran asli + tanggal setor dicatat.
   async function approveCicilan(it: Item) {
+    if (!isMaster) { alert("Hanya master yang bisa menyetujui pengajuan cicilan."); return; }
+    if (!dpDateEdit) { alert("Isi tanggal setor DP terlebih dahulu."); return; }
     setActing(it.id);
     const due = new Date(); due.setMonth(due.getMonth() + 1);
-    await (supabase.from("installments") as any).update({ status:"active", next_due_date: due.toISOString().slice(0,10) }).eq("id", it.id);
-    try { await (supabase.from("notifications") as any).insert({ user_id:it.user_id, title:"Cicilan Disetujui", body:`Pengajuan cicilan ${it.name} disetujui.`, type:"cicilan", is_read:false, link:"/dashboard/member/cicilan" }); } catch {}
-    setDetail({ ...it, status:"berjalan" }); await load(); setActing(null);
+    const dpVal = Number(dpEdit) || 0;
+    const { error } = await (supabase.from("installments") as any).update({
+      status:"active", next_due_date: due.toISOString().slice(0,10),
+      approved_by: user?.id || null, approved_at: new Date().toISOString(),
+      down_payment: dpVal, dp_paid_at: dpDateEdit,
+    }).eq("id", it.id).select("id");
+    if (error) { alert(`Gagal menyetujui: ${error.message}`); setActing(null); return; }
+    try { await (supabase.from("notifications") as any).insert({ user_id:it.user_id, title:"Cicilan Disetujui", body:`Pengajuan cicilan ${it.name} disetujui. DP: ${fmt(dpVal)}.`, type:"cicilan", is_read:false, link:"/dashboard/member/cicilan" }); } catch {}
+    setDetail({ ...it, status:"berjalan", downPayment: dpVal, dpPaidAt: dpDateEdit }); await load(); setActing(null);
   }
 
   async function removeItem(it: Item) {
     if (!window.confirm(`Hapus cicilan "${it.name}" milik ${it.memberName}? Tidak bisa dibatalkan.`)) return;
     setActing(it.id);
-    await (supabase.from("installments") as any).delete().eq("id", it.id);
-    setDetail(null);
-    await load();
+    const { data, error } = await (supabase.from("installments") as any).delete().eq("id", it.id).select("id");
+    if (error) {
+      alert(`Gagal menghapus: ${error.message}`);
+    } else if (!data?.length) {
+      alert("Gagal menghapus: tidak ada baris yang terhapus. Kemungkinan akun Anda tidak punya hak akses master (RLS menolak tanpa error).");
+    } else {
+      setDetail(null);
+      await load();
+    }
     setActing(null);
   }
 
@@ -229,7 +259,7 @@ export default function AdminCicilanPage() {
       <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
         {FILTERS.map(f => (
           <button key={f} onClick={()=>setFilter(f)}
-            style={{ padding:"6px 14px", borderRadius:8, border:`1px solid ${filter===f?"rgba(212,175,55,0.35)":"rgba(201,162,39,0.15)"}`, background:filter===f?"rgba(212,175,55,0.1)":"transparent", color:filter===f?"#D4AF37":"rgba(255,255,255,0.45)", cursor:"pointer", fontSize:".8rem", fontWeight:filter===f?700:400, textTransform:"capitalize" }}>
+            style={{ padding:"6px 14px", borderRadius:8, border:`1px solid ${filter===f?"rgba(212,175,55,0.35)":"rgba(201,162,39,0.15)"}`, background:filter===f?"rgba(212,175,55,0.1)":"transparent", color:filter===f?"#D4AF37":"rgba(101,67,14,0.5)", cursor:"pointer", fontSize:".8rem", fontWeight:filter===f?700:400, textTransform:"capitalize" }}>
             {f}
           </button>
         ))}
@@ -401,6 +431,7 @@ export default function AdminCicilanPage() {
                   {[
                     { label:"Total Cicilan", value:fmt(detail.total), color:"#2D1B00" },
                     ...(detail.downPayment > 0 ? [{ label:"DP Disetor", value:fmt(detail.downPayment), color:"#1d4ed8" }] : []),
+                    ...(detail.dpPaidAt ? [{ label:"Tgl Setor DP", value:fmtDate(detail.dpPaidAt), color:"#1d4ed8" }] : []),
                     { label:"Angsuran/bln", value:fmt(detail.monthly), color:"#a78bfa" },
                     { label:"Terbayar", value:`${detail.paid}/${detail.tenor}`, color:"#065f46" },
                     { label:"Sisa", value:fmt(detail.sisa), color: detail.sisa>0 ? "#f87171" : "#34d399" },
@@ -412,11 +443,37 @@ export default function AdminCicilanPage() {
                   ))}
                 </div>
 
+                {detail.status !== "pending" && (
+                  <p style={{ color:"rgba(101,67,14,0.5)", fontSize:".78rem", margin:"0 0 14px" }}>
+                    {detail.approvedByName
+                      ? <>Disetujui oleh <strong style={{ color:"#2D1B00" }}>{detail.approvedByName}</strong>{detail.approvedAt ? ` · ${fmtDate(detail.approvedAt)}` : ""}</>
+                      : "Data approval tidak tersedia (dibuat sebelum fitur pelacakan approval aktif)."}
+                  </p>
+                )}
+
                 {detail.status === "pending" ? (
-                  <button onClick={()=>approveCicilan(detail)} disabled={acting===detail.id}
-                    style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px", borderRadius:11, background:"linear-gradient(135deg,#fbbf24,#fcd34d)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".92rem", cursor:acting===detail.id?"not-allowed":"pointer", opacity:acting===detail.id?.7:1, marginBottom:18 }}>
-                    <Check style={{ width:16, height:16 }} /> Setujui Pengajuan Cicilan
-                  </button>
+                  isMaster ? (
+                    <div style={{ marginBottom:18 }}>
+                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:12 }}>
+                        <div>
+                          <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".78rem", display:"block", marginBottom:6 }}>DP Disetor (Rp)</label>
+                          <RupiahInput value={dpEdit} onValueChange={setDpEdit} style={inp} placeholder="0" />
+                        </div>
+                        <div>
+                          <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".78rem", display:"block", marginBottom:6 }}>Tanggal Setor DP</label>
+                          <input type="date" value={dpDateEdit} onChange={e=>setDpDateEdit(e.target.value)} style={inp} />
+                        </div>
+                      </div>
+                      <button onClick={()=>approveCicilan(detail)} disabled={acting===detail.id}
+                        style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px", borderRadius:11, background:"linear-gradient(135deg,#fbbf24,#fcd34d)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".92rem", cursor:acting===detail.id?"not-allowed":"pointer", opacity:acting===detail.id?.7:1 }}>
+                        <Check style={{ width:16, height:16 }} /> Setujui Pengajuan Cicilan
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px", borderRadius:11, background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.3)", color:"#8B6010", fontWeight:600, fontSize:".85rem", marginBottom:18 }}>
+                      <Clock style={{ width:16, height:16 }} /> Menunggu persetujuan Master
+                    </div>
+                  )
                 ) : detail.status !== "lunas" ? (
                   <button onClick={()=>recordPayment(detail)} disabled={acting===detail.id}
                     style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px", borderRadius:11, background:"linear-gradient(135deg,#34d399,#6ee7b7)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".92rem", cursor:acting===detail.id?"not-allowed":"pointer", opacity:acting===detail.id?.7:1, marginBottom:18 }}>

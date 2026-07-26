@@ -82,7 +82,7 @@ export default function MasterAuditPage() {
       <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
         {FILTERS.map(f => (
           <button key={f} onClick={()=>setFilter(f)}
-            style={{ padding:"6px 14px", borderRadius:8, border:`1px solid ${filter===f?"rgba(212,175,55,0.35)":"rgba(201,162,39,0.15)"}`, background:filter===f?"rgba(212,175,55,0.1)":"transparent", color:filter===f?"#D4AF37":"rgba(255,255,255,0.45)", cursor:"pointer", fontSize:".8rem", fontWeight:filter===f?700:400, textTransform:"capitalize" }}>
+            style={{ padding:"6px 14px", borderRadius:8, border:`1px solid ${filter===f?"rgba(212,175,55,0.35)":"rgba(201,162,39,0.15)"}`, background:filter===f?"rgba(212,175,55,0.1)":"transparent", color:filter===f?"#D4AF37":"rgba(101,67,14,0.5)", cursor:"pointer", fontSize:".8rem", fontWeight:filter===f?700:400, textTransform:"capitalize" }}>
             {f}
           </button>
         ))}

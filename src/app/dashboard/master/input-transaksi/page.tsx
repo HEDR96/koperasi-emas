@@ -165,7 +165,7 @@ export default function InputTransaksiPage() {
           paid_installments: 0,
           status:         langsungAktif ? "active" : "pending",
           ...(selectedVoucher ? { voucher_id: selectedVoucher.id, voucher_code: selectedVoucher.code, discount_amount: discountAmount(Number(form.amount), selectedVoucher.discount_type, selectedVoucher.discount_value) } : {}),
-          ...(langsungAktif ? { next_due_date: due.toISOString().slice(0,10) } : {}),
+          ...(langsungAktif ? { next_due_date: due.toISOString().slice(0,10), approved_by: user?.id || null, approved_at: new Date().toISOString() } : {}),
         });
         if (err) { setError(err.message); setSaving(false); return; }
         // Notifikasi: kalau pending → beri tahu admin/master untuk approve; kalau aktif → beri tahu anggota.

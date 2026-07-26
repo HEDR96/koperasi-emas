@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { RefreshCw, Check, X, Coins, Landmark, CreditCard, Truck, Tag } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+import RupiahInput from "@/components/ui/RupiahInput";
 
 const fmtRibuan = (v: string | number) => {
   const d = String(v ?? "").replace(/\D/g, "");
@@ -24,6 +25,7 @@ type Tab = "all" | "beli" | "cicilan" | "gadai" | "buyback";
 
 export default function ApprovalPage() {
   const { user } = useAuthStore();
+  const isMaster = user?.role === "master";
   const [tab, setTab] = useState<Tab>("all");
   const [txs, setTxs]       = useState<any[]>([]);
   const [gadais, setGadais] = useState<any[]>([]);
@@ -37,6 +39,12 @@ export default function ApprovalPage() {
   const [ongkir, setOngkir]   = useState("");
   const [diskon, setDiskon]   = useState("");
   const [savingOngkir, setSavingOngkir] = useState(false);
+
+  // Modal DP -- hanya untuk approve pengajuan cicilan
+  const [cicModal, setCicModal] = useState<{ row: any } | null>(null);
+  const [cicDp, setCicDp] = useState("");
+  const [cicDpDate, setCicDpDate] = useState("");
+  const [savingCic, setSavingCic] = useState(false);
 
   // Derived per-type dari txs
   const beliRows    = txs.filter(r => r.type === "buy");
@@ -53,7 +61,7 @@ export default function ApprovalPage() {
         .select("id, user_id, dana_cair, sisa_tagihan, tenor, angsuran_per_bulan, gram_setara, keterangan, created_at, transaction_date, profiles:profiles!user_id(name)")
         .eq("status","pengajuan").order("created_at",{ascending:false}),
       (supabase.from("installments") as any)
-        .select("id, user_id, product_name, total_amount, monthly_amount, tenor, created_at, profiles:profiles!user_id(name)")
+        .select("id, user_id, product_name, total_amount, monthly_amount, down_payment, tenor, created_at, profiles:profiles!user_id(name)")
         .eq("status","pending").order("created_at",{ascending:false}),
     ]);
     const errs = [txRes.error, gadaiRes.error, cicRes.error].filter(Boolean);
@@ -133,17 +141,51 @@ export default function ApprovalPage() {
     await load(); setActing(null);
   }
 
-  // Cicilan
+  // Cicilan — hanya master yang boleh approve/tolak pengajuan.
+  // Approve membuka modal DP dulu (DP bisa dikoreksi sesuai setoran asli); tolak langsung.
   async function actCicilan(row: any, approve: boolean) {
+    if (!isMaster) { alert("Hanya master yang bisa menyetujui/menolak pengajuan cicilan."); return; }
+    if (approve) {
+      setCicDp(row.down_payment ? String(row.down_payment) : "");
+      setCicDpDate(new Date().toISOString().slice(0,10));
+      setCicModal({ row });
+      return;
+    }
     setActing(row.id);
-    const due = new Date(); due.setMonth(due.getMonth() + 1);
-    await (supabase.from("installments") as any)
-      .update(approve ? { status:"active", next_due_date: due.toISOString().slice(0,10) } : { status:"ditolak" })
-      .eq("id", row.id);
-    await notify(row.user_id, approve ? "Cicilan Disetujui" : "Cicilan Ditolak",
-      `Pengajuan cicilan ${row.product_name} ${fmt(row.total_amount)} telah ${approve?"disetujui":"ditolak"}.`,
+    const { error } = await (supabase.from("installments") as any)
+      .update({ status:"ditolak", approved_by: user?.id || null, approved_at: new Date().toISOString() })
+      .eq("id", row.id)
+      .select("id");
+    if (error) { alert(`Gagal: ${error.message}`); setActing(null); return; }
+    await notify(row.user_id, "Cicilan Ditolak",
+      `Pengajuan cicilan ${row.product_name} ${fmt(row.total_amount)} telah ditolak.`,
       "/dashboard/member/cicilan");
     await load(); setActing(null);
+  }
+
+  // Konfirmasi approve cicilan dengan DP & tanggal setor
+  async function confirmCicilanApproval() {
+    if (!cicModal) return;
+    if (!cicDpDate) { alert("Isi tanggal setor DP terlebih dahulu."); return; }
+    const row = cicModal.row;
+    const dpVal = Number(cicDp) || 0;
+    setSavingCic(true);
+    const due = new Date(); due.setMonth(due.getMonth() + 1);
+    const { error } = await (supabase.from("installments") as any)
+      .update({
+        status:"active", next_due_date: due.toISOString().slice(0,10),
+        approved_by: user?.id || null, approved_at: new Date().toISOString(),
+        down_payment: dpVal, dp_paid_at: cicDpDate,
+      })
+      .eq("id", row.id)
+      .select("id");
+    if (error) { alert(`Gagal: ${error.message}`); setSavingCic(false); return; }
+    await notify(row.user_id, "Cicilan Disetujui",
+      `Pengajuan cicilan ${row.product_name} ${fmt(row.total_amount)} telah disetujui. DP: ${fmt(dpVal)}.`,
+      "/dashboard/member/cicilan");
+    setSavingCic(false);
+    setCicModal(null);
+    await load();
   }
 
   const TABS: { id: Tab; label: string; count: number; icon: any; color: string }[] = [
@@ -154,7 +196,10 @@ export default function ApprovalPage() {
     { id:"buyback",  label:"Buyback",      count: buybackRows.length,  icon:Coins,      color:"#065f46" },
   ];
 
-  function ActionBtns({ onApprove, onReject, id }: { onApprove: () => void; onReject: () => void; id: string }) {
+  function ActionBtns({ onApprove, onReject, id, locked }: { onApprove: () => void; onReject: () => void; id: string; locked?: boolean }) {
+    if (locked) {
+      return <span style={{ color:"rgba(101,67,14,0.4)", fontSize:".76rem", fontStyle:"italic" }}>Menunggu approval master</span>;
+    }
     return (
       <div style={{ display:"flex", gap:6 }}>
         <button onClick={onApprove} disabled={acting===id}
@@ -204,7 +249,7 @@ export default function ApprovalPage() {
     </div>
     <div style={{ display:"flex", alignItems:"center", gap:16 }}>
       <span style={{ color:"#a78bfa", fontWeight:800, fontSize:"1rem" }}>{fmt(row.total_amount)}</span>
-      <ActionBtns id={row.id} onApprove={()=>actCicilan(row,true)} onReject={()=>actCicilan(row,false)} />
+      <ActionBtns id={row.id} locked={!isMaster} onApprove={()=>actCicilan(row,true)} onReject={()=>actCicilan(row,false)} />
     </div>
   </>, row.id);
 
@@ -385,6 +430,61 @@ export default function ApprovalPage() {
                     <button onClick={confirmBuyApproval} disabled={savingOngkir}
                       style={{ padding:"11px", borderRadius:10, background:"linear-gradient(135deg,#34d399,#6ee7b7)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".9rem", cursor:savingOngkir?"not-allowed":"pointer", opacity:savingOngkir?.7:1, display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
                       {savingOngkir ? <><RefreshCw style={{width:14,height:14}}/> Menyetujui...</> : <><Check style={{width:14,height:14}}/> Setujui</>}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
+
+      {/* Modal DP -- hanya untuk approve Cicilan */}
+      <AnimatePresence>
+        {cicModal && (() => {
+          const row = cicModal.row;
+          const inp: React.CSSProperties = {
+            width:"100%", background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.22)",
+            borderRadius:10, padding:"10px 14px", color:"#2D1B00", fontSize:".95rem", outline:"none", boxSizing:"border-box",
+          };
+          return (
+            <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+              onClick={()=>!savingCic && setCicModal(null)}
+              style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:2000,
+                display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <motion.div initial={{ opacity:0, scale:.93, y:16 }} animate={{ opacity:1, scale:1, y:0 }} exit={{ opacity:0, scale:.93 }}
+                onClick={e => e.stopPropagation()}
+                style={{ width:"min(420px,94vw)", background:"rgba(255,252,220,0.97)", border:"1px solid rgba(201,162,39,0.3)",
+                  borderRadius:20, padding:26 }}>
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
+                  <div>
+                    <h3 style={{ color:"#8B6010", fontWeight:800, fontSize:"1.05rem", margin:0 }}>Setujui Cicilan</h3>
+                    <p style={{ color:"rgba(101,67,14,0.45)", fontSize:".8rem", margin:"4px 0 0" }}>
+                      {row.profiles?.name || "-"} · {row.product_name}
+                    </p>
+                  </div>
+                  <button onClick={()=>!savingCic&&setCicModal(null)}
+                    style={{ background:"rgba(255,255,255,0.72)", border:"none", borderRadius:8, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(101,67,14,0.55)", cursor:"pointer" }}>
+                    <X style={{ width:14, height:14 }} />
+                  </button>
+                </div>
+                <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+                  <div>
+                    <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"block", marginBottom:7 }}>DP Disetor (Rp)</label>
+                    <RupiahInput value={cicDp} onValueChange={setCicDp} style={inp} placeholder="0" />
+                  </div>
+                  <div>
+                    <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem", display:"block", marginBottom:7 }}>Tanggal Setor DP</label>
+                    <input type="date" value={cicDpDate} onChange={e=>setCicDpDate(e.target.value)} style={inp} />
+                  </div>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginTop:4 }}>
+                    <button onClick={()=>!savingCic&&setCicModal(null)} disabled={savingCic}
+                      style={{ padding:"11px", borderRadius:10, background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.2)", color:"rgba(101,67,14,0.7)", fontWeight:600, fontSize:".9rem", cursor:"pointer" }}>
+                      Batal
+                    </button>
+                    <button onClick={confirmCicilanApproval} disabled={savingCic}
+                      style={{ padding:"11px", borderRadius:10, background:"linear-gradient(135deg,#34d399,#6ee7b7)", border:"none", color:"#0a0a0a", fontWeight:700, fontSize:".9rem", cursor:savingCic?"not-allowed":"pointer", opacity:savingCic?.7:1, display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+                      {savingCic ? <><RefreshCw style={{width:14,height:14}}/> Menyetujui...</> : <><Check style={{width:14,height:14}}/> Setujui</>}
                     </button>
                   </div>
                 </div>
