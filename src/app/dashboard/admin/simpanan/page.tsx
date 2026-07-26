@@ -20,6 +20,7 @@ const STATUS_COLOR: Record<string,string> = { pending:"#fbbf24", completed:"#34d
 
 export default function AdminSimpananPage() {
   const { user } = useAuthStore();
+  const isMaster = user?.role === "master";
   const today = new Date().toISOString().slice(0,10);
   const [form, setForm]       = useState({ user_id:"", amount:"", description:"", tgl: today });
   const [saving, setSaving]   = useState(false);
@@ -57,6 +58,7 @@ export default function AdminSimpananPage() {
   useEffect(() => { loadRecent(); loadPending(); }, []);
 
   async function approvePending(row: any) {
+    if (!isMaster) { alert("Hanya master yang bisa menyetujui setoran simpanan."); return; }
     setActingId(row.id);
     await (supabase.from("simpanan") as any).update({ status:"completed", verified_by:user?.id }).eq("id", row.id);
     try {
@@ -71,6 +73,7 @@ export default function AdminSimpananPage() {
   }
 
   async function rejectPending(row: any) {
+    if (!isMaster) { alert("Hanya master yang bisa menolak setoran simpanan."); return; }
     if (!confirm("Tolak setoran simpanan ini?")) return;
     setActingId(row.id);
     await (supabase.from("simpanan") as any).update({ status:"rejected", verified_by:user?.id }).eq("id", row.id);
@@ -147,16 +150,20 @@ export default function AdminSimpananPage() {
                   <p style={{ color:"rgba(101,67,14,0.4)", fontSize:".75rem", margin:0 }}>{fmtTglJam(r.created_at)}{r.description?` · ${r.description}`:""}</p>
                 </div>
                 <p style={{ color:"#8B6010", fontWeight:700, fontSize:".95rem", margin:0 }}>{fmt(r.amount)}</p>
-                <div style={{ display:"flex", gap:8 }}>
-                  <button onClick={()=>approvePending(r)} disabled={actingId===r.id}
-                    style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:8, background:"rgba(6,95,70,0.08)", border:"1px solid rgba(52,211,153,0.3)", color:"#065f46", cursor:actingId===r.id?"not-allowed":"pointer", fontSize:".8rem", fontWeight:700 }}>
-                    <CheckCheck style={{ width:13, height:13 }} /> Setujui
-                  </button>
-                  <button onClick={()=>rejectPending(r)} disabled={actingId===r.id}
-                    style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:8, background:"rgba(248,113,113,0.07)", border:"1px solid rgba(248,113,113,0.2)", color:"#991b1b", cursor:actingId===r.id?"not-allowed":"pointer", fontSize:".8rem", fontWeight:700 }}>
-                    <XCircle style={{ width:13, height:13 }} /> Tolak
-                  </button>
-                </div>
+                {isMaster ? (
+                  <div style={{ display:"flex", gap:8 }}>
+                    <button onClick={()=>approvePending(r)} disabled={actingId===r.id}
+                      style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:8, background:"rgba(6,95,70,0.08)", border:"1px solid rgba(52,211,153,0.3)", color:"#065f46", cursor:actingId===r.id?"not-allowed":"pointer", fontSize:".8rem", fontWeight:700 }}>
+                      <CheckCheck style={{ width:13, height:13 }} /> Setujui
+                    </button>
+                    <button onClick={()=>rejectPending(r)} disabled={actingId===r.id}
+                      style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:8, background:"rgba(248,113,113,0.07)", border:"1px solid rgba(248,113,113,0.2)", color:"#991b1b", cursor:actingId===r.id?"not-allowed":"pointer", fontSize:".8rem", fontWeight:700 }}>
+                      <XCircle style={{ width:13, height:13 }} /> Tolak
+                    </button>
+                  </div>
+                ) : (
+                  <span style={{ color:"rgba(101,67,14,0.4)", fontSize:".76rem", fontStyle:"italic" }}>Menunggu approval master</span>
+                )}
               </div>
             ))}
           </div>
