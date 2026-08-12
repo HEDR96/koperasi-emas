@@ -23,6 +23,7 @@ const NAV: Record<string, { group: string; items: { label:string; href:string; i
     { group:"Manajemen", items:[
       { label:"Kelola Admin",    href:"/dashboard/master/admin",  icon:ShieldCheck },
       { label:"Kelola Anggota",  href:"/dashboard/master/member", icon:Users },
+      { label:"Kelola Akun",     href:"/dashboard/master/akun",   icon:UserCheck },
       { label:"Harga Emas",      href:"/dashboard/master/harga",  icon:Coins },
     ]},
     { group:"Konten Landing", items:[

@@ -11,6 +11,7 @@ const TITLES: Record<string, string> = {
   "/dashboard/master/statistik": "Statistik & Analitik",
   "/dashboard/master/admin": "Kelola Admin",
   "/dashboard/master/member": "Kelola Anggota",
+  "/dashboard/master/akun": "Kelola Akun",
   "/dashboard/master/harga": "Manajemen Harga Emas",
   "/dashboard/master/promo": "Manajemen Promo",
   "/dashboard/master/testimoni": "Kelola Testimoni",
