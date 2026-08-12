@@ -8,12 +8,13 @@ export async function POST(req: NextRequest) {
   let body: any;
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Body tidak valid." }, { status: 400 }); }
 
-  const { userId, newPassword } = body ?? {};
+  const { userId } = body ?? {};
+  const newPassword = String(body?.newPassword ?? "").trim();
 
   if (!userId || !newPassword) {
     return NextResponse.json({ error: "userId dan newPassword wajib diisi." }, { status: 400 });
   }
-  if (String(newPassword).length < 8) {
+  if (newPassword.length < 8) {
     return NextResponse.json({ error: "Password minimal 8 karakter." }, { status: 400 });
   }
 

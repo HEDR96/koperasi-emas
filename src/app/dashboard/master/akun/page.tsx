@@ -84,7 +84,9 @@ export default function KelolaAkunPage() {
 
   async function submitPassword() {
     if (!pwTarget || !user?.id) return;
-    if (newPassword.length < 8) { setError("Password minimal 8 karakter."); return; }
+    // Trim: sumber gagal-login paling umum adalah spasi tak sengaja ikut ter-copy/ter-autofill.
+    const pw = newPassword.trim();
+    if (pw.length < 8) { setError("Password minimal 8 karakter."); return; }
     setSaving(true);
     setError("");
     try {
@@ -95,12 +97,13 @@ export default function KelolaAkunPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session?.access_token ?? ""}`,
         },
-        body: JSON.stringify({ userId: pwTarget.id, newPassword }),
+        body: JSON.stringify({ userId: pwTarget.id, newPassword: pw }),
       });
       const json = await res.json();
       if (!res.ok || json.error) {
         setError(json.error || "Gagal mengubah password.");
       } else {
+        setNewPassword(pw);
         setSuccess("Password berhasil diubah.");
       }
     } catch {
@@ -213,7 +216,8 @@ export default function KelolaAkunPage() {
                     <label style={{ color: "rgba(101,67,14,0.55)", fontSize: ".8rem", display: "block", marginBottom: 6 }}>Password Baru</label>
                     <div style={{ display: "flex", gap: 8 }}>
                       <input type={showPw ? "text" : "password"} value={newPassword} onChange={e => setNewPassword(e.target.value)}
-                        placeholder="Min. 8 karakter" style={inputStyle} />
+                        placeholder="Min. 8 karakter" style={inputStyle}
+                        autoComplete="new-password" autoCapitalize="off" autoCorrect="off" spellCheck={false} />
                       <button type="button" onClick={() => setShowPw(s => !s)}
                         style={{ background: "rgba(255,255,255,0.72)", border: "1px solid rgba(201,162,39,0.2)", borderRadius: 10, padding: "0 12px", color: "#8B6010", cursor: "pointer", fontSize: ".78rem", whiteSpace: "nowrap" }}>
                         {showPw ? "Sembunyikan" : "Lihat"}
