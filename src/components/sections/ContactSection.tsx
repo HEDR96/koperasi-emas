@@ -53,12 +53,16 @@ export default function ContactSection() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <Badge variant="gold" className="mb-4">Hubungi Kami</Badge>
+          <Badge variant="gold" className="mb-4">{s.kontakBadge || "Hubungi Kami"}</Badge>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4" style={{ color:"#2D1B00" }}>
-            Kami Siap <span className="text-gold-gradient">Membantu Anda</span>
+            {s.kontakTitle ? (
+              <span className="text-gold-gradient">{s.kontakTitle}</span>
+            ) : (
+              <>Kami Siap <span className="text-gold-gradient">Membantu Anda</span></>
+            )}
           </h2>
           <p style={{ color:"rgba(45,27,0,0.8)" }} className="max-w-xl mx-auto">
-            Tim kami tersedia 7 hari seminggu untuk menjawab pertanyaan dan membantu kebutuhan Anda.
+            {s.kontakSubtitle || "Tim kami tersedia 7 hari seminggu untuk menjawab pertanyaan dan membantu kebutuhan Anda."}
           </p>
         </motion.div>
 

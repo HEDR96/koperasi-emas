@@ -81,7 +81,7 @@ export default function HeroSection() {
           className="inline-flex items-center gap-2 glass-dark gold-border-glow px-4 py-2 rounded-full text-sm mb-8"
           style={{ color:"#8B6010" }}>
           <Shield style={{ width:16, height:16 }} />
-          <span style={{ fontWeight:500 }}>Terdaftar Kementerian Koperasi & UKM RI</span>
+          <span style={{ fontWeight:500 }}>{s.heroBadge || "Terdaftar Kementerian Koperasi & UKM RI"}</span>
           <Award style={{ width:16, height:16 }} />
         </motion.div>
 
@@ -90,8 +90,7 @@ export default function HeroSection() {
           initial={{ opacity:0, y:30 }} animate={{ opacity:1, y:0 }} transition={{ delay:.35, duration:.8 }}
           style={{ fontSize:"clamp(2rem, 6vw, 4.5rem)", fontWeight:900, lineHeight:1.1, marginBottom:"1.5rem", color:"#2D1B00", letterSpacing:"-0.02em" }}
         >
-          Investasi Emas{" "}
-          <span className="text-gold-gradient">{s.tagline || "Aman & Terpercaya"}</span>
+          <span className="text-gold-gradient">{s.tagline || "Investasi Emas Aman & Terpercaya"}</span>
           <br />
           Bersama{" "}
           <span style={{ position:"relative", display:"inline-block" }}>
@@ -105,8 +104,7 @@ export default function HeroSection() {
           initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay:.5 }}
           style={{ fontSize:"clamp(1rem,2vw,1.2rem)", color:"rgba(101,67,14,0.75)", maxWidth:640, margin:"0 auto 2.5rem", lineHeight:1.7 }}
         >
-          Platform koperasi emas terpercaya untuk {s.totalAnggota || "150.000+"} anggota Indonesia.
-          Tabung, cicil, buyback, gadai simpanan, dan dapatkan SHU tahunan.
+          {s.heroSubtitle || `Platform koperasi emas terpercaya untuk ${s.totalAnggota || "150.000+"} anggota Indonesia. Tabung, cicil, buyback, gadai simpanan, dan dapatkan SHU tahunan.`}
         </motion.p>
 
         {/* CTAs */}
@@ -117,12 +115,12 @@ export default function HeroSection() {
           <Link href={isDemoMode() ? "#simulasi" : "/auth/login"}>
             <button className="btn-gold pulse-glow" style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"14px 32px", borderRadius:14, fontSize:"1rem", border:"none", cursor:"pointer" }}>
               <TrendingUp style={{ width:20, height:20 }} />
-              {isDemoMode() ? "Coba Simulasi Investasi" : "Masuk & Mulai Investasi"}
+              {isDemoMode() ? "Coba Simulasi Investasi" : (s.heroCtaPrimary || "Masuk & Mulai Investasi")}
             </button>
           </Link>
           <Link href="#harga-emas" className="btn-outline-gold" style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"14px 28px", borderRadius:14, fontSize:"1rem", textDecoration:"none" }}>
             <TrendingUp style={{ width:18, height:18 }} />
-            Lihat Harga Emas
+            {s.heroCtaSecondary || "Lihat Harga Emas"}
           </Link>
         </motion.div>
 

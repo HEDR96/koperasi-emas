@@ -15,8 +15,18 @@ const ICONS: Record<string, any> = {
   Landmark, BadgeDollarSign,
 };
 
+function parseFeaturesJson(json: string): { icon: string; title: string; desc: string }[] {
+  if (!json) return FEATURES;
+  try {
+    const parsed = JSON.parse(json);
+    if (Array.isArray(parsed) && parsed.length) return parsed;
+  } catch {}
+  return FEATURES;
+}
+
 export default function FeaturesSection() {
   const s = useSiteSettings();
+  const featureItems = parseFeaturesJson(s.featuresJson);
   return (
     <section id="tentang" style={{ padding:"80px 0", background:"transparent", position:"relative", overflow:"hidden" }}>
       <div style={{ position:"absolute", top:0, left:0, right:0, bottom:0, background:"linear-gradient(180deg, transparent 0%, rgba(255,252,220,0.3) 50%, transparent 100%)", pointerEvents:"none" }} />
@@ -28,20 +38,23 @@ export default function FeaturesSection() {
           style={{ textAlign:"center", marginBottom:52 }}
         >
           <span className="badge-gold" style={{ display:"inline-flex", padding:"5px 16px", borderRadius:20, fontSize:".78rem", fontWeight:600, marginBottom:16 }}>
-            Fitur Lengkap
+            {s.featuresBadge || "Fitur Lengkap"}
           </span>
           <h2 style={{ fontSize:"clamp(1.8rem,4vw,3rem)", fontWeight:900, color:"#2D1B00", marginBottom:14, lineHeight:1.1 }}>
-            Semua Kebutuhan Emas{" "}
-            <span className="text-gold-gradient">dalam Satu Platform</span>
+            {s.featuresTitle ? (
+              <span className="text-gold-gradient">{s.featuresTitle}</span>
+            ) : (
+              <>Semua Kebutuhan Emas{" "}<span className="text-gold-gradient">dalam Satu Platform</span></>
+            )}
           </h2>
           <p style={{ color:"rgba(45,27,0,0.82)", fontSize:"clamp(.9rem,1.5vw,1.1rem)", maxWidth:540, margin:"0 auto", lineHeight:1.7 }}>
-            Dari Simpanan harian hingga investasi jangka panjang, ekosistem lengkap untuk perjalanan emas Anda.
+            {s.featuresSubtitle || "Dari Simpanan harian hingga investasi jangka panjang, ekosistem lengkap untuk perjalanan emas Anda."}
           </p>
         </motion.div>
 
         {/* Grid */}
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))", gap:14 }}>
-          {FEATURES.map((f, i) => {
+          {featureItems.map((f, i) => {
             const Icon = ICONS[f.icon];
             return (
               <motion.div key={f.title} data-hover="1"

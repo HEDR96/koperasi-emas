@@ -6,10 +6,12 @@ import { Badge } from "@/components/ui/Badge";
 import { ChevronDown, HelpCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { FAQ_ITEMS } from "@/lib/constants";
+import { useSiteSettings } from "@/store/useSettingsStore";
 
 interface FAQItem { id?: number; question: string; answer: string; }
 
 export default function FAQSection() {
+  const s = useSiteSettings();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const [items, setItems] = useState<FAQItem[]>(FAQ_ITEMS);
 
@@ -31,11 +33,15 @@ export default function FAQSection() {
 
       <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} className="text-center mb-12">
-          <Badge variant="gold" className="mb-4">FAQ</Badge>
+          <Badge variant="gold" className="mb-4">{s.faqBadge || "FAQ"}</Badge>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4" style={{ color:"#2D1B00" }}>
-            Pertanyaan <span className="text-gold-gradient">Umum</span>
+            {s.faqTitle ? (
+              <span className="text-gold-gradient">{s.faqTitle}</span>
+            ) : (
+              <>Pertanyaan <span className="text-gold-gradient">Umum</span></>
+            )}
           </h2>
-          <p style={{ color:"rgba(45,27,0,0.8)" }}>Temukan jawaban atas pertanyaan yang paling sering ditanyakan.</p>
+          <p style={{ color:"rgba(45,27,0,0.8)" }}>{s.faqSubtitle || "Temukan jawaban atas pertanyaan yang paling sering ditanyakan."}</p>
         </motion.div>
 
         <div className="space-y-3">

@@ -66,11 +66,11 @@ export default function TestimonialsSection() {
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} className="text-center mb-12">
-          <Badge variant="gold" className="mb-4">Testimoni Anggota</Badge>
+          <Badge variant="gold" className="mb-4">{s.testimoniBadge || "Testimoni Anggota"}</Badge>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4" style={{ color:"#2D1B00" }}>
             Dipercaya <span className="text-gold-gradient">{s.totalAnggota || "150.000+"} Anggota</span>
           </h2>
-          <p style={{ color:"rgba(45,27,0,0.8)" }}>Cerita sukses anggota koperasi dari seluruh Indonesia.</p>
+          <p style={{ color:"rgba(45,27,0,0.8)" }}>{s.testimoniSubtitle || "Cerita sukses anggota koperasi dari seluruh Indonesia."}</p>
         </motion.div>
 
         <div className="relative">

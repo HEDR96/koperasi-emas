@@ -24,6 +24,27 @@ export interface SiteSettings {
   totalAnggota:   string;   // total_anggota → Hero subtitle, Testimonials, Footer
   simpananPokok:  string;   // simpanan_pokok → FeaturesSection note
   simpananWajib:  string;   // simpanan_wajib → FeaturesSection note
+
+  // Teks section landing page (semua diatur dari Pengaturan)
+  heroBadge:         string;   // hero_badge
+  heroSubtitle:      string;   // hero_subtitle
+  heroCtaPrimary:    string;   // hero_cta_primary
+  heroCtaSecondary:  string;   // hero_cta_secondary
+  featuresBadge:     string;   // features_badge
+  featuresTitle:     string;   // features_title
+  featuresSubtitle:  string;   // features_subtitle
+  featuresJson:      string;   // features_json → daftar kartu fitur (JSON)
+  promoBadge:        string;   // promo_badge
+  promoTitle:        string;   // promo_title
+  promoSubtitle:     string;   // promo_subtitle
+  testimoniBadge:    string;   // testimoni_badge
+  testimoniSubtitle: string;   // testimoni_subtitle
+  faqBadge:          string;   // faq_badge
+  faqTitle:          string;   // faq_title
+  faqSubtitle:       string;   // faq_subtitle
+  kontakBadge:       string;   // kontak_badge
+  kontakTitle:       string;   // kontak_title
+  kontakSubtitle:    string;   // kontak_subtitle
 }
 
 // Keys DB → field store
@@ -42,6 +63,26 @@ const KEY_MAP: Record<string, keyof SiteSettings> = {
   total_anggota:   "totalAnggota",
   simpanan_pokok:  "simpananPokok",
   simpanan_wajib:  "simpananWajib",
+
+  hero_badge:         "heroBadge",
+  hero_subtitle:      "heroSubtitle",
+  hero_cta_primary:   "heroCtaPrimary",
+  hero_cta_secondary: "heroCtaSecondary",
+  features_badge:     "featuresBadge",
+  features_title:     "featuresTitle",
+  features_subtitle:  "featuresSubtitle",
+  features_json:      "featuresJson",
+  promo_badge:        "promoBadge",
+  promo_title:        "promoTitle",
+  promo_subtitle:     "promoSubtitle",
+  testimoni_badge:    "testimoniBadge",
+  testimoni_subtitle: "testimoniSubtitle",
+  faq_badge:          "faqBadge",
+  faq_title:          "faqTitle",
+  faq_subtitle:       "faqSubtitle",
+  kontak_badge:       "kontakBadge",
+  kontak_title:       "kontakTitle",
+  kontak_subtitle:    "kontakSubtitle",
 };
 
 const DEFAULTS: SiteSettings = {
@@ -59,6 +100,26 @@ const DEFAULTS: SiteSettings = {
   totalAnggota:   "150.000+",
   simpananPokok:  "Rp 5.000.000",
   simpananWajib:  "Rp 200.000/bulan",
+
+  heroBadge:         "",
+  heroSubtitle:      "",
+  heroCtaPrimary:    "",
+  heroCtaSecondary:  "",
+  featuresBadge:     "",
+  featuresTitle:     "",
+  featuresSubtitle:  "",
+  featuresJson:      "",
+  promoBadge:        "",
+  promoTitle:        "",
+  promoSubtitle:     "",
+  testimoniBadge:    "",
+  testimoniSubtitle: "",
+  faqBadge:          "",
+  faqTitle:          "",
+  faqSubtitle:       "",
+  kontakBadge:       "",
+  kontakTitle:       "",
+  kontakSubtitle:    "",
 };
 
 interface SettingsState extends SiteSettings {
@@ -126,6 +187,26 @@ export function useSiteSettings(): SiteSettings {
       totalAnggota:   s.totalAnggota,
       simpananPokok:  s.simpananPokok,
       simpananWajib:  s.simpananWajib,
+
+      heroBadge:         s.heroBadge,
+      heroSubtitle:      s.heroSubtitle,
+      heroCtaPrimary:    s.heroCtaPrimary,
+      heroCtaSecondary:  s.heroCtaSecondary,
+      featuresBadge:     s.featuresBadge,
+      featuresTitle:     s.featuresTitle,
+      featuresSubtitle:  s.featuresSubtitle,
+      featuresJson:      s.featuresJson,
+      promoBadge:        s.promoBadge,
+      promoTitle:        s.promoTitle,
+      promoSubtitle:     s.promoSubtitle,
+      testimoniBadge:    s.testimoniBadge,
+      testimoniSubtitle: s.testimoniSubtitle,
+      faqBadge:          s.faqBadge,
+      faqTitle:          s.faqTitle,
+      faqSubtitle:       s.faqSubtitle,
+      kontakBadge:       s.kontakBadge,
+      kontakTitle:       s.kontakTitle,
+      kontakSubtitle:    s.kontakSubtitle,
     }))
   );
 }

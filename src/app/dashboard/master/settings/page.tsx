@@ -6,6 +6,17 @@ import { Save, RefreshCw, CheckCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useSettingsStore, waNumber } from "@/store/useSettingsStore";
 import RupiahInput from "@/components/ui/RupiahInput";
+import { FEATURES } from "@/lib/constants";
+
+const ICON_OPTIONS = [
+  "PiggyBank","CreditCard","ArrowLeftRight","TrendingUp",
+  "ShoppingBag","Send","Users","Gift","FileText","Wallet",
+  "Landmark","BadgeDollarSign",
+];
+
+interface FeatureCard { icon: string; title: string; desc: string; }
+
+const DEFAULT_FEATURES: FeatureCard[] = FEATURES.map(f => ({ icon: f.icon, title: f.title, desc: f.desc }));
 
 // Bersihkan input persen: hanya digit & satu titik desimal.
 const sanitizePercent = (v: string) => {
@@ -28,6 +39,31 @@ const DEFAULTS: Setting[] = [
   { key:"tagline",        value:"Investasi Emas Terpercaya",    label:"Tagline / Slogan",        type:"text",     group_name:"Informasi Umum" },
   { key:"legal_number",   value:"BH.0012345/KOP.2019",          label:"Nomor Badan Hukum",       type:"text",     group_name:"Informasi Umum" },
   { key:"total_anggota",  value:"150.000+",                     label:"Jumlah Anggota (tampil)", type:"text",     group_name:"Informasi Umum" },
+  // Hero / Beranda
+  { key:"hero_badge",         value:"Terdaftar Kementerian Koperasi & UKM RI", label:"Badge Atas Judul",   type:"text",     group_name:"Hero (Beranda)" },
+  { key:"hero_subtitle",      value:"Platform koperasi emas terpercaya untuk 150.000+ anggota Indonesia. Tabung, cicil, buyback, gadai simpanan, dan dapatkan SHU tahunan.", label:"Subjudul", type:"textarea", group_name:"Hero (Beranda)" },
+  { key:"hero_cta_primary",   value:"Masuk & Mulai Investasi",  label:"Tombol CTA Utama",   type:"text",     group_name:"Hero (Beranda)" },
+  { key:"hero_cta_secondary", value:"Lihat Harga Emas",         label:"Tombol CTA Kedua",   type:"text",     group_name:"Hero (Beranda)" },
+  // Fitur Unggulan
+  { key:"features_badge",    value:"Fitur Lengkap",                        label:"Badge",    type:"text",     group_name:"Fitur Unggulan" },
+  { key:"features_title",    value:"Semua Kebutuhan Emas dalam Satu Platform", label:"Judul", type:"text",     group_name:"Fitur Unggulan" },
+  { key:"features_subtitle", value:"Dari Simpanan harian hingga investasi jangka panjang, ekosistem lengkap untuk perjalanan emas Anda.", label:"Subjudul", type:"textarea", group_name:"Fitur Unggulan" },
+  { key:"features_json",     value:JSON.stringify(DEFAULT_FEATURES),       label:"Kartu Fitur", type:"features_list", group_name:"Fitur Unggulan" },
+  // Promo
+  { key:"promo_badge",    value:"Produk & Penawaran",       label:"Badge",    type:"text",     group_name:"Promo" },
+  { key:"promo_title",    value:"Produk Unggulan Kami",     label:"Judul",    type:"text",     group_name:"Promo" },
+  { key:"promo_subtitle", value:"Pilih produk, tambahkan ke keranjang, dan pesan langsung via WhatsApp.", label:"Subjudul", type:"textarea", group_name:"Promo" },
+  // Testimoni
+  { key:"testimoni_badge",    value:"Testimoni Anggota",                  label:"Badge",    type:"text",     group_name:"Testimoni" },
+  { key:"testimoni_subtitle", value:"Cerita sukses anggota koperasi dari seluruh Indonesia.", label:"Subjudul", type:"textarea", group_name:"Testimoni" },
+  // FAQ
+  { key:"faq_badge",    value:"FAQ",                    label:"Badge",    type:"text",     group_name:"FAQ" },
+  { key:"faq_title",    value:"Pertanyaan Umum",         label:"Judul",    type:"text",     group_name:"FAQ" },
+  { key:"faq_subtitle", value:"Temukan jawaban atas pertanyaan yang paling sering ditanyakan.", label:"Subjudul", type:"textarea", group_name:"FAQ" },
+  // Section Kontak (teks landing page, bukan data kontak)
+  { key:"kontak_badge",    value:"Hubungi Kami",            label:"Badge",    type:"text",     group_name:"Section Kontak" },
+  { key:"kontak_title",    value:"Kami Siap Membantu Anda", label:"Judul",    type:"text",     group_name:"Section Kontak" },
+  { key:"kontak_subtitle", value:"Tim kami tersedia 7 hari seminggu untuk menjawab pertanyaan dan membantu kebutuhan Anda.", label:"Subjudul", type:"textarea", group_name:"Section Kontak" },
   // Bisnis
   { key:"jam_operasional",value:"Senin – Sabtu: 08.00 – 17.00 WIB", label:"Jam Operasional",   type:"text",     group_name:"Bisnis" },
   { key:"simpanan_pokok", value:"Rp 5.000.000",                 label:"Simpanan Pokok",          type:"text",     group_name:"Bisnis" },
@@ -53,7 +89,10 @@ const DEFAULTS: Setting[] = [
   { key:"gadai_persen_anggota",  value:"0", label:"Persen Gadai Anggota (%)",       type:"percent", group_name:"Gadai" },
 ];
 
-const GROUPS = ["Informasi Umum","Bisnis","Kontak","Lokasi","Cicilan","Gadai"];
+const GROUPS = [
+  "Informasi Umum","Hero (Beranda)","Fitur Unggulan","Promo","Testimoni","FAQ","Section Kontak",
+  "Bisnis","Kontak","Lokasi","Cicilan","Gadai",
+];
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string,string>>({});
@@ -65,6 +104,22 @@ export default function SettingsPage() {
   const [savingGadai, setSavingGadai]     = useState(false);
   const [savedGadai, setSavedGadai]       = useState(false);
   const [error, setError]           = useState("");
+  const [featuresList, setFeaturesList] = useState<FeatureCard[]>(DEFAULT_FEATURES);
+
+  function parseFeatures(json: string): FeatureCard[] {
+    try {
+      const parsed = JSON.parse(json);
+      if (Array.isArray(parsed) && parsed.length) return parsed;
+    } catch {}
+    return DEFAULT_FEATURES;
+  }
+
+  // Update daftar kartu fitur + simpan sebagai JSON di settings["features_json"]
+  // supaya ikut tersimpan lewat tombol "Simpan Pengaturan" utama.
+  function syncFeaturesJson(next: FeatureCard[]) {
+    setFeaturesList(next);
+    setSettings(s => ({ ...s, features_json: JSON.stringify(next) }));
+  }
 
   async function load() {
     setLoading(true);
@@ -76,11 +131,13 @@ export default function SettingsPage() {
       // override with DB values
       (data||[]).forEach((row:any) => { map[row.key] = row.value ?? ""; });
       setSettings(map);
+      setFeaturesList(parseFeatures(map["features_json"]));
     } catch {
       // table may not exist yet, use defaults
       const map: Record<string,string> = {};
       DEFAULTS.forEach(d => { map[d.key] = d.value; });
       setSettings(map);
+      setFeaturesList(parseFeatures(map["features_json"]));
     }
     setLoading(false);
   }
@@ -116,6 +173,26 @@ export default function SettingsPage() {
           address:        (settings["address"]         ?? "").trim(),
           mapEmbed:       (settings["map_embed"]       ?? "").trim(),
           mapUrl:         (settings["map_url"]         ?? "").trim(),
+
+          heroBadge:         (settings["hero_badge"]         ?? "").trim(),
+          heroSubtitle:      (settings["hero_subtitle"]      ?? "").trim(),
+          heroCtaPrimary:    (settings["hero_cta_primary"]   ?? "").trim(),
+          heroCtaSecondary:  (settings["hero_cta_secondary"] ?? "").trim(),
+          featuresBadge:     (settings["features_badge"]     ?? "").trim(),
+          featuresTitle:     (settings["features_title"]     ?? "").trim(),
+          featuresSubtitle:  (settings["features_subtitle"]  ?? "").trim(),
+          featuresJson:      (settings["features_json"]      ?? "").trim(),
+          promoBadge:        (settings["promo_badge"]        ?? "").trim(),
+          promoTitle:        (settings["promo_title"]        ?? "").trim(),
+          promoSubtitle:     (settings["promo_subtitle"]     ?? "").trim(),
+          testimoniBadge:    (settings["testimoni_badge"]    ?? "").trim(),
+          testimoniSubtitle: (settings["testimoni_subtitle"] ?? "").trim(),
+          faqBadge:          (settings["faq_badge"]          ?? "").trim(),
+          faqTitle:          (settings["faq_title"]          ?? "").trim(),
+          faqSubtitle:       (settings["faq_subtitle"]       ?? "").trim(),
+          kontakBadge:       (settings["kontak_badge"]       ?? "").trim(),
+          kontakTitle:       (settings["kontak_title"]       ?? "").trim(),
+          kontakSubtitle:    (settings["kontak_subtitle"]    ?? "").trim(),
           status: "ready",
         });
         setSaved(true); setTimeout(()=>setSaved(false), 2500);
@@ -229,7 +306,7 @@ export default function SettingsPage() {
         <p style={{ color:"rgba(101,67,14,0.35)" }}>Memuat pengaturan...</p>
       ) : (
         GROUPS.map(group => {
-          const fields = DEFAULTS.filter(d => d.group_name === group);
+          const fields = DEFAULTS.filter(d => d.group_name === group && d.type !== "features_list");
           return (
             <motion.div key={group} initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }}
               style={{ background:"rgba(255,255,255,0.72)", border:"1px solid rgba(201,162,39,0.15)", borderRadius:16, overflow:"hidden" }}>
@@ -263,6 +340,45 @@ export default function SettingsPage() {
                     )}
                   </div>
                 ))}
+
+                {/* Fitur Unggulan: editor daftar kartu */}
+                {group === "Fitur Unggulan" && (
+                  <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                      <label style={{ color:"rgba(101,67,14,0.55)", fontSize:".8rem" }}>Kartu Fitur ({featuresList.length})</label>
+                      <button type="button"
+                        onClick={() => syncFeaturesJson([...featuresList, { icon:"Gift", title:"Fitur Baru", desc:"" }])}
+                        style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 14px", borderRadius:8, background:"rgba(201,162,39,0.12)", border:"1px solid rgba(201,162,39,0.3)", color:"#8B6010", cursor:"pointer", fontSize:".78rem", fontWeight:700 }}>
+                        + Tambah Kartu
+                      </button>
+                    </div>
+                    {featuresList.map((f, i) => (
+                      <div key={i} style={{ border:"1px solid rgba(201,162,39,0.18)", borderRadius:12, padding:14, display:"flex", flexDirection:"column", gap:8, background:"rgba(255,255,255,0.5)" }}>
+                        <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                          <select value={f.icon}
+                            onChange={e => syncFeaturesJson(featuresList.map((it,idx) => idx===i ? {...it, icon:e.target.value} : it))}
+                            style={{ ...inputStyle, width:170, flexShrink:0 }}>
+                            {ICON_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                          </select>
+                          <input value={f.title} placeholder="Judul kartu"
+                            onChange={e => syncFeaturesJson(featuresList.map((it,idx) => idx===i ? {...it, title:e.target.value} : it))}
+                            style={{ ...inputStyle, flex:1 }} />
+                          <button type="button" onClick={() => syncFeaturesJson(featuresList.filter((_,idx) => idx!==i))}
+                            title="Hapus kartu"
+                            style={{ width:34, height:34, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:8, background:"rgba(153,27,27,0.08)", border:"1px solid rgba(248,113,113,0.25)", color:"#991b1b", cursor:"pointer" }}>
+                            ✕
+                          </button>
+                        </div>
+                        <textarea value={f.desc} rows={2} placeholder="Deskripsi kartu"
+                          onChange={e => syncFeaturesJson(featuresList.map((it,idx) => idx===i ? {...it, desc:e.target.value} : it))}
+                          style={{ ...inputStyle, resize:"vertical", fontFamily:"inherit" }} />
+                      </div>
+                    ))}
+                    {featuresList.length===0 && (
+                      <p style={{ color:"rgba(101,67,14,0.35)", fontSize:".78rem", margin:0 }}>Belum ada kartu fitur. Klik "Tambah Kartu" untuk menambahkan.</p>
+                    )}
+                  </div>
+                )}
 
                 {/* Gadai: preview kalkulasi + tombol simpan sendiri */}
                 {group === "Gadai" && (() => {

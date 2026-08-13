@@ -189,13 +189,17 @@ export default function PromoSection() {
             </button>
           )}
           <span style={{ display:"inline-flex", alignItems:"center", gap:6, background:"rgba(201,162,39,0.1)", border:"1px solid rgba(201,162,39,0.3)", borderRadius:20, padding:"5px 16px", color:"#8B6010", fontWeight:700, fontSize:".78rem", marginBottom:14 }}>
-            <Package style={{ width:14, height:14 }} /> Produk & Penawaran
+            <Package style={{ width:14, height:14 }} /> {settings.promoBadge || "Produk & Penawaran"}
           </span>
           <h2 style={{ color:"#2D1B00", fontWeight:900, fontSize:"clamp(1.8rem,4vw,2.8rem)", marginBottom:12 }}>
-            Produk{" "}<span className="text-gold-gradient">Unggulan Kami</span>
+            {settings.promoTitle ? (
+              <span className="text-gold-gradient">{settings.promoTitle}</span>
+            ) : (
+              <>Produk{" "}<span className="text-gold-gradient">Unggulan Kami</span></>
+            )}
           </h2>
           <p style={{ color:"rgba(45,27,0,0.8)", fontSize:"clamp(.9rem,2vw,1.05rem)", maxWidth:500, margin:"0 auto" }}>
-            Pilih produk, tambahkan ke keranjang, dan pesan langsung via WhatsApp.
+            {settings.promoSubtitle || "Pilih produk, tambahkan ke keranjang, dan pesan langsung via WhatsApp."}
           </p>
         </motion.div>
 
